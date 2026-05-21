@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spice CGPA Pro | Nigerian Academic Calculator</title>
+    <meta name="description" content="Calculate your CGPA accurately with the Nigerian 5-point grading system. Modern, fast, and secure.">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="src/css/style.css">
+    
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="src/js/auth.js"></script>
+    <script>checkAuth();</script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass">
+            <div class="logo-area" style="margin-bottom: 3rem;">
+                <h2 class="font-heading" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i data-lucide="graduation-cap" style="color: var(--primary);"></i>
+                    SpiceCGPA<span style="color: var(--primary);">.</span>
+                </h2>
+            </div>
+            
+            <nav style="flex: 1;">
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <li>
+                        <a href="#" id="nav-dashboard" class="btn nav-link active" style="width: 100%; justify-content: flex-start;">
+                            <i data-lucide="layout-dashboard"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="nav-courses" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                            <i data-lucide="book-open"></i> Courses
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="nav-profile" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                            <i data-lucide="user"></i> Profile
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="nav-planner" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                            <i data-lucide="calendar"></i> Academic Planner
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="nav-resources" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                            <i data-lucide="folder-kanban"></i> Course Resources
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="nav-archives" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                            <i data-lucide="archive"></i> Semester Archives
+                        </a>
+                    </li>
+                    <li id="nav-item-admin" style="display: none;">
+                        <a href="#" id="nav-admin" class="btn nav-link" style="width: 100%; justify-content: flex-start; color: var(--warning);">
+                            <i data-lucide="activity"></i> Site Analytics
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="nav-settings" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                            <i data-lucide="settings"></i> Advanced Settings
+                        </a>
+                    </li>
+                    <li style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                        <a href="#" id="logout-btn" class="btn" style="width: 100%; justify-content: flex-start; color: var(--danger);">
+                            <i data-lucide="log-out"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="profile-preview glass-card" style="padding: 1rem; margin-top: auto; cursor: pointer;" id="profile-trigger">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div id="sidebar-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; flex-shrink: 0;">
+                        <i data-lucide="user"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <p id="student-session" style="font-weight: 600; font-size: 0.875rem;">Academic Session</p>
+                        <p id="student-uni" style="font-size: 0.75rem; color: var(--text-secondary);">Your University</p>
+                    </div>
+                    <i data-lucide="chevron-right" style="width: 16px; color: var(--text-secondary);"></i>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <div id="main-header-title">
+                    <h1 id="dashboard-welcome" class="font-heading animate-fade-in" style="font-size: 2.5rem; margin-bottom: 0.5rem;">Academic Dashboard</h1>
+                    <p id="dashboard-uni-info" style="color: var(--text-secondary);">Track your academic journey with precision.</p>
+                </div>
+                
+                <div style="display: flex; gap: 0.75rem; align-items: center; margin-left: auto;">
+                    <button id="theme-toggle" class="btn glass-card" style="padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem; border-color: var(--warning); color: var(--warning);">
+                        <i data-lucide="sun" id="theme-icon" style="width: 18px;"></i>
+                        <span style="font-size: 0.85rem;">Theme</span>
+                    </button>
+                    <button id="export-image" class="btn glass-card" style="padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem; border-color: var(--info); color: var(--info);">
+                        <i data-lucide="image" style="width: 18px;"></i>
+                        <span style="font-size: 0.85rem;">Save Image</span>
+                    </button>
+                    <button id="export-pdf" class="btn btn-primary" style="padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="download" style="width: 18px;"></i>
+                        <span style="font-size: 0.85rem;">Save PDF</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <div id="section-dashboard" class="app-section" style="display: block;">
+                <!-- Stats Overview -->
+                <div class="stats-grid">
+                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.1s;">
+                        <p class="input-label">Current CGPA</p>
+                        <h3 class="stat-value" id="cgpa-display">0.00</h3>
+                        <p id="standing-display" style="font-size: 0.875rem; font-weight: 600; color: var(--text-secondary);">Academic Standing</p>
+                    </div>
+                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.2s;">
+                        <p class="input-label">Total Units</p>
+                        <h3 class="stat-value" id="total-units-display" style="background: linear-gradient(to right, var(--accent), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">0</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Across all semesters</p>
+                    </div>
+                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.3s;">
+                        <p class="input-label">Grade Points</p>
+                        <h3 class="stat-value" id="total-points-display" style="background: linear-gradient(to right, var(--warning), var(--danger)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">0</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Cumulative points earned</p>
+                    </div>
+                </div>
+
+                <!-- Level Performance (Vanilla JS) -->
+                <div style="margin-top: 2rem; margin-bottom: 2rem;">
+                    <h2 class="font-heading" style="margin-bottom: 1rem; font-size: 1.25rem;">Level Breakdown</h2>
+                    <div id="level-performance-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+                    <!-- Semester Management -->
+                    <section>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                            <h2 class="font-heading">Semesters</h2>
+                            <button id="add-semester-btn" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+                                <i data-lucide="plus"></i> Add Semester
+                            </button>
+                        </div>
+                        
+                        <div id="semesters-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <!-- Semester Cards will be injected here -->
+                        </div>
+                    </section>
+
+                    <!-- Visualization & Profile -->
+                    <aside style="display: flex; flex-direction: column; gap: 2rem;">
+                        <div class="glass card">
+                            <h3 class="font-heading" style="margin-bottom: 1rem;">Performance Chart</h3>
+                            <div style="position: relative; height: 250px; width: 100%;">
+                                <canvas id="cgpaChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="glass card">
+                            <h3 class="font-heading" style="margin-bottom: 1rem;">Grading Guide</h3>
+                            <div id="grading-guide-container" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem;">
+                                <!-- Injected via JS based on Scale -->
+                            </div>
+                            
+                            <div class="converter-box">
+                                <p style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem;">Score Converter</p>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="number" id="convert-score" placeholder="Enter Score (%)" style="padding: 0.5rem; font-size: 0.875rem;">
+                                    <div id="convert-result" class="glass-card" style="padding: 0.5rem; min-width: 40px; text-align: center; font-weight: 800;">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <!-- Courses Section -->
+            <div id="section-courses" class="app-section" style="display: none;">
+                <div class="glass card animate-fade-in">
+                    <h2 class="font-heading" style="margin-bottom: 1.5rem;">All Registered Courses</h2>
+                    <div id="all-courses-container">
+                        <!-- Full course list injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Section -->
+            <div id="section-profile" class="app-section" style="display: none;">
+                <div class="glass card animate-fade-in" style="max-width: 600px; margin: 0 auto;">
+                    <h2 class="font-heading" style="margin-bottom: 1.5rem;">Student Profile Details</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+                        <!-- Profile Picture -->
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);">
+                            <div style="position: relative; display: inline-block;">
+                                <div id="profile-avatar-large" style="width: 96px; height: 96px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; border: 4px solid var(--border);">
+                                    <i data-lucide="user" style="width: 48px; height: 48px;"></i>
+                                </div>
+                                <button id="take-photo-btn" class="btn btn-primary" style="position: absolute; bottom: 0; right: -4px; padding: 0.4rem; border-radius: 50%; width: 32px; height: 32px; justify-content: center; display: flex; align-items: center;" title="Update Profile Picture">
+                                    <i data-lucide="camera" style="width: 14px; height: 14px;"></i>
+                                </button>
+                                <input type="file" id="profile-file-input" accept="image/*" style="display: none;">
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary);">Click the camera icon to update your profile picture</p>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Full Name</label>
+                            <input type="text" id="profile-edit-name" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Matric Number</label>
+                            <input type="text" id="profile-edit-matric" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Faculty</label>
+                            <input type="text" id="profile-edit-faculty" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label">Department</label>
+                            <input type="text" id="profile-edit-department" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                        </div>
+                        <button id="profile-update-btn" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Planner Section -->
+            <div id="section-planner" class="app-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 class="font-heading" style="font-size: 2.5rem;">Academic Planner</h1>
+                    <button id="add-task-btn" class="btn btn-primary">
+                        <i data-lucide="plus"></i> Add New Task
+                    </button>
+                </div>
+                <div id="planner-list" class="glass card" style="min-height: 400px;">
+                    <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                        <i data-lucide="calendar" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No upcoming tasks. Click "Add New Task" to stay organized!</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Course Resources Section -->
+            <div id="section-resources" class="app-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 class="font-heading" style="font-size: 2.5rem;">Course Resources</h1>
+                    <button id="add-resource-btn" class="btn btn-primary">
+                        <i data-lucide="plus"></i> Add Link/File
+                    </button>
+                </div>
+                <div id="resources-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <div class="glass card" style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
+                        <i data-lucide="folder-kanban" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>Your resource library is empty. Start adding handouts or portal links.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Semester Archives Section -->
+            <div id="section-archives" class="app-section" style="display: none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1 class="font-heading" style="font-size: 2.5rem;">Semester Archives</h1>
+                    <p style="color: var(--text-secondary);">A historical look at your academic journey.</p>
+                </div>
+                
+                <div class="glass card" style="margin-bottom: 2rem; padding: 2rem;">
+                    <h3 class="font-heading" style="margin-bottom: 1.5rem;">Academic Progress Trend</h3>
+                    <div style="height: 300px; width: 100%;">
+                        <canvas id="archiveProgressChart"></canvas>
+                    </div>
+                </div>
+
+                <div id="archives-container" class="glass card">
+                    <div style="text-align: center; padding: 4rem; color: var(--text-secondary);">
+                        <i data-lucide="archive" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <p>No archived semesters found yet.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Site Analytics Section -->
+            <div id="section-admin" class="app-section" style="display: none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1 class="font-heading" style="font-size: 2.5rem; color: var(--warning);">Site Analytics Dashboard</h1>
+                    <p style="color: var(--text-secondary);">Real-time metrics for Spice CGPA Pro.</p>
+                </div>
+                
+                <div class="stats-grid" style="margin-bottom: 2rem;">
+                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.1s; border-color: var(--primary);">
+                        <p class="input-label">Total Users</p>
+                        <h3 class="stat-value" id="admin-total-users">0</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Registered accounts</p>
+                    </div>
+                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.2s; border-color: var(--secondary);">
+                        <p class="input-label">Profile Pictures</p>
+                        <h3 class="stat-value" id="admin-total-pics">0</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Uploaded avatars</p>
+                    </div>
+                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.3s; border-color: var(--warning);">
+                        <p class="input-label">Total Courses</p>
+                        <h3 class="stat-value" id="admin-total-courses">0</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Saved by all users</p>
+                    </div>
+                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.4s; border-color: var(--danger);">
+                        <p class="input-label">Total Results</p>
+                        <h3 class="stat-value" id="admin-total-results">0</h3>
+                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Calculated semesters</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Analytics: Users & Pictures -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+                    
+                    <!-- Registered Users List -->
+                    <div class="glass card animate-fade-in" style="animation-delay: 0.5s;">
+                        <h3 class="font-heading" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="users" style="color: var(--primary);"></i> Registered Users
+                        </h3>
+                        <div id="admin-users-list" style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <!-- Injected via JS -->
+                            <p style="color: var(--text-secondary); text-align: center; padding: 1rem;">Loading users...</p>
+                        </div>
+                    </div>
+
+                    <!-- Profile Pictures Gallery -->
+                    <div class="glass card animate-fade-in" style="animation-delay: 0.6s;">
+                        <h3 class="font-heading" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="image" style="color: var(--secondary);"></i> Uploaded Pictures
+                        </h3>
+                        <div id="admin-pictures-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+                            <!-- Injected via JS -->
+                            <p style="color: var(--text-secondary); text-align: center; padding: 1rem; grid-column: 1 / -1;">Loading pictures...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Advanced Settings Section -->
+            <div id="section-settings" class="app-section" style="display: none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1 class="font-heading" style="font-size: 2.5rem;">Advanced Settings</h1>
+                    <p style="color: var(--text-secondary);">Customize your SpiceCGPA experience.</p>
+                </div>
+                <div class="glass card" style="max-width: 800px;">
+                    <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                        <!-- Appearance Card -->
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--warning);">
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: var(--warning); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                <i data-lucide="sun" style="width: 32px; height: 32px;"></i>
+                            </div>
+                            <h3 class="font-heading" style="margin-bottom: 0.5rem;">Appearance</h3>
+                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Switch between light and dark themes</p>
+                            <button id="settings-theme-toggle" class="btn btn-primary" style="width: 100%; background: var(--warning); border: none;">
+                                <i data-lucide="repeat" style="width: 18px;"></i> Toggle Theme
+                            </button>
+                        </div>
+
+                        <!-- Data Export Card -->
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--info);">
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(14, 165, 233, 0.1); color: var(--info); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                <i data-lucide="database" style="width: 32px; height: 32px;"></i>
+                            </div>
+                            <h3 class="font-heading" style="margin-bottom: 0.5rem;">Data Export</h3>
+                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Download your entire record as CSV</p>
+                            <button id="settings-export-btn" class="btn btn-primary" style="width: 100%; background: var(--info); border: none;">
+                                <i data-lucide="download" style="width: 18px;"></i> Export Data
+                            </button>
+                        </div>
+
+                        <!-- Grading Scale Card -->
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--accent);">
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                <i data-lucide="award" style="width: 32px; height: 32px;"></i>
+                            </div>
+                            <h3 class="font-heading" style="margin-bottom: 0.5rem;">Grading Scale</h3>
+                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Choose between 4.0 or 5.0 systems</p>
+                            <select id="settings-scale-select" class="glass-card" style="width: 100%; padding: 0.75rem; border: none; margin-bottom: 0.5rem;">
+                                <option value="5">Nigeria Standard (5.0 Scale)</option>
+                                <option value="4">International Standard (4.0 Scale)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="course-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+        <h3 class="font-heading" style="margin-bottom: 1.5rem;">Add Course</h3>
+        <div class="input-group">
+            <label class="input-label">Course Title</label>
+            <input type="text" id="modal-course-title" placeholder="e.g. GST 101">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="input-group">
+                <label class="input-label">Credit Units</label>
+                <input type="number" id="modal-course-units" min="1" max="10" value="3">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Grade</label>
+                <select id="modal-course-grade">
+                    <option value="5">A (5.0)</option>
+                    <option value="4">B (4.0)</option>
+                    <option value="3">C (3.0)</option>
+                    <option value="2">D (2.0)</option>
+                    <option value="1">E (1.0)</option>
+                    <option value="0">F (0.0)</option>
+                </select>
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button id="modal-cancel" class="btn glass-card" style="flex: 1; color: var(--danger);">Cancel</button>
+            <button id="modal-save" class="btn btn-primary" style="flex: 1;">Save Course</button>
+        </div>
+    </div>
+
+    <!-- University Settings Modal -->
+    <div id="uni-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+        <h3 class="font-heading" style="margin-bottom: 1.5rem;">University Settings</h3>
+        <div class="input-group">
+            <label class="input-label">University Name</label>
+            <input type="text" id="modal-uni-name" placeholder="e.g. University of Lagos">
+        </div>
+        <div class="input-group">
+            <label class="input-label">Academic Session</label>
+            <input type="text" id="modal-session" placeholder="e.g. 2023/2024">
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button id="uni-modal-cancel" class="btn glass-card" style="flex: 1; color: var(--danger);">Cancel</button>
+            <button id="uni-modal-save" class="btn btn-primary" style="flex: 1;">Save Settings</button>
+        </div>
+    </div>
+    
+    <div id="modal-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 90; display: none;"></div>
+
+    <!-- Photo Selection Modal -->
+    <div id="photo-select-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 150; display: none; align-items: center; justify-content: center; padding: 1rem;">
+        <div class="glass" style="width: 100%; max-width: 360px; padding: 2rem; position: relative; text-align: center;">
+            <button id="photo-select-close-btn" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem;">
+                <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+            </button>
+            <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.5rem;">Update Profile Picture</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 2rem;">Do you want to add a picture or take a picture?</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <button id="photo-select-upload-btn" class="btn btn-primary" style="width: 100%; background: var(--secondary); border: none; justify-content: center; gap: 0.5rem; padding: 0.75rem;">
+                    <i data-lucide="upload" style="width: 18px; height: 18px;"></i> Upload Image
+                </button>
+                <button id="photo-select-camera-btn" class="btn btn-primary" style="width: 100%; justify-content: center; gap: 0.5rem; padding: 0.75rem;">
+                    <i data-lucide="camera" style="width: 18px; height: 18px;"></i> Take Photo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div id="camera-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem;">
+        <div class="glass" style="width: 100%; max-width: 520px; padding: 2rem; position: relative;">
+            <button id="camera-close-btn" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem;">
+                <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+            </button>
+            <h3 class="font-heading" style="margin-bottom: 1.5rem;">Take Profile Picture</h3>
+            <div style="border-radius: 1rem; overflow: hidden; background: #000; aspect-ratio: 16/9; margin-bottom: 1.5rem;">
+                <video id="camera-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+            </div>
+            <canvas id="camera-canvas" style="display: none;"></canvas>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button id="camera-cancel-btn" class="btn glass-card" style="color: var(--danger);">Cancel</button>
+                <button id="camera-capture-btn" class="btn btn-primary">
+                    <i data-lucide="camera"></i> Capture
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Planner Modal -->
+    <div id="planner-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+        <h3 class="font-heading" style="margin-bottom: 1.5rem;">Add New Task</h3>
+        <div class="input-group">
+            <label class="input-label">Task Description</label>
+            <input type="text" id="modal-task-desc" placeholder="e.g. MTH 101 Assignment Due">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="input-group">
+                <label class="input-label">Due Date</label>
+                <input type="date" id="modal-task-date">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Priority</label>
+                <select id="modal-task-priority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <label class="input-label">Task Type</label>
+            <select id="modal-task-type">
+                <option value="assignment">Assignment</option>
+                <option value="test">Test / Quiz</option>
+                <option value="exam">Exam</option>
+                <option value="project">Project</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button id="planner-modal-cancel" class="btn glass-card" style="flex: 1; color: var(--danger);">Cancel</button>
+            <button id="planner-modal-save" class="btn btn-primary" style="flex: 1;">Save Task</button>
+        </div>
+    </div>
+
+    <!-- Resource Modal -->
+    <div id="resource-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+        <h3 class="font-heading" style="margin-bottom: 1.5rem;">Add Resource</h3>
+        <div class="input-group">
+            <label class="input-label">Resource Title</label>
+            <input type="text" id="modal-res-title" placeholder="e.g. University Portal">
+        </div>
+        <div class="input-group">
+            <label class="input-label">URL / Link</label>
+            <input type="url" id="modal-res-url" placeholder="https://...">
+        </div>
+        <div class="input-group">
+            <label class="input-label">Category</label>
+            <select id="modal-res-category">
+                <option value="portal">University Portal</option>
+                <option value="handout">Course Handout</option>
+                <option value="past_questions">Past Questions</option>
+                <option value="video">Study Video</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button id="resource-modal-cancel" class="btn glass-card" style="flex: 1; color: var(--danger);">Cancel</button>
+            <button id="resource-modal-save" class="btn btn-primary" style="flex: 1;">Save Resource</button>
+        </div>
+    </div>
+
+    <!-- JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="src/js/app.js"></script>
+    <script>
+        // Logout logic
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('user');
+            localStorage.removeItem('cgpa_profile');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

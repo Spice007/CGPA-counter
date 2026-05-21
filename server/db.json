@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "fullName": "Gideon",
+      "email": "gideonlastgids@gmail.com",
+      "password": "$2a$10$llLcbAVGi4yNwqkAdh1/4um4DyYSoVqgDoXjnIVXgnOzG1Nz6oxKO",
+      "matricNumber": "htutjtyjjyy/uttht/yrt20",
+      "department": "computer science",
+      "faculty": "colbass",
+      "_id": "94aa9250-5c69-4510-94c6-06cac47cda30",
+      "id": "94aa9250-5c69-4510-94c6-06cac47cda30",
+      "createdAt": "2026-05-13T13:47:12.194Z",
+      "updatedAt": "2026-05-13T13:47:12.194Z"
+    },
+    {
+      "fullName": "Goodluck Mmbotidem",
+      "email": "goodiepictures@gmail.com",
+      "password": "$2a$10$p8SkunZdoj7h9ZTwpVa4zea6UP0GDC7E09CqZ5c4L71ANGfOSmBum",
+      "matricNumber": "L/coc/csc/25/0003",
+      "department": "computer science",
+      "faculty": "colbass",
+      "_id": "fab8f1c6-a351-457f-a5fe-04901f0ac1f3",
+      "id": "fab8f1c6-a351-457f-a5fe-04901f0ac1f3",
+      "createdAt": "2026-05-13T17:59:57.269Z",
+      "updatedAt": "2026-05-13T17:59:57.269Z"
+    },
+    {
+      "fullName": "Ayomide Judah",
+      "email": "ayomidejudah3@gmail.com",
+      "password": "$2a$10$V1kJlpSME5dZq1G1UkaoYu8vHMWxFuFhcKGL33WMDURM9eFW70yE2",
+      "matricNumber": "L/CMS/MAC/24/0018",
+      "department": "Mass Communication",
+      "faculty": "Colmass",
+      "_id": "89385543-a05c-4965-8fab-fa0643515a87",
+      "id": "89385543-a05c-4965-8fab-fa0643515a87",
+      "createdAt": "2026-05-14T06:40:04.614Z",
+      "updatedAt": "2026-05-14T06:40:04.614Z"
+    }
+  ]
+}

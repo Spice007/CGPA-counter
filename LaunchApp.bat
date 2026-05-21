@@ -1,0 +1,4 @@
+@echo off
+echo Starting Naija CGPA Pro...
+start "" "index.html"
+exit

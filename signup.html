@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Spice CGPA Pro</title>
+    <meta name="description" content="Join Spice CGPA Pro — the smart Nigerian CGPA calculator for ambitious students.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+
+        body {
+            font-family:'Inter',sans-serif;
+            display:flex;
+            min-height:100vh;
+            background:#0f172a;
+            overflow-x:hidden;
+        }
+
+        /* ── Animated BG ── */
+        .bg-orbs {
+            position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;
+        }
+        .orb {
+            position:absolute;border-radius:50%;filter:blur(80px);opacity:0.18;animation:drift 12s ease-in-out infinite;
+        }
+        .orb-1{width:500px;height:500px;background:#10b981;top:-150px;left:-150px;animation-delay:0s;}
+        .orb-2{width:400px;height:400px;background:#6366f1;bottom:-100px;right:-100px;animation-delay:-4s;}
+        .orb-3{width:300px;height:300px;background:#8b5cf6;top:40%;left:40%;animation-delay:-8s;}
+        @keyframes drift {
+            0%,100%{transform:translate(0,0) scale(1);}
+            33%{transform:translate(30px,-20px) scale(1.05);}
+            66%{transform:translate(-20px,30px) scale(0.95);}
+        }
+
+        /* ── Layout ── */
+        .page-left {
+            width: 50%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 4rem;
+            z-index: 1;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+        }
+
+        .page-right {
+            width: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            z-index: 1;
+            overflow-y: auto;
+        }
+
+        /* ── Left Branding ── */
+        .brand-logo {
+            display: flex; align-items: center; gap: 0.75rem; margin-bottom: 3rem;
+        }
+        .logo-icon {
+            width: 52px; height: 52px; border-radius: 14px;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            display: flex; align-items: center; justify-content: center; color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+        .logo-text {
+            font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800; color: #fff;
+        }
+        .logo-text span { color: #10b981; }
+
+        .brand-headline {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.2rem; font-weight: 800;
+            line-height: 1.1; color: #f8fafc; margin-bottom: 1.5rem;
+        }
+        .brand-headline .grad {
+            background: linear-gradient(135deg, #10b981, #6366f1);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .brand-sub {
+            color: #cbd5e1; font-size: 1.1rem; line-height: 1.6; max-width: 400px; margin-bottom: 3rem;
+        }
+
+        /* Feature List */
+        .feature-list {
+            display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3.5rem;
+        }
+        .feature-item {
+            display: flex; align-items: center; gap: 1rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem; padding: 1rem;
+            transition: transform 0.3s, background 0.3s;
+        }
+        .feature-item:hover {
+            transform: translateX(10px);
+            background: rgba(255, 255, 255, 0.07);
+        }
+        .feature-icon {
+            width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .feature-icon.green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .feature-icon.purple { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
+        .feature-icon.amber { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .feature-item p { font-size: 0.95rem; color: #e2e8f0; font-weight: 500; }
+
+        /* Testimonial Section */
+        .testimonials-container {
+            position: relative;
+            height: 120px;
+            overflow: hidden;
+        }
+        .testimonial {
+            position: absolute;
+            width: 100%;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 1rem; padding: 1.25rem;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            transform: translateY(20px);
+        }
+        .testimonial.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .testimonial p { font-size: 0.9rem; color: #cbd5e1; line-height: 1.5; font-style: italic; margin-bottom: 0.75rem; }
+        .testimonial-author { display: flex; align-items: center; gap: 0.75rem; }
+        .testimonial-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #6366f1);
+            display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.85rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .testimonial-name { font-size: 0.85rem; font-weight: 600; color: #f1f5f9; }
+        .testimonial-role { font-size: 0.75rem; color: #94a3b8; }
+
+        /* ── Right Form Panel ── */
+        .form-box {
+            width:100%;max-width:460px;
+        }
+
+        /* Step Progress */
+        .step-progress {
+            display:flex;align-items:center;gap:0;margin-bottom:2rem;
+        }
+        .step {
+            display:flex;align-items:center;gap:0.5rem;
+        }
+        .step-num {
+            width:32px;height:32px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;
+            font-size:0.8rem;font-weight:700;
+            border:2px solid rgba(255,255,255,0.1);
+            color:#64748b;transition:all 0.3s;
+        }
+        .step.active .step-num{background:#10b981;border-color:#10b981;color:#fff;}
+        .step.done .step-num{background:rgba(16,185,129,0.2);border-color:#10b981;color:#10b981;}
+        .step-label{font-size:0.75rem;color:#64748b;font-weight:600;transition:color 0.3s;}
+        .step.active .step-label{color:#10b981;}
+        .step.done .step-label{color:#10b981;}
+        .step-line{flex:1;height:1px;background:rgba(255,255,255,0.08);margin:0 0.75rem;}
+        .step-line.done{background:#10b981;}
+
+        .form-title {
+            font-family:'Outfit',sans-serif;font-size:1.75rem;font-weight:800;color:#f8fafc;margin-bottom:0.4rem;
+        }
+        .form-sub{color:#64748b;font-size:0.9rem;margin-bottom:1.75rem;}
+
+        .error-message {
+            background:rgba(239,68,68,0.08);
+            color:#f87171;padding:0.75rem 1rem;
+            border-radius:0.65rem;border:1px solid rgba(239,68,68,0.2);
+            margin-bottom:1.25rem;display:none;font-size:0.875rem;
+            align-items:center;gap:0.5rem;
+        }
+        .error-message.show{display:flex;}
+
+        .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+        .full{grid-column:span 2;}
+
+        .field-group{display:flex;flex-direction:column;gap:0.4rem;}
+        .field-label{
+            font-size:0.78rem;font-weight:700;color:#94a3b8;
+            text-transform:uppercase;letter-spacing:0.05em;
+            display:flex;align-items:center;gap:0.4rem;
+        }
+        .field-label svg{width:12px;height:12px;}
+        .input-wrap{position:relative;}
+        .input-wrap input {
+            width:100%;padding:0.8rem 1rem 0.8rem 2.6rem;
+            background:rgba(30,41,59,0.6);
+            border:1px solid rgba(148,163,184,0.12);
+            border-radius:0.65rem;color:#f8fafc;
+            font-size:0.9rem;font-family:'Inter',sans-serif;
+            outline:none;transition:border-color 0.2s,background 0.2s;
+        }
+        .input-wrap input:focus{border-color:#10b981;background:rgba(30,41,59,0.9);}
+        .input-wrap input::placeholder{color:#475569;}
+        .input-icon{
+            position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);
+            color:#475569;pointer-events:none;display:flex;align-items:center;
+        }
+        .input-icon svg{width:15px;height:15px;}
+        .pw-toggle{
+            position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);
+            background:none;border:none;color:#475569;cursor:pointer;
+            display:flex;align-items:center;padding:0;transition:color 0.2s;
+        }
+        .pw-toggle:hover{color:#10b981;}
+        .pw-toggle svg{width:15px;height:15px;}
+
+        /* Password strength */
+        .pw-strength{display:flex;gap:4px;margin-top:6px;}
+        .pw-bar{
+            flex:1;height:3px;border-radius:2px;
+            background:rgba(255,255,255,0.08);transition:background 0.3s;
+        }
+        .pw-bar.weak{background:#ef4444;}
+        .pw-bar.fair{background:#f59e0b;}
+        .pw-bar.good{background:#10b981;}
+
+        /* Terms */
+        .terms-row{
+            display:flex;align-items:flex-start;gap:0.6rem;margin-top:0.5rem;margin-bottom:1.25rem;
+        }
+        .terms-row input[type="checkbox"]{
+            width:16px;height:16px;accent-color:#10b981;
+            margin-top:2px;flex-shrink:0;cursor:pointer;
+        }
+        .terms-row label{font-size:0.8rem;color:#64748b;cursor:pointer;line-height:1.5;}
+        .terms-row label a{color:#10b981;text-decoration:none;font-weight:600;}
+
+        /* Submit */
+        .submit-btn{
+            width:100%;padding:0.9rem;
+            background:linear-gradient(135deg,#10b981,#059669);
+            color:#fff;border:none;border-radius:0.75rem;
+            font-size:1rem;font-weight:700;font-family:'Outfit',sans-serif;
+            cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.6rem;
+            transition:transform 0.2s,opacity 0.2s;letter-spacing:0.02em;
+        }
+        .submit-btn:hover{transform:translateY(-2px);opacity:0.92;}
+        .submit-btn:active{transform:translateY(0);}
+        .submit-btn svg{width:18px;height:18px;}
+
+        .login-link{
+            text-align:center;font-size:0.85rem;color:#64748b;margin-top:1.25rem;
+        }
+        .login-link a{color:#10b981;font-weight:700;text-decoration:none;}
+        .login-link a:hover{opacity:0.8;}
+
+        @keyframes spin{to{transform:rotate(360deg);}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+        .fade-up{animation:fadeUp 0.5s ease-out forwards;}
+
+        @media(max-width:900px){
+            .page-left{display:none;}
+            .page-right{padding:1.5rem;}
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated BG Orbs -->
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- LEFT: Branding -->
+    <div class="page-left">
+        <div class="brand-logo">
+            <div class="logo-icon"><i data-lucide="graduation-cap" style="width:24px;height:24px;"></i></div>
+            <span class="logo-text">Spice<span>CGPA</span><span style="color:#f8fafc">.</span></span>
+        </div>
+
+        <h1 class="brand-headline">
+            Your Academic<br>
+            <span class="grad">Success Starts</span><br>
+            Here.
+        </h1>
+        <p class="brand-sub">
+            Join thousands of Nigerian students who track their GPA, monitor their progress, and graduate with confidence.
+        </p>
+
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="feature-icon green"><i data-lucide="trending-up" style="width:18px;height:18px;"></i></div>
+                <p>Live GPA & CGPA calculation with the 5-point Nigerian system</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon purple"><i data-lucide="bar-chart-2" style="width:18px;height:18px;"></i></div>
+                <p>Semester-by-semester performance breakdown and insights</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon amber"><i data-lucide="file-text" style="width:18px;height:18px;"></i></div>
+                <p>Export your academic transcript as a professional PDF</p>
+            </div>
+        </div>
+
+        <div class="testimonials-container">
+            <div class="testimonial active">
+                <p>"SpiceCGPA helped me realize I was closer to a First Class than I thought. I graduated with a 4.67!"</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">AO</div>
+                    <div>
+                        <div class="testimonial-name">Adaeze Okonkwo</div>
+                        <div class="testimonial-role">Computer Engineering, UNILAG</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <p>"I used to track my GPA on a spreadsheet, but this is 10x faster and much more accurate."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">TB</div>
+                    <div>
+                        <div class="testimonial-name">Tunde Bakare</div>
+                        <div class="testimonial-role">Mechanical Engineering, UI</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <p>"The export feature is a lifesaver for scholarship applications! It looks so professional."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">CO</div>
+                    <div>
+                        <div class="testimonial-name">Chinelo Obi</div>
+                        <div class="testimonial-role">Business Admin, UNIZIK</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Form -->
+    <div class="page-right">
+        <div class="form-box fade-up">
+
+            <!-- Step Progress -->
+            <div class="step-progress">
+                <div class="step active" id="step-1">
+                    <div class="step-num">1</div>
+                    <span class="step-label">Personal</span>
+                </div>
+                <div class="step-line" id="line-1"></div>
+                <div class="step" id="step-2">
+                    <div class="step-num">2</div>
+                    <span class="step-label">Academic</span>
+                </div>
+                <div class="step-line" id="line-2"></div>
+                <div class="step" id="step-3">
+                    <div class="step-num">3</div>
+                    <span class="step-label">Security</span>
+                </div>
+            </div>
+
+            <h2 class="form-title" id="form-title">Personal Info</h2>
+            <p class="form-sub" id="form-sub">Let's start with the basics.</p>
+
+            <!-- Error Box -->
+            <div id="error-box" class="error-message">
+                <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
+                <span id="error-text"></span>
+            </div>
+
+            <form id="signup-form">
+                <!-- STEP 1: Personal -->
+                <div id="panel-1">
+                    <div class="fields-grid">
+                        <div class="field-group full">
+                            <label class="field-label"><i data-lucide="user"></i> Full Name</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i data-lucide="user"></i></span>
+                                <input type="text" id="fullName" placeholder="e.g. Chukwuemeka Obi" autocomplete="name">
+                            </div>
+                        </div>
+                        <div class="field-group full">
+                            <label class="field-label"><i data-lucide="mail"></i> Gmail Address</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i data-lucide="mail"></i></span>
+                                <input type="email" id="email" placeholder="you@gmail.com" autocomplete="email">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:1.5rem;">
+                        <button type="button" class="submit-btn" onclick="goStep(2)">
+                            <i data-lucide="arrow-right"></i> Continue to Academic Info
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Academic -->
+                <div id="panel-2" style="display:none;">
+                    <div class="fields-grid">
+                        <div class="field-group full">
+                            <label class="field-label"><i data-lucide="hash"></i> Matric Number</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i data-lucide="hash"></i></span>
+                                <input type="text" id="matricNumber" placeholder="U20XX/XXXXX">
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i data-lucide="school"></i> Faculty</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i data-lucide="school"></i></span>
+                                <input type="text" id="faculty" placeholder="e.g. Engineering">
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label"><i data-lucide="building-2"></i> Department</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i data-lucide="building-2"></i></span>
+                                <input type="text" id="department" placeholder="e.g. Mechanical">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:1.5rem;display:flex;gap:0.75rem;">
+                        <button type="button" class="submit-btn" style="background:rgba(255,255,255,0.06);flex:0.4;" onclick="goStep(1)">
+                            <i data-lucide="arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="submit-btn" style="flex:1;" onclick="goStep(3)">
+                            <i data-lucide="arrow-right"></i> Continue to Security
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Security -->
+                <div id="panel-3" style="display:none;">
+                    <div class="fields-grid">
+                        <div class="field-group full">
+                            <label class="field-label"><i data-lucide="lock"></i> Password</label>
+                            <div class="input-wrap">
+                                <span class="input-icon"><i data-lucide="lock"></i></span>
+                                <input type="password" id="password" placeholder="Create a strong password" oninput="checkStrength(this.value)">
+                                <button type="button" class="pw-toggle" id="toggle-pw">
+                                    <i data-lucide="eye" id="pw-eye"></i>
+                                </button>
+                            </div>
+                            <div class="pw-strength">
+                                <div class="pw-bar" id="bar1"></div>
+                                <div class="pw-bar" id="bar2"></div>
+                                <div class="pw-bar" id="bar3"></div>
+                                <div class="pw-bar" id="bar4"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="terms-row">
+                        <input type="checkbox" id="terms">
+                        <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a> of Spice CGPA Pro.</label>
+                    </div>
+                    <div style="display:flex;gap:0.75rem;">
+                        <button type="button" class="submit-btn" style="background:rgba(255,255,255,0.06);flex:0.4;" onclick="goStep(2)">
+                            <i data-lucide="arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="submit-btn" id="signup-btn" style="flex:1;">
+                            <i data-lucide="user-check"></i> Create My Account
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="login-link">
+                Already have an account? <a href="login.html">Sign in here</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/js/auth.js"></script>
+    <script>
+        lucide.createIcons();
+
+        const titles = ['Personal Info', 'Academic Details', 'Set Password'];
+        const subs   = ["Let's start with the basics.", "Tell us about your institution.", "Almost there — secure your account."];
+
+        function goStep(n) {
+            const name = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (n === 2 && (!name || !email)) {
+                showErr('Please fill in your name and email.'); return;
+            }
+            if (n === 3) {
+                const matric = document.getElementById('matricNumber').value.trim();
+                const fac    = document.getElementById('faculty').value.trim();
+                const dept   = document.getElementById('department').value.trim();
+                if (!matric || !fac || !dept) { showErr('Please fill in all academic fields.'); return; }
+            }
+            hideErr();
+
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`panel-${i}`).style.display = 'none';
+                const stepEl = document.getElementById(`step-${i}`);
+                stepEl.classList.remove('active','done');
+                if (i < n) stepEl.classList.add('done');
+                if (i === n) stepEl.classList.add('active');
+            }
+            for (let i = 1; i <= 2; i++) {
+                document.getElementById(`line-${i}`).classList.toggle('done', i < n);
+            }
+            document.getElementById(`panel-${n}`).style.display = 'block';
+            document.getElementById('form-title').textContent = titles[n-1];
+            document.getElementById('form-sub').textContent   = subs[n-1];
+            lucide.createIcons();
+        }
+
+        function showErr(msg) {
+            const b = document.getElementById('error-box');
+            document.getElementById('error-text').textContent = msg;
+            b.classList.add('show');
+        }
+        function hideErr() {
+            document.getElementById('error-box').classList.remove('show');
+        }
+
+        function checkStrength(val) {
+            const bars = [document.getElementById('bar1'), document.getElementById('bar2'),
+                          document.getElementById('bar3'), document.getElementById('bar4')];
+            bars.forEach(b => b.className = 'pw-bar');
+            if (!val) return;
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            const cls = score <= 1 ? 'weak' : score <= 2 ? 'fair' : 'good';
+            for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+        }
+
+        // Password toggle
+        document.getElementById('toggle-pw').addEventListener('click', () => {
+            const pw = document.getElementById('password');
+            const eye = document.getElementById('pw-eye');
+            const vis = pw.type === 'text';
+            pw.type = vis ? 'password' : 'text';
+            eye.setAttribute('data-lucide', vis ? 'eye' : 'eye-off');
+            lucide.createIcons();
+        });
+
+        // Signup submit
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!document.getElementById('terms').checked) {
+                showErr('Please accept the Terms of Service to continue.'); return;
+            }
+            const pw = document.getElementById('password').value;
+            if (pw.length < 6) { showErr('Password must be at least 6 characters.'); return; }
+
+            const btn = document.getElementById('signup-btn');
+            btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i> Creating account...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            const userData = {
+                fullName:     document.getElementById('fullName').value,
+                email:        document.getElementById('email').value,
+                password:     pw,
+                matricNumber: document.getElementById('matricNumber').value,
+                faculty:      document.getElementById('faculty').value,
+                department:   document.getElementById('department').value
+            };
+
+            try {
+                const res  = await fetch('http://localhost:5000/api/auth/register', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify(userData)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('user', JSON.stringify(data));
+                    window.location.href = 'index.html';
+                } else {
+                    showErr(data.message || 'Registration failed. Please try again.');
+                    btn.innerHTML = '<i data-lucide="user-check"></i> Create My Account';
+                    btn.disabled = false;
+                    lucide.createIcons();
+                }
+            } catch {
+                showErr('Cannot reach server. Is the backend running?');
+                btn.innerHTML = '<i data-lucide="user-check"></i> Create My Account';
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        });
+
+        // Testimonial Rotation
+        const testimonials = document.querySelectorAll('.testimonial');
+        let currentTestimonial = 0;
+
+        function rotateTestimonials() {
+            testimonials[currentTestimonial].classList.remove('active');
+            currentTestimonial = (currentTestimonial + 1) % testimonials.length;
+            testimonials[currentTestimonial].classList.add('active');
+        }
+
+        setInterval(rotateTestimonials, 5000);
+    </script>
+</body>
+</html>
