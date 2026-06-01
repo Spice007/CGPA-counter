@@ -52,6 +52,13 @@ async function loadData() {
     try {
         // 1. Fetch User Profile
         const profileRes = await fetch(`${API_BASE}/users/profile`, { headers });
+        
+        if (profileRes.status === 401) {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+            return;
+        }
+
         if (profileRes.ok) {
             const profileData = await profileRes.json();
             const localProfile = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
@@ -391,13 +398,34 @@ function renderLevelStats() {
         return { name: l.name, gpa, units: l.totalUnits };
     });
 
-    container.innerHTML = levels.map(l => `
-        <div class="glass-card" style="padding: 1rem; text-align: center;">
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600;">${l.name}</p>
-            <h3 style="font-size: 1.5rem; font-weight: 800; color: var(--secondary);">${l.gpa}</h3>
-            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">${l.units} Units</p>
-        </div>
-    `).join('');
+    if (levels.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem; width: 100%;">No level breakdown data available yet. Please add semesters and courses.</p>`;
+        return;
+    }
+
+    container.innerHTML = levels.map(l => {
+        const percentage = Math.min(100, Math.max(0, (parseFloat(l.gpa) / gradingScale) * 100));
+        return `
+            <div class="level-breakdown-row" style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; width: 100%;">
+                <div class="level-info-title" style="display: flex; align-items: center; gap: 0.5rem; width: 130px; flex-shrink: 0;">
+                    <div class="level-icon-circle"><i data-lucide="layers" style="width: 14px; height: 14px;"></i></div>
+                    <span style="font-weight: 600; font-size: 0.875rem; color: var(--text-primary);">${l.name}</span>
+                </div>
+                <div class="level-progress-bar-wrap" style="flex: 1; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; position: relative;">
+                    <div class="level-progress-bar" style="width: ${percentage}%; height: 100%; background: linear-gradient(90deg, #10b981 0%, #6366f1 50%, #8b5cf6 100%); border-radius: 4px; box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);"></div>
+                </div>
+                <div class="level-stats-wrap" style="display: flex; align-items: center; gap: 1.5rem; text-align: right; width: 160px; justify-content: flex-end; flex-shrink: 0;">
+                    <div>
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #10b981; font-family: 'Outfit', sans-serif;">${l.gpa}</span>
+                        <span style="font-size: 0.75rem; color: #64748b; margin-left: 0.15rem; font-weight: 600;">GPA</span>
+                    </div>
+                    <div style="font-size: 0.825rem; color: #94a3b8; font-weight: 600; min-width: 65px;">${l.units} Units</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    if (window.lucide) lucide.createIcons();
 }
 
 function renderSemesters() {
@@ -409,16 +437,14 @@ function renderSemesters() {
         card.style.animationDelay = `${index * 0.1}s`;
         
         card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div class="semester-card-header">
                 <h3 class="font-heading">${sem.name}</h3>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <span class="glass-card" style="padding: 0.25rem 0.75rem; font-size: 0.875rem; font-weight: 600; color: var(--primary);">
-                        GPA: ${semGPA}
-                    </span>
-                    <button onclick="openCourseModal('${sem.id}')" class="btn glass-card" style="padding: 0.5rem;">
+                    <span class="gpa-pill">GPA: ${semGPA}</span>
+                    <button onclick="openCourseModal('${sem.id}')" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
                         <i data-lucide="plus-circle" style="width: 18px;"></i>
                     </button>
-                    <button onclick="deleteSemester('${sem.id}')" class="btn glass-card" style="padding: 0.5rem; color: var(--warning);">
+                    <button onclick="deleteSemester('${sem.id}')" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--warning);">
                         <i data-lucide="trash-2" style="width: 18px;"></i>
                     </button>
                 </div>
@@ -428,20 +454,25 @@ function renderSemesters() {
                 ${sem.courses.length === 0 ? '<p style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem;">No courses added yet.</p>' : ''}
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
                     ${sem.courses.map(course => `
-                        <tr style="border-bottom: 1px solid var(--border);">
-                            <td style="padding: 0.75rem 0; font-weight: 600;">${course.code}</td>
-                            <td style="padding: 0.75rem 0;">${course.title}</td>
-                            <td style="padding: 0.75rem 0; text-align: center;">${course.units} Units</td>
-                            <td style="padding: 0.75rem 0; text-align: center; font-weight: 600;">Grade: ${getGradeLetter(course.grade)} (${course.grade})</td>
-                            <td style="padding: 0.75rem 0; text-align: right;">
-                                <button onclick="deleteCourse('${sem.id}', '${course.id}')" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
-                                    <i data-lucide="x" style="width: 14px;"></i>
+                        <tr class="course-item-row">
+                            <td style="padding: 0.85rem 0; font-weight: 700; color: var(--text-primary); font-family: monospace;">${course.code}</td>
+                            <td style="padding: 0.85rem 0; color: var(--text-secondary); font-weight: 500;">${course.title}</td>
+                            <td style="padding: 0.85rem 0; text-align: center; color: #94a3b8; font-weight: 600;">${course.units} Units</td>
+                            <td style="padding: 0.85rem 0; text-align: center; font-weight: 700; color: #10b981;">Grade: ${getGradeLetter(course.grade)} (${course.grade})</td>
+                            <td style="padding: 0.85rem 0; text-align: right;">
+                                <button onclick="deleteCourse('${sem.id}', '${course.id}')" class="delete-course-btn">
+                                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
                                 </button>
                             </td>
                         </tr>
                     `).join('')}
                 </table>
             </div>
+
+            <a href="#" class="semester-footer-link" onclick="event.preventDefault(); document.getElementById('nav-courses').click();">
+                <span>View all semesters</span>
+                <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+            </a>
         `;
         semestersContainer.appendChild(card);
     });
@@ -460,29 +491,29 @@ function renderMasterCourseList() {
     });
 
     if (allCourses.length === 0) {
-        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No courses registered yet. Go to Dashboard to add courses.</p>';
+        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 3rem; font-size: 1.05rem;">No courses registered yet. Go to Dashboard to add courses.</p>';
         return;
     }
 
     container.innerHTML = `
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.9375rem;">
-            <thead style="border-bottom: 1px solid var(--border);">
+        <table style="width: 100%; border-collapse: collapse; font-size: 1.05rem;">
+            <thead style="border-bottom: 2px solid var(--border);">
                 <tr>
-                    <th style="text-align: left; padding: 1rem 0; color: var(--text-secondary);">Code</th>
-                    <th style="text-align: left; padding: 1rem 0; color: var(--text-secondary);">Course Title</th>
-                    <th style="text-align: center; padding: 1rem 0; color: var(--text-secondary);">Semester</th>
-                    <th style="text-align: center; padding: 1rem 0; color: var(--text-secondary);">Units</th>
-                    <th style="text-align: right; padding: 1rem 0; color: var(--text-secondary);">Grade</th>
+                    <th style="text-align: left; padding: 1.25rem 0.5rem; color: var(--text-secondary); text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em;">Code</th>
+                    <th style="text-align: left; padding: 1.25rem 0.5rem; color: var(--text-secondary); text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em;">Course Title</th>
+                    <th style="text-align: center; padding: 1.25rem 0.5rem; color: var(--text-secondary); text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em;">Semester</th>
+                    <th style="text-align: center; padding: 1.25rem 0.5rem; color: var(--text-secondary); text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em;">Units</th>
+                    <th style="text-align: right; padding: 1.25rem 0.5rem; color: var(--text-secondary); text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em;">Grade</th>
                 </tr>
             </thead>
             <tbody>
                 ${allCourses.map(c => `
-                    <tr style="border-bottom: 1px solid var(--border);">
-                        <td style="padding: 1rem 0; font-family: monospace; font-weight: 700;">${c.code}</td>
-                        <td style="padding: 1rem 0; font-weight: 600;">${c.title}</td>
-                        <td style="padding: 1rem 0; text-align: center; color: var(--text-secondary);">${c.semName}</td>
-                        <td style="padding: 1rem 0; text-align: center;">${c.units}</td>
-                        <td style="padding: 1rem 0; text-align: right; font-weight: 700; color: ${c.grade >= 4 ? 'var(--primary)' : c.grade < 2 ? 'var(--danger)' : 'inherit'}">
+                    <tr style="border-bottom: 1px solid var(--border);" class="course-item-row">
+                        <td style="padding: 1.25rem 0.5rem; font-family: monospace; font-weight: 700; color: var(--text-primary); font-size: 1.1rem;">${c.code}</td>
+                        <td style="padding: 1.25rem 0.5rem; font-weight: 600; color: var(--text-secondary);">${c.title}</td>
+                        <td style="padding: 1.25rem 0.5rem; text-align: center; color: var(--text-secondary); font-weight: 500;">${c.semName}</td>
+                        <td style="padding: 1.25rem 0.5rem; text-align: center; font-weight: 600; color: var(--text-primary);">${c.units} Units</td>
+                        <td style="padding: 1.25rem 0.5rem; text-align: right; font-weight: 800; color: ${c.grade >= 4 ? 'var(--primary)' : c.grade < 2 ? 'var(--danger)' : 'var(--text-primary)'}; font-size: 1.1rem;">
                             ${getGradeLetter(c.grade)} (${c.grade})
                         </td>
                     </tr>
@@ -532,16 +563,30 @@ function calculateStats() {
     
     // Standing logic
     const standing = document.getElementById('standing-display');
+    const standingCardValue = document.getElementById('standing-card-value');
+    const standingProgress = document.getElementById('standing-progress');
+    
     const cgpaVal = parseFloat(cgpa);
+    let standingText = "Pass/Fail";
+    
     if (gradingScale === 5) {
-        if (cgpaVal >= 4.5) standing.textContent = "First Class";
-        else if (cgpaVal >= 3.5) standing.textContent = "Second Class Upper";
-        else if (cgpaVal >= 2.4) standing.textContent = "Second Class Lower";
-        else standing.textContent = "Pass/Fail";
+        if (cgpaVal >= 4.5) standingText = "First Class";
+        else if (cgpaVal >= 3.5) standingText = "Second Class Upper";
+        else if (cgpaVal >= 2.4) standingText = "Second Class Lower";
+        else standingText = "Pass/Fail";
     } else {
-        if (cgpaVal >= 3.5) standing.textContent = "Honors/Distinction";
-        else if (cgpaVal >= 3.0) standing.textContent = "Excellent";
-        else standing.textContent = "Good/Satisfactory";
+        if (cgpaVal >= 3.5) standingText = "Excellent";
+        else if (cgpaVal >= 3.0) standingText = "Very Good";
+        else if (cgpaVal >= 2.0) standingText = "Good/Satisfactory";
+        else standingText = "Pass/Fail";
+    }
+    
+    if (standing) standing.textContent = standingText;
+    if (standingCardValue) standingCardValue.textContent = standingText;
+    
+    if (standingProgress) {
+        const percentage = Math.min(100, Math.max(0, (cgpaVal / gradingScale) * 100));
+        standingProgress.style.width = `${percentage}%`;
     }
 
     updateChart();
@@ -549,43 +594,86 @@ function calculateStats() {
 }
 
 function initChart() {
-    const ctx = document.getElementById('cgpaChart');
-    if (!ctx) return;
+    const canvas = document.getElementById('cgpaChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
 
     if (cgpaChart) {
         cgpaChart.destroy();
     }
 
+    // Create a beautiful glowing green gradient under the curve
+    const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+    const chartData = semesters.map(s => calculateGPA(s.courses));
+    const chartLabels = semesters.map(s => {
+        const courseYear = parseInt(s.name.split('/')[0]);
+        const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
+        let level = 100;
+        if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
+            level = (courseYear - baseYear + 1) * 100;
+        }
+        const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
+        return `${level}L - ${sem} Sem`;
+    });
+
     cgpaChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: semesters.map(s => {
-                const courseYear = parseInt(s.name.split('/')[0]);
-                const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
-                let level = 100;
-                if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
-                    level = (courseYear - baseYear + 1) * 100;
-                }
-                const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
-                return `${level}L - ${sem} Sem`;
-            }),
+            labels: chartLabels.length > 0 ? chartLabels : ['100L - 1st Sem'],
             datasets: [{
                 label: 'GPA Trend',
-                data: semesters.map(s => calculateGPA(s.courses)),
+                data: chartData.length > 0 ? chartData : [0.0],
                 borderColor: '#10b981',
+                borderWidth: 3.5,
                 tension: 0.4,
                 fill: true,
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                pointRadius: 6,
-                pointBackgroundColor: '#10b981'
+                backgroundColor: gradient,
+                pointRadius: 5,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#090d16',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7,
+                pointHoverBackgroundColor: '#10b981',
+                pointHoverBorderColor: '#ffffff',
+                pointHoverBorderWidth: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { min: 0, max: gradingScale },
-                x: { grid: { display: false } }
+                y: { 
+                    min: 0, 
+                    max: gradingScale,
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.04)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        font: {
+                            family: "'Outfit', sans-serif",
+                            weight: 600,
+                            size: 11
+                        }
+                    }
+                },
+                x: { 
+                    grid: { 
+                        display: false 
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        font: {
+                            family: "'Outfit', sans-serif",
+                            weight: 600,
+                            size: 11
+                        }
+                    }
+                }
             },
             plugins: {
                 legend: { display: false }
@@ -600,7 +688,16 @@ function updateChart() {
         return;
     }
     
-    cgpaChart.data.labels = semesters.map(s => {
+    const canvas = document.getElementById('cgpaChart');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+        cgpaChart.data.datasets[0].backgroundColor = gradient;
+    }
+
+    const chartLabels = semesters.map(s => {
         const courseYear = parseInt(s.name.split('/')[0]);
         const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
         let level = 100;
@@ -610,7 +707,11 @@ function updateChart() {
         const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
         return `${level}L - ${sem} Sem`;
     });
-    cgpaChart.data.datasets[0].data = semesters.map(s => calculateGPA(s.courses));
+
+    const chartData = semesters.map(s => calculateGPA(s.courses));
+    
+    cgpaChart.data.labels = chartLabels.length > 0 ? chartLabels : ['100L - 1st Sem'];
+    cgpaChart.data.datasets[0].data = chartData.length > 0 ? chartData : [0.0];
     cgpaChart.options.scales.y.max = gradingScale;
     cgpaChart.update();
 }
@@ -637,11 +738,19 @@ function renderGradingGuide() {
     };
 
     const activeScale = scaleMap[gradingScale] || scaleMap["5"];
+    const colors = {
+        'A': '#10b981', // green
+        'B': '#3b82f6', // blue
+        'C': '#f59e0b', // gold/yellow
+        'D': '#8b5cf6', // purple
+        'E': '#f43f5e', // pink/red
+        'F': '#ef4444'  // red
+    };
     
-    container.innerHTML = activeScale.map(item => `
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 0.25rem 0;">
-            <span style="color: var(--text-secondary);">${item.grade} (${item.range})</span>
-            <strong style="color: var(--primary);">${item.gp}</strong>
+    container.innerHTML = activeScale.filter(item => item.grade !== 'F').map(item => `
+        <div class="glass-card" style="padding: 0.75rem 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; border: 1px solid rgba(255,255,255,0.03); background: rgba(255,255,255,0.01);">
+            <span style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase;">${item.grade} (${item.range})</span>
+            <strong style="color: ${colors[item.grade] || 'var(--primary)'}; font-size: 1.1rem; font-weight: 800; font-family: 'Outfit';">${item.gp}</strong>
         </div>
     `).join('');
 }
@@ -815,11 +924,13 @@ function loadProfile() {
     // Update sidebar avatar
     const sidebarAvatar = document.getElementById('sidebar-avatar');
     if (sidebarAvatar) {
-        if (studentProfile.profilePicture) {
-            sidebarAvatar.innerHTML = `<img src="${studentProfile.profilePicture}" style="width:100%;height:100%;object-fit:cover;" alt="Profile">`;
-        } else {
-            sidebarAvatar.innerHTML = '<i data-lucide="user"></i>';
-            lucide.createIcons();
+        if (sidebarAvatar.id === 'sidebar-avatar') { // Double-check element
+            if (studentProfile.profilePicture) {
+                sidebarAvatar.innerHTML = `<img src="${studentProfile.profilePicture}" style="width:100%;height:100%;object-fit:cover;" alt="Profile">`;
+            } else {
+                sidebarAvatar.innerHTML = '<i data-lucide="user"></i>';
+                lucide.createIcons();
+            }
         }
     }
 
@@ -828,12 +939,12 @@ function loadProfile() {
     const dashUni = document.getElementById('dashboard-uni-info');
     if (dashWelcome) {
         const firstName = (studentProfile.name || '').split(' ')[0] || 'Student';
-        dashWelcome.innerText = `Welcome, ${firstName}`;
+        dashWelcome.innerHTML = `Welcome back, ${firstName} 👋`;
     }
     if (dashUni) {
-        const uniPart = studentProfile.uni ? studentProfile.uni : '🎓 Set your university in settings';
-        const sessionPart = studentProfile.session ? ` · ${studentProfile.session} Session` : '';
-        dashUni.innerHTML = `<span style="color: var(--primary);">${uniPart}</span><span style="color: var(--text-secondary);">${sessionPart}</span>`;
+        const uniPart = studentProfile.uni ? studentProfile.uni : 'Set your university';
+        const sessionPart = studentProfile.session ? `${studentProfile.session} Session` : 'Set your session';
+        dashUni.innerHTML = `<span style="color: #10b981; font-weight: 600;">${uniPart}</span><span style="color: #64748b;"> · ${sessionPart}</span>`;
     }
 }
 
@@ -1058,11 +1169,29 @@ function calculateGradeFromScore(score) {
 function exportToPDF() {
     const element = document.querySelector('.main-content');
     const opt = {
-        margin: 0.5,
+        margin: [10, 10, 10, 10],
         filename: 'SpiceCGPA_Report.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        image: { type: 'jpeg', quality: 1.0 },
+        html2canvas: {
+            scale: 4,
+            useCORS: true,
+            logging: false,
+            letterRendering: true,
+            windowWidth: 1200,
+            backgroundColor: getComputedStyle(document.body).backgroundColor,
+            onclone: (clonedDoc) => {
+                // Ensure hidden sections don't take layout space
+                const sections = clonedDoc.querySelectorAll('.app-section');
+                sections.forEach(sec => {
+                    if (sec.style.display === 'none') {
+                        sec.style.visibility = 'hidden';
+                        sec.style.height = '0';
+                        sec.style.overflow = 'hidden';
+                    }
+                });
+            }
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     html2pdf().set(opt).from(element).save();
 }
@@ -1344,38 +1473,73 @@ function exportCSV() {
 async function exportToImage() {
     const btn = document.getElementById('export-image');
     const originalContent = btn.innerHTML;
-    
-    // UI feedback
+
+    // Show loading state on the button (this won't appear in the screenshot)
     btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i>';
     if (window.lucide) lucide.createIcons();
 
     try {
         const element = document.querySelector('.main-content');
-        const canvas = await html2canvas(element, {
-            backgroundColor: getComputedStyle(document.body).backgroundColor,
-            scale: 2, // Higher quality
-            useCORS: true,
-            logging: false,
-            onclone: (clonedDoc) => {
-                // Ensure hidden elements stay hidden in screenshot
-                const sections = clonedDoc.querySelectorAll('.app-section');
-                sections.forEach(sec => {
-                    if (sec.style.display === 'none') {
-                        sec.style.visibility = 'hidden';
-                    }
-                });
+        
+        // Hide sections explicitly if they are display: none
+        const sections = element.querySelectorAll('.app-section');
+        const hiddenSections = [];
+        sections.forEach(sec => {
+            if (sec.style.display === 'none') {
+                sec.style.visibility = 'hidden';
+                sec.style.height = '0';
+                sec.style.overflow = 'hidden';
+                hiddenSections.push(sec);
             }
         });
 
-        const image = canvas.toDataURL('image/png');
+        // Force a large, static width to prevent ANY wrapping of "Welcome Gideon"
+        // and add extra height for bottom spacing.
+        const width = 1400; // Large desktop width
+        const height = element.scrollHeight + 100; // Add 100px padding at the bottom
+
+        const dataUrl = await domtoimage.toPng(element, {
+            bgcolor: getComputedStyle(document.body).backgroundColor,
+            scale: 2, 
+            width: width,
+            height: height,
+            style: {
+                transform: 'scale(1)',
+                transformOrigin: 'top left',
+                width: '1400px', // Force the exact wide width
+                maxWidth: 'none',
+                paddingBottom: '100px' // Even space after the performance chart
+            },
+            filter: (node) => {
+                // Force Welcome text to NEVER wrap by injecting style directly if we hit it
+                if (node.id === 'dashboard-welcome') {
+                    node.style.whiteSpace = 'nowrap';
+                }
+                
+                // Ignore the buttons explicitly using our tag
+                if (node.getAttribute && node.getAttribute('data-html2canvas-ignore') === 'true') {
+                    return false;
+                }
+                return true;
+            }
+        });
+
+        // Restore hidden sections
+        hiddenSections.forEach(sec => {
+            sec.style.visibility = '';
+            sec.style.height = '';
+            sec.style.overflow = '';
+        });
+
         const link = document.createElement('a');
         link.download = `CGPA_Dashboard_${new Date().toISOString().slice(0,10)}.png`;
-        link.href = image;
+        link.href = dataUrl;
         link.click();
     } catch (error) {
         console.error('Image export failed:', error);
         alert('Failed to export image. Please try again.');
     } finally {
+        // Restore the button
         btn.innerHTML = originalContent;
         if (window.lucide) lucide.createIcons();
     }
@@ -1397,25 +1561,77 @@ async function fetchAdminAnalytics() {
             document.getElementById('admin-total-pics').textContent = data.usersWithProfilePic || 0;
             document.getElementById('admin-total-courses').textContent = data.totalCourses || 0;
             document.getElementById('admin-total-results').textContent = data.totalResults || 0;
+            
+            // Populate the four new premium analytics boxes
+            document.getElementById('admin-active-users').textContent = data.activeUsers || 0;
+            document.getElementById('admin-total-unis').textContent = data.totalUniversities || 0;
+            document.getElementById('admin-total-units').textContent = data.totalUnits || 0;
+            document.getElementById('admin-average-gpa').textContent = data.averageGPA || "0.00";
 
             const usersListContainer = document.getElementById('admin-users-list');
             const picturesGallery = document.getElementById('admin-pictures-gallery');
 
             if (data.users && data.users.length > 0) {
-                // Populate Users List
+                // Populate Users List with large, rich student profile boxes
                 usersListContainer.innerHTML = data.users.map(u => {
-                    const activeDate = u.lastLogin || u.createdAt;
-                    const lastActive = activeDate ? new Date(activeDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A';
+                    const formatDateTime = (dateStr) => {
+                        if (!dateStr) return 'N/A';
+                        const d = new Date(dateStr);
+                        if (isNaN(d.getTime())) return 'N/A';
+                        const datePart = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                        const timePart = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                        return `${datePart} at ${timePart}`;
+                    };
+
+                    const joinedTime = formatDateTime(u.createdAt);
+                    const activeTime = formatDateTime(u.lastLogin || u.createdAt);
+                    
+                    const avatarHTML = u.profilePicture 
+                        ? `<img src="${u.profilePicture}" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.08);">`
+                        : `<div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0;"><i data-lucide="user" style="width: 18px; height: 18px;"></i></div>`;
+
+                    const matricHTML = u.matricNumber 
+                        ? `<span style="font-family: monospace; font-size: 0.7rem; background: rgba(16, 185, 129, 0.1); color: var(--primary); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-weight: 700;">${u.matricNumber}</span>`
+                        : `<span style="font-size: 0.7rem; color: var(--text-secondary); font-style: italic;">No Matric</span>`;
+
+                    const academicHTML = (u.university || u.department)
+                        ? `<div style="margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.75rem; color: var(--text-seco                            ${u.university ? `<div><span style="color: #64748b; font-weight: 600;">Uni:</span> <span style="color: var(--text-primary); font-weight: 500;">${u.university}</span></div>` : ''}
+                            ${u.department ? `<div><span style="color: #64748b; font-weight: 600;">Dept:</span> <span style="color: var(--text-primary); font-weight: 500;">${u.department} ${u.faculty ? `(${u.faculty})` : ''}</span></div>` : ''}
+                          </div>`
+                        : '';
+
                     return `
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: 0.5rem; border: 1px solid var(--border);">
-                            <div>
-                                <p style="font-weight: 600; font-size: 0.9rem; color: var(--text);">${u.fullName || 'Unknown User'}</p>
-                                <p style="font-size: 0.8rem; color: var(--text-secondary);">${u.email}</p>
+                        <div style="display: flex; flex-direction: column; padding: 1rem 1.25rem; background: rgba(13, 20, 35, 0.45); border-radius: 0.85rem; border: 1px solid var(--border); gap: 0.5rem; transition: all 0.25s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" class="glass-card">
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.75rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1;">
+                                    ${avatarHTML}
+                                    <div style="min-width: 0; flex: 1;">
+                                        <h4 style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">${u.fullName || 'Unknown User'}</h4>
+                                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0.15rem 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; line-height: 1.2;">${u.email}</p>
+                                    </div>
+                                </div>
+                                <div style="flex-shrink: 0; text-align: right;">
+                                    ${matricHTML}
+                                </div>
                             </div>
-                            <span style="font-size: 0.7rem; color: var(--text-secondary);">${lastActive}</span>
+                            
+                            ${academicHTML}
+                            
+                            <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.7rem; color: var(--text-secondary); padding-top: 0.55rem; border-top: 1px solid rgba(255,255,255,0.04);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <span>Joined:</span>
+                                    <strong style="color: var(--text-secondary); font-weight: 500;">${joinedTime}</strong>
+                                </div>    </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <span>Last Active:</span>
+                                    <strong style="color: var(--primary); font-weight: 600;">${activeTime}</strong>
+                                </div>
+                            </div>
                         </div>
                     `;
                 }).join('');
+
+                if (window.lucide) lucide.createIcons();
 
                 // Populate Pictures Gallery
                 const usersWithPics = data.users.filter(u => u.profilePicture && u.profilePicture !== '');

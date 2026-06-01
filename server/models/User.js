@@ -22,8 +22,7 @@ const userSchema = mongoose.Schema({
     academicSession: String,
     profilePicture: String,
     lastLogin: {
-        type: Date,
-        default: Date.now
+        type: Date
     }
 }, {
     timestamps: true

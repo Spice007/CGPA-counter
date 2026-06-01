@@ -19,138 +19,248 @@
 <body>
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar glass">
-            <div class="logo-area" style="margin-bottom: 3rem;">
-                <h2 class="font-heading" style="display: flex; align-items: center; gap: 0.75rem;">
-                    <i data-lucide="graduation-cap" style="color: var(--primary);"></i>
-                    SpiceCGPA<span style="color: var(--primary);">.</span>
-                </h2>
+        <aside class="sidebar">
+            <div class="brand-logo" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 3rem;">
+                <div class="logo-icon" style="width: 38px; height: 38px; border-radius: 8px; background: #10b981; display: flex; align-items: center; justify-content: center; color: #ffffff; box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);">
+                    <i data-lucide="graduation-cap" style="width: 20px; height: 20px;"></i>
+                </div>
+                <span class="logo-text" style="font-family: 'Outfit', sans-serif; font-size: 1.45rem; font-weight: 800; color: var(--text-primary);">Spice<span style="color:#10b981">CGPA</span><span style="color:#10b981">.</span></span>
             </div>
             
             <nav style="flex: 1;">
-                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem;">
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.4rem;">
                     <li>
-                        <a href="#" id="nav-dashboard" class="btn nav-link active" style="width: 100%; justify-content: flex-start;">
+                        <a href="#" id="nav-dashboard" class="nav-link active">
                             <i data-lucide="layout-dashboard"></i> Dashboard
                         </a>
                     </li>
                     <li>
-                        <a href="#" id="nav-courses" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                        <a href="#" id="nav-courses" class="nav-link">
                             <i data-lucide="book-open"></i> Courses
                         </a>
                     </li>
                     <li>
-                        <a href="#" id="nav-profile" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
-                            <i data-lucide="user"></i> Profile
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" id="nav-planner" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                        <a href="#" id="nav-planner" class="nav-link">
                             <i data-lucide="calendar"></i> Academic Planner
                         </a>
                     </li>
                     <li>
-                        <a href="#" id="nav-resources" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                        <a href="#" id="nav-resources" class="nav-link">
                             <i data-lucide="folder-kanban"></i> Course Resources
                         </a>
                     </li>
                     <li>
-                        <a href="#" id="nav-archives" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
+                        <a href="#" id="nav-archives" class="nav-link">
                             <i data-lucide="archive"></i> Semester Archives
                         </a>
                     </li>
                     <li id="nav-item-admin" style="display: none;">
-                        <a href="#" id="nav-admin" class="btn nav-link" style="width: 100%; justify-content: flex-start; color: var(--warning);">
+                        <a href="#" id="nav-admin" class="nav-link" style="color: var(--warning) !important;">
                             <i data-lucide="activity"></i> Site Analytics
                         </a>
                     </li>
                     <li>
-                        <a href="#" id="nav-settings" class="btn nav-link" style="width: 100%; justify-content: flex-start;">
-                            <i data-lucide="settings"></i> Advanced Settings
+                        <a href="#" id="nav-profile" class="nav-link">
+                            <i data-lucide="user"></i> Profile
                         </a>
                     </li>
-                    <li style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-                        <a href="#" id="logout-btn" class="btn" style="width: 100%; justify-content: flex-start; color: var(--danger);">
-                            <i data-lucide="log-out"></i> Logout
+                    <li>
+                        <a href="#" id="nav-settings" class="nav-link">
+                            <i data-lucide="settings"></i> Advanced Settings
                         </a>
                     </li>
                 </ul>
             </nav>
             
-            <div class="profile-preview glass-card" style="padding: 1rem; margin-top: auto; cursor: pointer;" id="profile-trigger">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div id="sidebar-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--secondary); display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; flex-shrink: 0;">
-                        <i data-lucide="user"></i>
-                    </div>
-                    <div style="flex: 1;">
-                        <p id="student-session" style="font-weight: 600; font-size: 0.875rem;">Academic Session</p>
-                        <p id="student-uni" style="font-size: 0.75rem; color: var(--text-secondary);">Your University</p>
-                    </div>
-                    <i data-lucide="chevron-right" style="width: 16px; color: var(--text-secondary);"></i>
+            <!-- Active Session Building Card -->
+            <div class="sidebar-uni-card" id="profile-trigger">
+                <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-shrink: 0;">
+                    <i data-lucide="school" style="width: 18px; height: 18px;"></i>
                 </div>
+                <div style="flex: 1; overflow: hidden;">
+                    <h4 id="student-session" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">Academic Session</h4>
+                    <p id="student-uni" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">Your University</p>
+                </div>
+                <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: #64748b; margin-left: auto;"></i>
+            </div>
+
+            <!-- Logout Link -->
+            <div class="logout-btn-wrap">
+                <a href="#" id="logout-btn" class="logout-btn">
+                    <i data-lucide="log-out"></i> Logout
+                </a>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="main-content">
-            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+            <!-- Header section switch -->
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; width: 100%;">
                 <div id="main-header-title">
-                    <h1 id="dashboard-welcome" class="font-heading animate-fade-in" style="font-size: 2.5rem; margin-bottom: 0.5rem;">Academic Dashboard</h1>
-                    <p id="dashboard-uni-info" style="color: var(--text-secondary);">Track your academic journey with precision.</p>
+                    <h1 id="dashboard-welcome" class="font-heading animate-fade-in" style="font-size: 2.2rem; margin-bottom: 0.25rem; font-weight: 800; letter-spacing: -0.02em;">Welcome back, Gideon 👋</h1>
+                    <p id="dashboard-uni-info" style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">GV University • 2025/2026 Session</p>
                 </div>
                 
                 <div style="display: flex; gap: 0.75rem; align-items: center; margin-left: auto;">
-                    <button id="theme-toggle" class="btn glass-card" style="padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem; border-color: var(--warning); color: var(--warning);">
-                        <i data-lucide="sun" id="theme-icon" style="width: 18px;"></i>
-                        <span style="font-size: 0.85rem;">Theme</span>
+                    <button id="theme-toggle" class="btn btn-outline" style="border-radius: 0.75rem;">
+                        <i data-lucide="sun" id="theme-icon" style="width: 16px;"></i>
+                        <span>Theme</span>
                     </button>
-                    <button id="export-image" class="btn glass-card" style="padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem; border-color: var(--info); color: var(--info);">
-                        <i data-lucide="image" style="width: 18px;"></i>
-                        <span style="font-size: 0.85rem;">Save Image</span>
+                    <button id="export-image" class="btn btn-outline" style="border-radius: 0.75rem;">
+                        <i data-lucide="image" style="width: 16px;"></i>
+                        <span>Save Image</span>
                     </button>
-                    <button id="export-pdf" class="btn btn-primary" style="padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <i data-lucide="download" style="width: 18px;"></i>
-                        <span style="font-size: 0.85rem;">Save PDF</span>
+                    <button id="export-pdf" class="btn btn-save-pdf">
+                        <i data-lucide="download" style="width: 16px;"></i>
+                        <span>Save PDF</span>
                     </button>
                 </div>
             </header>
 
             <!-- Dashboard Section -->
             <div id="section-dashboard" class="app-section" style="display: block;">
-                <!-- Stats Overview -->
-                <div class="stats-grid">
-                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.1s;">
-                        <p class="input-label">Current CGPA</p>
-                        <h3 class="stat-value" id="cgpa-display">0.00</h3>
-                        <p id="standing-display" style="font-size: 0.875rem; font-weight: 600; color: var(--text-secondary);">Academic Standing</p>
+                <!-- Stats Overview Grid (4 standalone cards) -->
+                <div class="stats-grid animate-fade-in">
+                    <!-- Card 1: Current CGPA -->
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-label">Current CGPA</span>
+                            <div class="stat-icon-circle green">
+                                <i data-lucide="trending-up" style="width: 18px; height: 18px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value green" id="cgpa-display">0.00</h3>
+                        <p class="stat-card-sub" id="standing-display">First Class</p>
+                        
+                        <!-- Neon Glowing Sparkline SVG -->
+                        <div style="margin-top: 1.25rem; height: 40px; width: 100%;">
+                            <svg viewBox="0 0 200 40" width="100%" height="100%" style="overflow: visible;">
+                                <defs>
+                                    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                    <linearGradient id="grad-green" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.2" />
+                                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M 0 35 Q 35 20, 70 30 T 130 18 T 170 28 T 200 8 L 200 40 L 0 40 Z" fill="url(#grad-green)" />
+                                <path d="M 0 35 Q 35 20, 70 30 T 130 18 T 170 28 T 200 8" stroke="#10b981" stroke-width="2.5" fill="none" filter="url(#glow-green)" stroke-linecap="round" />
+                                <circle cx="200" cy="8" r="3.5" fill="#10b981" filter="url(#glow-green)" />
+                            </svg>
+                        </div>
                     </div>
-                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.2s;">
-                        <p class="input-label">Total Units</p>
-                        <h3 class="stat-value" id="total-units-display" style="background: linear-gradient(to right, var(--accent), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">0</h3>
-                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Across all semesters</p>
+
+                    <!-- Card 2: Total Units -->
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-label">Total Units</span>
+                            <div class="stat-icon-circle purple">
+                                <i data-lucide="box" style="width: 18px; height: 18px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value purple" id="total-units-display">0</h3>
+                        <p class="stat-card-sub">Across all semesters</p>
+                        
+                        <!-- Neon Glowing Sparkline SVG (Purple) -->
+                        <div style="margin-top: 1.25rem; height: 40px; width: 100%;">
+                            <svg viewBox="0 0 200 40" width="100%" height="100%" style="overflow: visible;">
+                                <defs>
+                                    <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                    <linearGradient id="grad-purple" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.2" />
+                                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M 0 32 Q 40 38, 80 20 T 140 28 T 200 10 L 200 40 L 0 40 Z" fill="url(#grad-purple)" />
+                                <path d="M 0 32 Q 40 38, 80 20 T 140 28 T 200 10" stroke="#8b5cf6" stroke-width="2.5" fill="none" filter="url(#glow-purple)" stroke-linecap="round" />
+                                <circle cx="200" cy="10" r="3.5" fill="#8b5cf6" filter="url(#glow-purple)" />
+                            </svg>
+                        </div>
                     </div>
-                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.3s;">
-                        <p class="input-label">Grade Points</p>
-                        <h3 class="stat-value" id="total-points-display" style="background: linear-gradient(to right, var(--warning), var(--danger)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">0</h3>
-                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Cumulative points earned</p>
+
+                    <!-- Card 3: Grade Points -->
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-label">Grade Points</span>
+                            <div class="stat-icon-circle gold">
+                                <i data-lucide="award" style="width: 18px; height: 18px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value gold" id="total-points-display">0</h3>
+                        <p class="stat-card-sub">Cumulative points earned</p>
+                        
+                        <!-- Neon Glowing Sparkline SVG (Gold) -->
+                        <div style="margin-top: 1.25rem; height: 40px; width: 100%;">
+                            <svg viewBox="0 0 200 40" width="100%" height="100%" style="overflow: visible;">
+                                <defs>
+                                    <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                    <linearGradient id="grad-gold" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2" />
+                                        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M 0 35 Q 30 38, 70 32 T 130 22 T 200 15 L 200 40 L 0 40 Z" fill="url(#grad-gold)" />
+                                <path d="M 0 35 Q 30 38, 70 32 T 130 22 T 200 15" stroke="#f59e0b" stroke-width="2.5" fill="none" filter="url(#glow-gold)" stroke-linecap="round" />
+                                <circle cx="200" cy="15" r="3.5" fill="#f59e0b" filter="url(#glow-gold)" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Academic Standing -->
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-label">Academic Standing</span>
+                            <div class="stat-icon-circle blue">
+                                <i data-lucide="shield" style="width: 18px; height: 18px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value blue" id="standing-card-value">Excellent</h3>
+                        <p class="stat-card-sub">Keep up the great work!</p>
+                        
+                        <!-- Neon Glowing Blue Progress Bar -->
+                        <div class="stat-progress-bar-wrap">
+                            <div class="stat-progress-bar blue" id="standing-progress" style="width: 0%;"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Level Performance (Vanilla JS) -->
-                <div style="margin-top: 2rem; margin-bottom: 2rem;">
-                    <h2 class="font-heading" style="margin-bottom: 1rem; font-size: 1.25rem;">Level Breakdown</h2>
-                    <div id="level-performance-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-                        <!-- Injected via JS -->
+                <!-- Level Breakdown Card -->
+                <div class="level-breakdown-card animate-fade-in">
+                    <div class="level-breakdown-card-header">
+                        <div class="level-icon-circle">
+                            <i data-lucide="layers" style="width: 16px; height: 16px;"></i>
+                        </div>
+                        <h3>Level Breakdown</h3>
+                    </div>
+                    <div id="level-performance-container" style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
+                        <!-- Level rows with horizontal progress bars dynamically injected via JS -->
                     </div>
                 </div>
 
-                <!-- Dashboard Content -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-                    <!-- Semester Management -->
+                <!-- Dashboard Split Grid Content -->
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 2rem; align-items: start; width: 100%;">
+                    <!-- Left: Semester Cards Container -->
                     <section>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                            <h2 class="font-heading">Semesters</h2>
-                            <button id="add-semester-btn" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+                        <div class="semester-header-row">
+                            <h2>Semesters</h2>
+                            <button id="add-semester-btn" class="btn btn-primary" style="padding: 0.5rem 1rem; border-radius: 0.6rem;">
                                 <i data-lucide="plus"></i> Add Semester
                             </button>
                         </div>
@@ -160,26 +270,35 @@
                         </div>
                     </section>
 
-                    <!-- Visualization & Profile -->
+                    <!-- Right: Visualization & Grading Guidelines -->
                     <aside style="display: flex; flex-direction: column; gap: 2rem;">
-                        <div class="glass card">
-                            <h3 class="font-heading" style="margin-bottom: 1rem;">Performance Chart</h3>
+                        <!-- Performance Chart Canvas -->
+                        <div class="glass card" style="border-radius: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                                <h3 class="font-heading" style="font-size: 1.05rem; font-weight: 700; color: #ffffff;">Performance Chart</h3>
+                                <select id="chart-type-selector" class="glass-card" style="padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.8rem; width: auto; background: rgba(30,41,59,0.5); color: #ffffff; border: 1px solid rgba(255,255,255,0.08); outline: none; cursor: pointer;">
+                                    <option value="cgpa">CGPA</option>
+                                    <option value="gpa">GPA</option>
+                                </select>
+                            </div>
                             <div style="position: relative; height: 250px; width: 100%;">
                                 <canvas id="cgpaChart"></canvas>
                             </div>
                         </div>
                         
-                        <div class="glass card">
-                            <h3 class="font-heading" style="margin-bottom: 1rem;">Grading Guide</h3>
-                            <div id="grading-guide-container" style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.875rem;">
-                                <!-- Injected via JS based on Scale -->
+                        <!-- Grading Scale Info -->
+                        <div class="glass card" style="border-radius: 1.25rem;">
+                            <h3 class="font-heading" style="font-size: 1.05rem; font-weight: 700; color: #ffffff; margin-bottom: 1rem;">Grading Guide</h3>
+                            <div id="grading-guide-container" class="grading-scale-row">
+                                <!-- Injected dynamically via JS as a horizontal 5-column grid -->
                             </div>
                             
+                            <!-- Score Converter -->
                             <div class="converter-box">
-                                <p style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem;">Score Converter</p>
+                                <p style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">Score Converter</p>
                                 <div style="display: flex; gap: 0.5rem;">
-                                    <input type="number" id="convert-score" placeholder="Enter Score (%)" style="padding: 0.5rem; font-size: 0.875rem;">
-                                    <div id="convert-result" class="glass-card" style="padding: 0.5rem; min-width: 40px; text-align: center; font-weight: 800;">-</div>
+                                    <input type="number" id="convert-score" placeholder="Enter Score (%)" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
+                                    <div id="convert-result" class="glass-card" style="padding: 0.5rem; min-width: 40px; text-align: center; font-weight: 800; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">-</div>
                                 </div>
                             </div>
                         </div>
@@ -189,7 +308,7 @@
 
             <!-- Courses Section -->
             <div id="section-courses" class="app-section" style="display: none;">
-                <div class="glass card animate-fade-in">
+                <div class="glass card animate-fade-in" style="padding: 2.5rem; max-width: 1200px; margin: 0 auto; width: 100%;">
                     <h2 class="font-heading" style="margin-bottom: 1.5rem;">All Registered Courses</h2>
                     <div id="all-courses-container">
                         <!-- Full course list injected here -->
@@ -199,7 +318,7 @@
 
             <!-- Profile Section -->
             <div id="section-profile" class="app-section" style="display: none;">
-                <div class="glass card animate-fade-in" style="max-width: 600px; margin: 0 auto;">
+                <div class="glass card animate-fade-in" style="max-width: 800px; margin: 0 auto;">
                     <h2 class="font-heading" style="margin-bottom: 1.5rem;">Student Profile Details</h2>
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
 
@@ -255,6 +374,7 @@
                     </div>
                 </div>
             </div>
+            
             <!-- Course Resources Section -->
             <div id="section-resources" class="app-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -270,6 +390,7 @@
                     </div>
                 </div>
             </div>
+            
             <!-- Semester Archives Section -->
             <div id="section-archives" class="app-section" style="display: none;">
                 <div style="margin-bottom: 2rem;">
@@ -291,6 +412,7 @@
                     </div>
                 </div>
             </div>
+            
             <!-- Site Analytics Section -->
             <div id="section-admin" class="app-section" style="display: none;">
                 <div style="margin-bottom: 2rem;">
@@ -298,38 +420,112 @@
                     <p style="color: var(--text-secondary);">Real-time metrics for Spice CGPA Pro.</p>
                 </div>
                 
-                <div class="stats-grid" style="margin-bottom: 2rem;">
-                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.1s; border-color: var(--primary);">
-                        <p class="input-label">Total Users</p>
-                        <h3 class="stat-value" id="admin-total-users">0</h3>
-                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Registered accounts</p>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem; gap: 1.25rem;">
+                    <!-- Card 1: Total Users -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.1s; border-color: var(--primary); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Total Users</span>
+                            <div class="stat-icon-circle green" style="width: 32px; height: 32px;">
+                                <i data-lucide="users" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value green" id="admin-total-users" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Registered student accounts</p>
                     </div>
-                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.2s; border-color: var(--secondary);">
-                        <p class="input-label">Profile Pictures</p>
-                        <h3 class="stat-value" id="admin-total-pics">0</h3>
-                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Uploaded avatars</p>
+
+                    <!-- Card 2: Active Users -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.15s; border-color: var(--info); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Active Users</span>
+                            <div class="stat-icon-circle blue" style="width: 32px; height: 32px;">
+                                <i data-lucide="activity" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value blue" id="admin-active-users" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Active in the last 7 days</p>
                     </div>
-                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.3s; border-color: var(--warning);">
-                        <p class="input-label">Total Courses</p>
-                        <h3 class="stat-value" id="admin-total-courses">0</h3>
-                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Saved by all users</p>
+
+                    <!-- Card 3: Profile Pictures -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.2s; border-color: var(--secondary); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Profile Pictures</span>
+                            <div class="stat-icon-circle purple" style="width: 32px; height: 32px;">
+                                <i data-lucide="image" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value purple" id="admin-total-pics" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Uploaded student avatars</p>
                     </div>
-                    <div class="stat-item glass animate-fade-in" style="animation-delay: 0.4s; border-color: var(--danger);">
-                        <p class="input-label">Total Results</p>
-                        <h3 class="stat-value" id="admin-total-results">0</h3>
-                        <p style="font-size: 0.875rem; color: var(--text-secondary);">Calculated semesters</p>
+
+                    <!-- Card 4: Registered Universities -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.25s; border-color: var(--accent); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Universities</span>
+                            <div class="stat-icon-circle purple" style="width: 32px; height: 32px; background: rgba(139, 92, 246, 0.12); color: var(--accent);">
+                                <i data-lucide="school" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value" id="admin-total-unis" style="color: var(--accent); font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Unique tertiary institutions</p>
+                    </div>
+
+                    <!-- Card 5: Total Courses -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.3s; border-color: var(--warning); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Total Courses</span>
+                            <div class="stat-icon-circle gold" style="width: 32px; height: 32px;">
+                                <i data-lucide="book-open" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value gold" id="admin-total-courses" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Courses saved by all users</p>
+                    </div>
+
+                    <!-- Card 6: Total Results -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.35s; border-color: var(--danger); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Total Results</span>
+                            <div class="stat-icon-circle red" style="width: 32px; height: 32px; background: rgba(239, 68, 68, 0.12); color: var(--danger);">
+                                <i data-lucide="award" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value red" id="admin-total-results" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Calculated student semesters</p>
+                    </div>
+
+                    <!-- Card 7: Total Credit Units -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.4s; border-color: var(--primary); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Credit Units</span>
+                            <div class="stat-icon-circle green" style="width: 32px; height: 32px;">
+                                <i data-lucide="box" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value green" id="admin-total-units" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Cumulative units registered</p>
+                    </div>
+
+                    <!-- Card 8: Average GPA -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.45s; border-color: var(--warning); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Average GPA</span>
+                            <div class="stat-icon-circle gold" style="width: 32px; height: 32px;">
+                                <i data-lucide="trending-up" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value gold" id="admin-average-gpa" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0.00</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">System-wide grade average</p>
                     </div>
                 </div>
 
-                <!-- Detailed Analytics: Users & Pictures -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-                    
-                    <!-- Registered Users List -->
-                    <div class="glass card animate-fade-in" style="animation-delay: 0.5s;">
-                        <h3 class="font-heading" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i data-lucide="users" style="color: var(--primary);"></i> Registered Users
-                        </h3>
-                        <div id="admin-users-list" style="max-height: 400px; overflow-y: auto; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                 <!-- Detailed Analytics: Users & Pictures -->
+                 <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 2rem; align-items: start;">
+                     <!-- Registered Users List -->
+                     <div class="glass card animate-fade-in" style="animation-delay: 0.5s;">
+                         <h3 class="font-heading" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                             <i data-lucide="users" style="color: var(--primary);"></i> Registered Users
+                         </h3>
+                         <div id="admin-users-list" style="max-height: 550px; overflow-y: auto; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
                             <!-- Injected via JS -->
                             <p style="color: var(--text-secondary); text-align: center; padding: 1rem;">Loading users...</p>
                         </div>
@@ -345,7 +541,6 @@
                             <p style="color: var(--text-secondary); text-align: center; padding: 1rem; grid-column: 1 / -1;">Loading pictures...</p>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -400,7 +595,7 @@
     </div>
 
     <!-- Modals -->
-    <div id="course-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+    <div id="course-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px; border-radius: 1.25rem;">
         <h3 class="font-heading" style="margin-bottom: 1.5rem;">Add Course</h3>
         <div class="input-group">
             <label class="input-label">Course Title</label>
@@ -430,7 +625,7 @@
     </div>
 
     <!-- University Settings Modal -->
-    <div id="uni-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+    <div id="uni-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px; border-radius: 1.25rem;">
         <h3 class="font-heading" style="margin-bottom: 1.5rem;">University Settings</h3>
         <div class="input-group">
             <label class="input-label">University Name</label>
@@ -450,7 +645,7 @@
 
     <!-- Photo Selection Modal -->
     <div id="photo-select-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 150; display: none; align-items: center; justify-content: center; padding: 1rem;">
-        <div class="glass" style="width: 100%; max-width: 360px; padding: 2rem; position: relative; text-align: center;">
+        <div class="glass" style="width: 100%; max-width: 360px; padding: 2rem; position: relative; text-align: center; border-radius: 1.25rem;">
             <button id="photo-select-close-btn" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem;">
                 <i data-lucide="x" style="width: 20px; height: 20px;"></i>
             </button>
@@ -470,7 +665,7 @@
 
     <!-- Camera Modal -->
     <div id="camera-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem;">
-        <div class="glass" style="width: 100%; max-width: 520px; padding: 2rem; position: relative;">
+        <div class="glass" style="width: 100%; max-width: 520px; padding: 2rem; position: relative; border-radius: 1.25rem;">
             <button id="camera-close-btn" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.25rem;">
                 <i data-lucide="x" style="width: 24px; height: 24px;"></i>
             </button>
@@ -489,7 +684,7 @@
     </div>
 
     <!-- Planner Modal -->
-    <div id="planner-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+    <div id="planner-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px; border-radius: 1.25rem;">
         <h3 class="font-heading" style="margin-bottom: 1.5rem;">Add New Task</h3>
         <div class="input-group">
             <label class="input-label">Task Description</label>
@@ -526,7 +721,7 @@
     </div>
 
     <!-- Resource Modal -->
-    <div id="resource-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px;">
+    <div id="resource-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px; border-radius: 1.25rem;">
         <h3 class="font-heading" style="margin-bottom: 1.5rem;">Add Resource</h3>
         <div class="input-group">
             <label class="input-label">Resource Title</label>
@@ -554,6 +749,7 @@
 
     <!-- JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="src/js/app.js"></script>
     <script>

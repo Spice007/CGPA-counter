@@ -6,34 +6,49 @@
     <title>Create Account | Spice CGPA Pro</title>
     <meta name="description" content="Join Spice CGPA Pro — the smart Nigerian CGPA calculator for ambitious students.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="src/css/style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            font-family:'Inter',sans-serif;
-            display:flex;
-            min-height:100vh;
-            background:#0f172a;
-            overflow-x:hidden;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background: #090d16;
+            color: #f8fafc;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        /* ── Animated BG ── */
+        /* ── Animated Neon BG Orbs ── */
         .bg-orbs {
-            position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
         }
         .orb {
-            position:absolute;border-radius:50%;filter:blur(80px);opacity:0.18;animation:drift 12s ease-in-out infinite;
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.12;
+            animation: drift 15s ease-in-out infinite;
         }
-        .orb-1{width:500px;height:500px;background:#10b981;top:-150px;left:-150px;animation-delay:0s;}
-        .orb-2{width:400px;height:400px;background:#6366f1;bottom:-100px;right:-100px;animation-delay:-4s;}
-        .orb-3{width:300px;height:300px;background:#8b5cf6;top:40%;left:40%;animation-delay:-8s;}
+        .orb-1 { width: 600px; height: 600px; background: #10b981; top: -200px; left: -200px; animation-delay: 0s; }
+        .orb-2 { width: 500px; height: 500px; background: #6366f1; bottom: -150px; right: -150px; animation-delay: -5s; }
+        .orb-3 { width: 400px; height: 400px; background: #0ea5e9; top: 35%; left: 35%; animation-delay: -10s; }
+        
         @keyframes drift {
-            0%,100%{transform:translate(0,0) scale(1);}
-            33%{transform:translate(30px,-20px) scale(1.05);}
-            66%{transform:translate(-20px,30px) scale(0.95);}
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.08); }
+            66% { transform: translate(-30px, 40px) scale(0.92); }
         }
 
         /* ── Layout ── */
@@ -42,443 +57,1081 @@
             position: relative;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            padding: 4rem;
+            justify-content: space-between;
+            padding: 3.5rem 4.5rem;
             z-index: 1;
             border-right: 1px solid rgba(255, 255, 255, 0.05);
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 100%);
         }
 
         .page-right {
             width: 50%;
             display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            padding: 3rem;
+            padding: 4rem 3rem 2.5rem 3rem;
             z-index: 1;
             overflow-y: auto;
         }
 
+        .form-container-wrap {
+            width: 100%;
+            max-width: 480px;
+            margin: auto 0;
+        }
+
         /* ── Left Branding ── */
         .brand-logo {
-            display: flex; align-items: center; gap: 0.75rem; margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
         .logo-icon {
-            width: 52px; height: 52px; border-radius: 14px;
-            background: rgba(16, 185, 129, 0.2);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            display: flex; align-items: center; justify-content: center; color: #10b981;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
         }
         .logo-text {
-            font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800; color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #ffffff;
         }
-        .logo-text span { color: #10b981; }
+
+        /* Trust Badge */
+        .trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            padding: 0.45rem 0.9rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            width: fit-content;
+        }
+
+        /* Hero Text & CGPA Card Row */
+        .brand-hero-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2.5rem;
+            width: 100%;
+        }
+        .hero-left {
+            flex: 1;
+        }
+        .hero-right {
+            flex-shrink: 0;
+        }
 
         .brand-headline {
             font-family: 'Outfit', sans-serif;
-            font-size: 3.2rem; font-weight: 800;
-            line-height: 1.1; color: #f8fafc; margin-bottom: 1.5rem;
+            font-size: 2.8rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: #f8fafc;
+            margin-bottom: 1rem;
         }
         .brand-headline .grad {
-            background: linear-gradient(135deg, #10b981, #6366f1);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            background: linear-gradient(135deg, #10b981 0%, #6366f1 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .brand-sub {
-            color: #cbd5e1; font-size: 1.1rem; line-height: 1.6; max-width: 400px; margin-bottom: 3rem;
+            color: #94a3b8;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            max-width: 440px;
+        }
+
+        /* Floating CGPA Card */
+        .cgpa-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            width: 250px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            position: relative;
+            animation: floatCard 6s ease-in-out infinite;
+        }
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(0.5deg); }
+        }
+
+        .cgpa-card-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .cgpa-card-value {
+            font-size: 2.6rem;
+            font-weight: 800;
+            color: #10b981;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            font-family: 'Outfit', sans-serif;
+            text-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        .cgpa-card-status {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
         /* Feature List */
         .feature-list {
-            display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            width: 100%;
         }
         .feature-item {
-            display: flex; align-items: center; gap: 1rem;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1rem; padding: 1rem;
-            transition: transform 0.3s, background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
         }
         .feature-item:hover {
-            transform: translateX(10px);
-            background: rgba(255, 255, 255, 0.07);
+            transform: translateX(6px);
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(16, 185, 129, 0.2);
         }
         .feature-icon {
-            width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
-        .feature-icon.green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .feature-icon.purple { background: rgba(99, 102, 241, 0.2); color: #6366f1; }
-        .feature-icon.amber { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .feature-item p { font-size: 0.95rem; color: #e2e8f0; font-weight: 500; }
+        .feature-icon.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .feature-icon.purple { background: rgba(99, 102, 241, 0.15); color: #6366f1; }
+        .feature-icon.amber { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 
-        /* Testimonial Section */
+        .feature-content {
+            flex: 1;
+        }
+        .feature-content h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 0.25rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .feature-content p {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+        .feature-chevron {
+            color: #475569;
+            width: 18px;
+            height: 18px;
+            transition: all 0.3s;
+        }
+        .feature-item:hover .feature-chevron {
+            color: #10b981;
+            transform: translateX(3px);
+        }
+
+        /* Testimonials Slider */
+        .testimonials-outer {
+            width: 100%;
+        }
         .testimonials-container {
             position: relative;
-            height: 120px;
-            overflow: hidden;
+            height: 165px;
+            width: 100%;
         }
         .testimonial {
             position: absolute;
             width: 100%;
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: 1rem; padding: 1.25rem;
+            background: rgba(16, 185, 129, 0.03);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
             opacity: 0;
             transition: opacity 0.5s, transform 0.5s;
-            transform: translateY(20px);
+            transform: translateY(15px);
+            pointer-events: none;
         }
         .testimonial.active {
             opacity: 1;
             transform: translateY(0);
+            pointer-events: auto;
         }
-        .testimonial p { font-size: 0.9rem; color: #cbd5e1; line-height: 1.5; font-style: italic; margin-bottom: 0.75rem; }
-        .testimonial-author { display: flex; align-items: center; gap: 0.75rem; }
+        .testimonial-quote-icon {
+            color: #10b981;
+            opacity: 0.3;
+            margin-bottom: 0.4rem;
+        }
+        .testimonial-text {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.55;
+            font-style: italic;
+            margin-bottom: 1.25rem;
+        }
+        .testimonial-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.75rem;
+        }
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
         .testimonial-avatar {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: linear-gradient(135deg, #10b981, #6366f1);
-            display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.85rem;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(16, 185, 129, 0.3);
         }
-        .testimonial-name { font-size: 0.85rem; font-weight: 600; color: #f1f5f9; }
-        .testimonial-role { font-size: 0.75rem; color: #94a3b8; }
+        .testimonial-avatar-placeholder {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.8rem;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+        }
+        .testimonial-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        .testimonial-role {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .testimonial-rating {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        .testimonial-rating .stars {
+            display: flex;
+            gap: 2px;
+        }
+        .star-filled {
+            width: 12px;
+            height: 12px;
+            fill: #f59e0b;
+            color: #f59e0b;
+        }
+        .rating-val {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
 
-        /* ── Right Form Panel ── */
+        /* ── Right Panel Form ── */
         .form-box {
-            width:100%;max-width:460px;
+            width: 100%;
         }
 
         /* Step Progress */
         .step-progress {
-            display:flex;align-items:center;gap:0;margin-bottom:2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            width: 100%;
         }
         .step {
-            display:flex;align-items:center;gap:0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
         .step-num {
-            width:32px;height:32px;border-radius:50%;
-            display:flex;align-items:center;justify-content:center;
-            font-size:0.8rem;font-weight:700;
-            border:2px solid rgba(255,255,255,0.1);
-            color:#64748b;transition:all 0.3s;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: #0f172a;
+            color: #64748b;
+            transition: all 0.3s ease;
         }
-        .step.active .step-num{background:#10b981;border-color:#10b981;color:#fff;}
-        .step.done .step-num{background:rgba(16,185,129,0.2);border-color:#10b981;color:#10b981;}
-        .step-label{font-size:0.75rem;color:#64748b;font-weight:600;transition:color 0.3s;}
-        .step.active .step-label{color:#10b981;}
-        .step.done .step-label{color:#10b981;}
-        .step-line{flex:1;height:1px;background:rgba(255,255,255,0.08);margin:0 0.75rem;}
-        .step-line.done{background:#10b981;}
+        .step.active .step-num {
+            background: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+        .step.done .step-num {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: #10b981;
+            color: #10b981;
+        }
+        .step-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        .step.active .step-label {
+            color: #10b981;
+        }
+        .step.done .step-label {
+            color: #10b981;
+        }
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 0 1rem;
+            border-radius: 2px;
+        }
+        .step-line.done {
+            background: #10b981;
+        }
 
         .form-title {
-            font-family:'Outfit',sans-serif;font-size:1.75rem;font-weight:800;color:#f8fafc;margin-bottom:0.4rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #f8fafc;
+            margin-bottom: 0.4rem;
         }
-        .form-sub{color:#64748b;font-size:0.9rem;margin-bottom:1.75rem;}
+        .form-sub {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
 
+        /* Error Box */
         .error-message {
-            background:rgba(239,68,68,0.08);
-            color:#f87171;padding:0.75rem 1rem;
-            border-radius:0.65rem;border:1px solid rgba(239,68,68,0.2);
-            margin-bottom:1.25rem;display:none;font-size:0.875rem;
-            align-items:center;gap:0.5rem;
+            background: rgba(239, 68, 68, 0.08);
+            color: #f87171;
+            padding: 0.85rem 1.1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            margin-bottom: 1.5rem;
+            display: none;
+            font-size: 0.875rem;
+            align-items: center;
+            gap: 0.6rem;
         }
-        .error-message.show{display:flex;}
-
-        .fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
-        .full{grid-column:span 2;}
-
-        .field-group{display:flex;flex-direction:column;gap:0.4rem;}
-        .field-label{
-            font-size:0.78rem;font-weight:700;color:#94a3b8;
-            text-transform:uppercase;letter-spacing:0.05em;
-            display:flex;align-items:center;gap:0.4rem;
+        .error-message.show {
+            display: flex;
         }
-        .field-label svg{width:12px;height:12px;}
-        .input-wrap{position:relative;}
+
+        /* Form Fields */
+        .fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .full {
+            grid-column: span 2;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .field-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .field-label svg {
+            width: 14px;
+            height: 14px;
+            color: #64748b;
+        }
+        .input-wrap {
+            position: relative;
+        }
         .input-wrap input {
-            width:100%;padding:0.8rem 1rem 0.8rem 2.6rem;
-            background:rgba(30,41,59,0.6);
-            border:1px solid rgba(148,163,184,0.12);
-            border-radius:0.65rem;color:#f8fafc;
-            font-size:0.9rem;font-family:'Inter',sans-serif;
-            outline:none;transition:border-color 0.2s,background 0.2s;
+            width: 100%;
+            padding: 0.9rem 1rem 0.9rem 2.8rem;
+            background: rgba(13, 20, 35, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            color: #f8fafc;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
         }
-        .input-wrap input:focus{border-color:#10b981;background:rgba(30,41,59,0.9);}
-        .input-wrap input::placeholder{color:#475569;}
-        .input-icon{
-            position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);
-            color:#475569;pointer-events:none;display:flex;align-items:center;
+        .input-wrap input:focus {
+            border-color: #10b981;
+            background: rgba(13, 20, 35, 0.9);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
         }
-        .input-icon svg{width:15px;height:15px;}
-        .pw-toggle{
-            position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);
-            background:none;border:none;color:#475569;cursor:pointer;
-            display:flex;align-items:center;padding:0;transition:color 0.2s;
+        .input-wrap input::placeholder {
+            color: #475569;
         }
-        .pw-toggle:hover{color:#10b981;}
-        .pw-toggle svg{width:15px;height:15px;}
+        
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #475569;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+        }
+        .input-icon svg {
+            width: 16px;
+            height: 16px;
+        }
 
-        /* Password strength */
-        .pw-strength{display:flex;gap:4px;margin-top:6px;}
-        .pw-bar{
-            flex:1;height:3px;border-radius:2px;
-            background:rgba(255,255,255,0.08);transition:background 0.3s;
+        .pw-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 0;
+            transition: color 0.2s;
         }
-        .pw-bar.weak{background:#ef4444;}
-        .pw-bar.fair{background:#f59e0b;}
-        .pw-bar.good{background:#10b981;}
-
-        /* Terms */
-        .terms-row{
-            display:flex;align-items:flex-start;gap:0.6rem;margin-top:0.5rem;margin-bottom:1.25rem;
+        .pw-toggle:hover {
+            color: #10b981;
         }
-        .terms-row input[type="checkbox"]{
-            width:16px;height:16px;accent-color:#10b981;
-            margin-top:2px;flex-shrink:0;cursor:pointer;
+        .pw-toggle svg {
+            width: 16px;
+            height: 16px;
         }
-        .terms-row label{font-size:0.8rem;color:#64748b;cursor:pointer;line-height:1.5;}
-        .terms-row label a{color:#10b981;text-decoration:none;font-weight:600;}
 
-        /* Submit */
-        .submit-btn{
-            width:100%;padding:0.9rem;
-            background:linear-gradient(135deg,#10b981,#059669);
-            color:#fff;border:none;border-radius:0.75rem;
-            font-size:1rem;font-weight:700;font-family:'Outfit',sans-serif;
-            cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.6rem;
-            transition:transform 0.2s,opacity 0.2s;letter-spacing:0.02em;
+        /* Password Strength */
+        .pw-strength {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
         }
-        .submit-btn:hover{transform:translateY(-2px);opacity:0.92;}
-        .submit-btn:active{transform:translateY(0);}
-        .submit-btn svg{width:18px;height:18px;}
-
-        .login-link{
-            text-align:center;font-size:0.85rem;color:#64748b;margin-top:1.25rem;
+        .pw-bar {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.06);
+            transition: background 0.3s;
         }
-        .login-link a{color:#10b981;font-weight:700;text-decoration:none;}
-        .login-link a:hover{opacity:0.8;}
+        .pw-bar.weak { background: #ef4444; }
+        .pw-bar.fair { background: #f59e0b; }
+        .pw-bar.good { background: #10b981; }
 
-        @keyframes spin{to{transform:rotate(360deg);}}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
-        .fade-up{animation:fadeUp 0.5s ease-out forwards;}
+        /* Terms Box */
+        .terms-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            margin-top: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .terms-row input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            accent-color: #10b981;
+            margin-top: 2px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .terms-row label {
+            font-size: 0.825rem;
+            color: #64748b;
+            cursor: pointer;
+            line-height: 1.55;
+        }
+        .terms-row label a {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .terms-row label a:hover {
+            text-decoration: underline;
+        }
 
-        @media(max-width:900px){
-            .page-left{display:none;}
-            .page-right{padding:1.5rem;}
+        /* Buttons styling */
+        .submit-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.95rem;
+            background: #10b981;
+            color: #ffffff;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+        }
+        .submit-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-arrow-circle {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s;
+        }
+        .submit-btn:hover .btn-arrow-circle {
+            transform: translateX(3px);
+            background: rgba(255, 255, 255, 0.35);
+        }
+        .btn-arrow-circle svg {
+            width: 13px !important;
+            height: 13px !important;
+            color: #ffffff;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            flex: 0.35;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            box-shadow: none;
+        }
+
+        /* Sign-in link */
+        .login-link {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 1.5rem;
+        }
+        .login-link a {
+            color: #10b981;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* bottom Highlights */
+        .form-highlights {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 3.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 2rem;
+            width: 100%;
+        }
+        .highlight-item {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+        .highlight-icon {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .highlight-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+        .highlight-text h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 0.2rem;
+        }
+        .highlight-text p {
+            font-size: 0.7rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up {
+            animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* ── Responsive Styling ── */
+        @media(max-width: 1100px) {
+            .brand-hero-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+            .hero-left {
+                width: 100%;
+            }
+        }
+
+        @media(max-width: 900px) {
+            body {
+                flex-direction: column;
+            }
+            .page-left {
+                display: none;
+            }
+            .page-right {
+                width: 100%;
+                padding: 2.5rem 1.5rem;
+            }
+            .form-highlights {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+                margin-top: 2.5rem;
+                padding-top: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Animated BG Orbs -->
+    <!-- Animated Neon Background Orbs -->
     <div class="bg-orbs">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
     </div>
 
-    <!-- LEFT: Branding -->
+    <!-- LEFT SIDE: Branding and Visual Presentation -->
     <div class="page-left">
+        <!-- Logo -->
         <div class="brand-logo">
-            <div class="logo-icon"><i data-lucide="graduation-cap" style="width:24px;height:24px;"></i></div>
-            <span class="logo-text">Spice<span>CGPA</span><span style="color:#f8fafc">.</span></span>
+            <div class="logo-icon">
+                <i data-lucide="graduation-cap" style="width:22px;height:22px;"></i>
+            </div>
+            <span class="logo-text">Spice<span style="color:#10b981">CGPA</span><span style="color:#10b981">.</span></span>
         </div>
 
-        <h1 class="brand-headline">
-            Your Academic<br>
-            <span class="grad">Success Starts</span><br>
-            Here.
-        </h1>
-        <p class="brand-sub">
-            Join thousands of Nigerian students who track their GPA, monitor their progress, and graduate with confidence.
-        </p>
+        <!-- Hero Row: Badge, Title & Floating Card -->
+        <div>
+            <!-- Badge -->
+            <div class="trust-badge">
+                <i data-lucide="users" style="width:14px;height:14px;"></i>
+                <span>Trusted by 10,000+ Nigerian students</span>
+            </div>
 
+            <div class="brand-hero-section">
+                <!-- Headline -->
+                <div class="hero-left">
+                    <h1 class="brand-headline">
+                        Your Academic<br>
+                        <span class="grad">Success Starts</span><br>
+                        Here.
+                    </h1>
+                    <p class="brand-sub">
+                        Join thousands of Nigerian students who track their GPA, monitor their progress, and graduate with confidence.
+                    </p>
+                </div>
+
+                <!-- Floating Neon CGPA Card -->
+                <div class="hero-right">
+                    <div class="cgpa-card">
+                        <div class="cgpa-card-title">Current CGPA</div>
+                        <div class="cgpa-card-value">4.75</div>
+                        <div class="cgpa-card-status">
+                            <span>First Class Honours</span>
+                            <span>🏆</span>
+                        </div>
+                        
+                        <!-- Glowing sparkline -->
+                        <div style="margin-top: 1.25rem; height: 60px;">
+                            <svg viewBox="0 0 200 60" width="100%" height="100%" style="overflow: visible;">
+                                <defs>
+                                    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="4" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                    <linearGradient id="sparkline-grad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.25" />
+                                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M 0 50 Q 35 30, 70 42 T 130 25 T 170 38 T 200 12 L 200 60 L 0 60 Z" fill="url(#sparkline-grad)" />
+                                <path d="M 0 50 Q 35 30, 70 42 T 130 25 T 170 38 T 200 12" stroke="#10b981" stroke-width="3.5" fill="none" filter="url(#neon-glow)" stroke-linecap="round" />
+                                <circle cx="200" cy="12" r="4.5" fill="#10b981" filter="url(#neon-glow)" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features list with chevrons -->
         <div class="feature-list">
             <div class="feature-item">
-                <div class="feature-icon green"><i data-lucide="trending-up" style="width:18px;height:18px;"></i></div>
-                <p>Live GPA & CGPA calculation with the 5-point Nigerian system</p>
+                <div class="feature-icon green">
+                    <i data-lucide="trending-up" style="width:20px;height:20px;"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Live GPA & CGPA Calculation</h3>
+                    <p>Accurate calculation with the 5-point Nigerian grading system.</p>
+                </div>
+                <i data-lucide="chevron-right" class="feature-chevron"></i>
             </div>
             <div class="feature-item">
-                <div class="feature-icon purple"><i data-lucide="bar-chart-2" style="width:18px;height:18px;"></i></div>
-                <p>Semester-by-semester performance breakdown and insights</p>
+                <div class="feature-icon purple">
+                    <i data-lucide="bar-chart-2" style="width:20px;height:20px;"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Performance Insights</h3>
+                    <p>Detailed semester-by-semester breakdown and analytics.</p>
+                </div>
+                <i data-lucide="chevron-right" class="feature-chevron"></i>
             </div>
             <div class="feature-item">
-                <div class="feature-icon amber"><i data-lucide="file-text" style="width:18px;height:18px;"></i></div>
-                <p>Export your academic transcript as a professional PDF</p>
+                <div class="feature-icon amber">
+                    <i data-lucide="file-text" style="width:20px;height:20px;"></i>
+                </div>
+                <div class="feature-content">
+                    <h3>Export Transcripts</h3>
+                    <p>Download your academic transcript as a professional PDF.</p>
+                </div>
+                <i data-lucide="chevron-right" class="feature-chevron"></i>
             </div>
         </div>
 
-        <div class="testimonials-container">
-            <div class="testimonial active">
-                <p>"SpiceCGPA helped me realize I was closer to a First Class than I thought. I graduated with a 4.67!"</p>
-                <div class="testimonial-author">
-                    <div class="testimonial-avatar">AO</div>
-                    <div>
-                        <div class="testimonial-name">Adaeze Okonkwo</div>
-                        <div class="testimonial-role">Computer Engineering, UNILAG</div>
+        <!-- Testimonial with user photo, stars rating, and custom layout -->
+        <div class="testimonials-outer">
+            <div class="testimonials-container">
+                <!-- Testimonial 1 (Adaeze) -->
+                <div class="testimonial active">
+                    <div class="testimonial-quote-icon">
+                        <i data-lucide="quote" style="width:22px;height:22px;transform:scaleX(-1);"></i>
+                    </div>
+                    <p class="testimonial-text">"SpiceCGPA helped me realize I was closer to a First Class than I thought. I graduated with a 4.67!"</p>
+                    <div class="testimonial-footer">
+                        <div class="testimonial-author">
+                            <img class="testimonial-avatar" src="src/adaeze_avatar.png" alt="Adaeze Okonkwo">
+                            <div>
+                                <div class="testimonial-name">Adaeze Okonkwo</div>
+                                <div class="testimonial-role">Computer Engineering, UNILAG</div>
+                            </div>
+                        </div>
+                        <div class="testimonial-rating">
+                            <div class="stars">
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                            </div>
+                            <span class="rating-val">4.9/5</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="testimonial">
-                <p>"I used to track my GPA on a spreadsheet, but this is 10x faster and much more accurate."</p>
-                <div class="testimonial-author">
-                    <div class="testimonial-avatar">TB</div>
-                    <div>
-                        <div class="testimonial-name">Tunde Bakare</div>
-                        <div class="testimonial-role">Mechanical Engineering, UI</div>
+
+                <!-- Testimonial 2 -->
+                <div class="testimonial">
+                    <div class="testimonial-quote-icon">
+                        <i data-lucide="quote" style="width:22px;height:22px;transform:scaleX(-1);"></i>
+                    </div>
+                    <p class="testimonial-text">"I used to track my GPA on a spreadsheet, but this is 10x faster and much more accurate."</p>
+                    <div class="testimonial-footer">
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar-placeholder">TB</div>
+                            <div>
+                                <div class="testimonial-name">Tunde Bakare</div>
+                                <div class="testimonial-role">Mechanical Engineering, UI</div>
+                            </div>
+                        </div>
+                        <div class="testimonial-rating">
+                            <div class="stars">
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                            </div>
+                            <span class="rating-val">4.8/5</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="testimonial">
-                <p>"The export feature is a lifesaver for scholarship applications! It looks so professional."</p>
-                <div class="testimonial-author">
-                    <div class="testimonial-avatar">CO</div>
-                    <div>
-                        <div class="testimonial-name">Chinelo Obi</div>
-                        <div class="testimonial-role">Business Admin, UNIZIK</div>
+
+                <!-- Testimonial 3 -->
+                <div class="testimonial">
+                    <div class="testimonial-quote-icon">
+                        <i data-lucide="quote" style="width:22px;height:22px;transform:scaleX(-1);"></i>
+                    </div>
+                    <p class="testimonial-text">"The export feature is a lifesaver for scholarship applications! It looks so professional."</p>
+                    <div class="testimonial-footer">
+                        <div class="testimonial-author">
+                            <div class="testimonial-avatar-placeholder">CO</div>
+                            <div>
+                                <div class="testimonial-name">Chinelo Obi</div>
+                                <div class="testimonial-role">Business Admin, UNIZIK</div>
+                            </div>
+                        </div>
+                        <div class="testimonial-rating">
+                            <div class="stars">
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                                <i data-lucide="star" class="star-filled"></i>
+                            </div>
+                            <span class="rating-val">5.0/5</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- RIGHT: Form -->
+    <!-- RIGHT SIDE: Multi-step Signup Form Panel -->
     <div class="page-right">
-        <div class="form-box fade-up">
+        <div class="form-container-wrap">
+            <div class="form-box fade-up">
 
-            <!-- Step Progress -->
-            <div class="step-progress">
-                <div class="step active" id="step-1">
-                    <div class="step-num">1</div>
-                    <span class="step-label">Personal</span>
+                <!-- Connected Stepper Header -->
+                <div class="step-progress">
+                    <div class="step active" id="step-1">
+                        <div class="step-num">1</div>
+                        <span class="step-label">Personal</span>
+                    </div>
+                    <div class="step-line" id="line-1"></div>
+                    <div class="step" id="step-2">
+                        <div class="step-num">2</div>
+                        <span class="step-label">Academic</span>
+                    </div>
+                    <div class="step-line" id="line-2"></div>
+                    <div class="step" id="step-3">
+                        <div class="step-num">3</div>
+                        <span class="step-label">Security</span>
+                    </div>
                 </div>
-                <div class="step-line" id="line-1"></div>
-                <div class="step" id="step-2">
-                    <div class="step-num">2</div>
-                    <span class="step-label">Academic</span>
+
+                <!-- Title & Subtitle -->
+                <h2 class="form-title" id="form-title">Personal Information</h2>
+                <p class="form-sub" id="form-sub">Let's start with the basics.</p>
+
+                <!-- Error Box -->
+                <div id="error-box" class="error-message">
+                    <i data-lucide="alert-circle" style="width:18px;height:18px;flex-shrink:0;"></i>
+                    <span id="error-text"></span>
                 </div>
-                <div class="step-line" id="line-2"></div>
-                <div class="step" id="step-3">
-                    <div class="step-num">3</div>
-                    <span class="step-label">Security</span>
+
+                <!-- Form -->
+                <form id="signup-form">
+                    <!-- PANEL 1: Personal -->
+                    <div id="panel-1">
+                        <div class="fields-grid">
+                            <div class="field-group full">
+                                <label class="field-label"><i data-lucide="user"></i> Full Name</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i data-lucide="user"></i></span>
+                                    <input type="text" id="fullName" placeholder="e.g. Chukwuemeka Obi" autocomplete="name">
+                                </div>
+                            </div>
+                            <div class="field-group full">
+                                <label class="field-label"><i data-lucide="mail"></i> Email Address</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i data-lucide="mail"></i></span>
+                                    <input type="email" id="email" placeholder="you@gmail.com" autocomplete="email">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1.75rem;">
+                            <button type="button" class="submit-btn" onclick="goStep(2)">
+                                <span class="btn-arrow-circle"><i data-lucide="arrow-right"></i></span>
+                                <span>Continue to Academic Info</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: Academic -->
+                    <div id="panel-2" style="display:none;">
+                        <div class="fields-grid">
+                            <div class="field-group full">
+                                <label class="field-label"><i data-lucide="hash"></i> Matric Number</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i data-lucide="hash"></i></span>
+                                    <input type="text" id="matricNumber" placeholder="U20XX/XXXXX">
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i data-lucide="school"></i> Faculty</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i data-lucide="school"></i></span>
+                                    <input type="text" id="faculty" placeholder="e.g. Engineering">
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label"><i data-lucide="building-2"></i> Department</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i data-lucide="building-2"></i></span>
+                                    <input type="text" id="department" placeholder="e.g. Mechanical">
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1.75rem; display: flex; gap: 0.75rem;">
+                            <button type="button" class="submit-btn btn-back" onclick="goStep(1)">
+                                <span>Back</span>
+                            </button>
+                            <button type="button" class="submit-btn" style="flex:1;" onclick="goStep(3)">
+                                <span class="btn-arrow-circle"><i data-lucide="arrow-right"></i></span>
+                                <span>Continue to Security</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 3: Security -->
+                    <div id="panel-3" style="display:none;">
+                        <div class="fields-grid">
+                            <div class="field-group full">
+                                <label class="field-label"><i data-lucide="lock"></i> Password</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i data-lucide="lock"></i></span>
+                                    <input type="password" id="password" placeholder="Create a strong password" oninput="checkStrength(this.value)">
+                                    <button type="button" class="pw-toggle" id="toggle-pw">
+                                        <i data-lucide="eye" id="pw-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="pw-strength">
+                                    <div class="pw-bar" id="bar1"></div>
+                                    <div class="pw-bar" id="bar2"></div>
+                                    <div class="pw-bar" id="bar3"></div>
+                                    <div class="pw-bar" id="bar4"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="terms-row">
+                            <input type="checkbox" id="terms">
+                            <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a> of Spice CGPA.</label>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button type="button" class="submit-btn btn-back" onclick="goStep(2)">
+                                <span>Back</span>
+                            </button>
+                            <button type="submit" class="submit-btn" id="signup-btn" style="flex:1;">
+                                <span class="btn-arrow-circle"><i data-lucide="user-check"></i></span>
+                                <span>Create My Account</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Login Link -->
+                <div class="login-link">
+                    Already have an account? <a href="login.html">Sign in here</a>
                 </div>
             </div>
+        </div>
 
-            <h2 class="form-title" id="form-title">Personal Info</h2>
-            <p class="form-sub" id="form-sub">Let's start with the basics.</p>
-
-            <!-- Error Box -->
-            <div id="error-box" class="error-message">
-                <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
-                <span id="error-text"></span>
+        <!-- Trust Highlights Banner at the Bottom -->
+        <div class="form-highlights">
+            <div class="highlight-item">
+                <div class="highlight-icon">
+                    <i data-lucide="shield-check"></i>
+                </div>
+                <div class="highlight-text">
+                    <h4>Secure & Private</h4>
+                    <p>Your data is encrypted and always protected.</p>
+                </div>
             </div>
-
-            <form id="signup-form">
-                <!-- STEP 1: Personal -->
-                <div id="panel-1">
-                    <div class="fields-grid">
-                        <div class="field-group full">
-                            <label class="field-label"><i data-lucide="user"></i> Full Name</label>
-                            <div class="input-wrap">
-                                <span class="input-icon"><i data-lucide="user"></i></span>
-                                <input type="text" id="fullName" placeholder="e.g. Chukwuemeka Obi" autocomplete="name">
-                            </div>
-                        </div>
-                        <div class="field-group full">
-                            <label class="field-label"><i data-lucide="mail"></i> Gmail Address</label>
-                            <div class="input-wrap">
-                                <span class="input-icon"><i data-lucide="mail"></i></span>
-                                <input type="email" id="email" placeholder="you@gmail.com" autocomplete="email">
-                            </div>
-                        </div>
-                    </div>
-                    <div style="margin-top:1.5rem;">
-                        <button type="button" class="submit-btn" onclick="goStep(2)">
-                            <i data-lucide="arrow-right"></i> Continue to Academic Info
-                        </button>
-                    </div>
+            <div class="highlight-item">
+                <div class="highlight-icon">
+                    <i data-lucide="zap"></i>
                 </div>
-
-                <!-- STEP 2: Academic -->
-                <div id="panel-2" style="display:none;">
-                    <div class="fields-grid">
-                        <div class="field-group full">
-                            <label class="field-label"><i data-lucide="hash"></i> Matric Number</label>
-                            <div class="input-wrap">
-                                <span class="input-icon"><i data-lucide="hash"></i></span>
-                                <input type="text" id="matricNumber" placeholder="U20XX/XXXXX">
-                            </div>
-                        </div>
-                        <div class="field-group">
-                            <label class="field-label"><i data-lucide="school"></i> Faculty</label>
-                            <div class="input-wrap">
-                                <span class="input-icon"><i data-lucide="school"></i></span>
-                                <input type="text" id="faculty" placeholder="e.g. Engineering">
-                            </div>
-                        </div>
-                        <div class="field-group">
-                            <label class="field-label"><i data-lucide="building-2"></i> Department</label>
-                            <div class="input-wrap">
-                                <span class="input-icon"><i data-lucide="building-2"></i></span>
-                                <input type="text" id="department" placeholder="e.g. Mechanical">
-                            </div>
-                        </div>
-                    </div>
-                    <div style="margin-top:1.5rem;display:flex;gap:0.75rem;">
-                        <button type="button" class="submit-btn" style="background:rgba(255,255,255,0.06);flex:0.4;" onclick="goStep(1)">
-                            <i data-lucide="arrow-left"></i> Back
-                        </button>
-                        <button type="button" class="submit-btn" style="flex:1;" onclick="goStep(3)">
-                            <i data-lucide="arrow-right"></i> Continue to Security
-                        </button>
-                    </div>
+                <div class="highlight-text">
+                    <h4>Fast & Reliable</h4>
+                    <p>Lightning-fast calculations you can trust.</p>
                 </div>
-
-                <!-- STEP 3: Security -->
-                <div id="panel-3" style="display:none;">
-                    <div class="fields-grid">
-                        <div class="field-group full">
-                            <label class="field-label"><i data-lucide="lock"></i> Password</label>
-                            <div class="input-wrap">
-                                <span class="input-icon"><i data-lucide="lock"></i></span>
-                                <input type="password" id="password" placeholder="Create a strong password" oninput="checkStrength(this.value)">
-                                <button type="button" class="pw-toggle" id="toggle-pw">
-                                    <i data-lucide="eye" id="pw-eye"></i>
-                                </button>
-                            </div>
-                            <div class="pw-strength">
-                                <div class="pw-bar" id="bar1"></div>
-                                <div class="pw-bar" id="bar2"></div>
-                                <div class="pw-bar" id="bar3"></div>
-                                <div class="pw-bar" id="bar4"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="terms-row">
-                        <input type="checkbox" id="terms">
-                        <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a> of Spice CGPA Pro.</label>
-                    </div>
-                    <div style="display:flex;gap:0.75rem;">
-                        <button type="button" class="submit-btn" style="background:rgba(255,255,255,0.06);flex:0.4;" onclick="goStep(2)">
-                            <i data-lucide="arrow-left"></i> Back
-                        </button>
-                        <button type="submit" class="submit-btn" id="signup-btn" style="flex:1;">
-                            <i data-lucide="user-check"></i> Create My Account
-                        </button>
-                    </div>
+            </div>
+            <div class="highlight-item">
+                <div class="highlight-icon">
+                    <i data-lucide="graduation-cap"></i>
                 </div>
-            </form>
-
-            <div class="login-link">
-                Already have an account? <a href="login.html">Sign in here</a>
+                <div class="highlight-text">
+                    <h4>Built for Students</h4>
+                    <p>Designed specifically for Nigerian students.</p>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="src/js/auth.js"></script>
     <script>
         lucide.createIcons();
 
-        const titles = ['Personal Info', 'Academic Details', 'Set Password'];
+        const titles = ['Personal Information', 'Academic Information', 'Security & Password'];
         const subs   = ["Let's start with the basics.", "Tell us about your institution.", "Almost there — secure your account."];
 
         function goStep(n) {
@@ -545,7 +1198,7 @@
             lucide.createIcons();
         });
 
-        // Signup submit
+        // Signup submit logic
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!document.getElementById('terms').checked) {
@@ -555,7 +1208,7 @@
             if (pw.length < 6) { showErr('Password must be at least 6 characters.'); return; }
 
             const btn = document.getElementById('signup-btn');
-            btn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i> Creating account...';
+            btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i></span> <span>Creating account...</span>';
             btn.disabled = true;
             lucide.createIcons();
 
@@ -579,19 +1232,19 @@
                     window.location.href = 'index.html';
                 } else {
                     showErr(data.message || 'Registration failed. Please try again.');
-                    btn.innerHTML = '<i data-lucide="user-check"></i> Create My Account';
+                    btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="user-check"></i></span> <span>Create My Account</span>';
                     btn.disabled = false;
                     lucide.createIcons();
                 }
             } catch {
                 showErr('Cannot reach server. Is the backend running?');
-                btn.innerHTML = '<i data-lucide="user-check"></i> Create My Account';
+                btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="user-check"></i></span> <span>Create My Account</span>';
                 btn.disabled = false;
                 lucide.createIcons();
             }
         });
 
-        // Testimonial Rotation
+        // Testimonial Rotation Logic
         const testimonials = document.querySelectorAll('.testimonial');
         let currentTestimonial = 0;
 
@@ -601,7 +1254,7 @@
             testimonials[currentTestimonial].classList.add('active');
         }
 
-        setInterval(rotateTestimonials, 5000);
+        setInterval(rotateTestimonials, 6000);
     </script>
 </body>
 </html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Spice CGPA</title>
+    <link rel="stylesheet" href="src/css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: var(--bg-main);
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 3rem;
+            text-align: center;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.875rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.4);
+            color: var(--text-primary);
+            margin-top: 0.5rem;
+        }
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="glass-card login-card animate-fade-in">
+            <h2 class="font-heading" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; font-size: 2rem; margin-bottom: 0.5rem;">
+                <i data-lucide="shield-check" style="color: var(--warning); width: 32px; height: 32px;"></i>
+                Admin Portal
+            </h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">Secure School Result Management</p>
+            
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="admin-username" class="form-control" required placeholder="Enter admin username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="admin-password" class="form-control" required placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem; border-radius: 0.5rem;">
+                    Login to Dashboard
+                </button>
+                <p id="login-error" class="error-msg">Invalid credentials</p>
+            </form>
+            
+            <a href="index.html" style="display: block; margin-top: 2rem; color: var(--text-secondary); font-size: 0.875rem; text-decoration: none;">
+                &larr; Back to Student Portal
+            </a>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            const errorMsg = document.getElementById('login-error');
+            const btn = e.target.querySelector('button');
+
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Authenticating...';
+            lucide.createIcons();
+            errorMsg.style.display = 'none';
+
+            try {
+                const res = await fetch('http://localhost:5000/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    localStorage.setItem('admin_token', data.token);
+                    localStorage.setItem('admin_user', JSON.stringify(data));
+                    window.location.href = 'http://localhost:3002';
+                } else {
+                    throw new Error(data.message || 'Invalid credentials');
+                }
+            } catch (err) {
+                errorMsg.innerText = err.message;
+                errorMsg.style.display = 'block';
+                btn.innerHTML = 'Login to Dashboard';
+            }
+        });
+
+        // Quick setup script for the very first admin
+        // Run this in console to create an admin if none exists:
+        // fetch('http://localhost:5000/api/admin/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'admin', email: 'admin@school.edu', password: 'password123' })})
+    </script>
+</body>
+</html>

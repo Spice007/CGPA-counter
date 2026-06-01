@@ -21,19 +21,16 @@ const protect = asyncHandler(async (req, res, next) => {
 
             return next();
         } catch (error) {
-            console.error('Token verification failed, continuing as guest:', error.message);
+            console.error('Token verification failed:', error.message);
+            res.status(401);
+            throw new Error('Not authorized, token failed');
         }
     }
 
-    // Default to the first user if no token or token failed (Guest/Local Mode)
-    const user = await User.findOne().select('-password');
-    if (user) {
-        req.user = user;
-        return next();
+    if (!token) {
+        res.status(401);
+        throw new Error('Not authorized, no token');
     }
-
-    res.status(401);
-    throw new Error('Not authorized, no users found in database');
 });
 
 module.exports = { protect };

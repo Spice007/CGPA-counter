@@ -6,3 +6,6 @@ dist/
 build/
 .next/
 *.log
+mongodb_data/
+.agents/
+scratch/
