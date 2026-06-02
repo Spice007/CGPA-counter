@@ -1,6 +1,9 @@
 {
   "name": "cgpa-counter-root",
   "version": "1.0.0",
+  "scripts": {
+    "start": "node server/server.js"
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
