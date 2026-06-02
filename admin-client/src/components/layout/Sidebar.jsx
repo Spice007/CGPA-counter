@@ -140,9 +140,10 @@ export default function Sidebar() {
             if (typeof window !== "undefined") {
               localStorage.removeItem("admin_token");
               localStorage.removeItem("admin_user");
-              window.location.href = "http://localhost:3001/admin-login.html";
+              window.location.href = "/admin-login.html";
             }
           }}
+
           className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors text-[11px] font-medium cursor-pointer border border-red-500/10"
         >
           <LogOut className="w-3.5 h-3.5" />

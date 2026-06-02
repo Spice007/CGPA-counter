@@ -87,7 +87,8 @@
             errorMsg.style.display = 'none';
 
             try {
-                const res = await fetch('http://localhost:5000/api/admin/login', {
+                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : '/api';
+                const res = await fetch(`${apiBase}/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -98,10 +99,21 @@
                 if (res.ok) {
                     localStorage.setItem('admin_token', data.token);
                     localStorage.setItem('admin_user', JSON.stringify(data));
-                    window.location.href = 'http://localhost:3002';
+                    
+                    const getAdminClientUrl = () => {
+                        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                            return 'http://localhost:3002';
+                        }
+                        if (window.location.hostname.includes('.vercel.app')) {
+                            return window.location.origin.replace('.vercel.app', '-admin.vercel.app');
+                        }
+                        return window.location.origin + '/admin';
+                    };
+                    window.location.href = getAdminClientUrl();
                 } else {
                     throw new Error(data.message || 'Invalid credentials');
                 }
+
             } catch (err) {
                 errorMsg.innerText = err.message;
                 errorMsg.style.display = 'block';

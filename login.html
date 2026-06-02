@@ -1417,11 +1417,13 @@
             const remember = document.getElementById('remember-me').checked;
 
             try {
-                const response = await fetch('http://localhost:5000/api/auth/login', {
+                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : '/api';
+                const response = await fetch(`${apiBase}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
+
 
                 const data = await response.json();
 

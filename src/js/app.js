@@ -1,5 +1,11 @@
-// State Management & API Configuration
-const API_BASE = 'http://localhost:5000/api';
+const getApiBase = () => {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
+        return 'http://localhost:5000/api';
+    }
+    return '/api';
+};
+const API_BASE = getApiBase();
+
 
 let semesters = [];
 let studentProfile = JSON.parse(localStorage.getItem('cgpa_profile')) || { 
@@ -1595,7 +1601,8 @@ async function fetchAdminAnalytics() {
                         : `<span style="font-size: 0.7rem; color: var(--text-secondary); font-style: italic;">No Matric</span>`;
 
                     const academicHTML = (u.university || u.department)
-                        ? `<div style="margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.75rem; color: var(--text-seco                            ${u.university ? `<div><span style="color: #64748b; font-weight: 600;">Uni:</span> <span style="color: var(--text-primary); font-weight: 500;">${u.university}</span></div>` : ''}
+                        ? `<div style="margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.75rem; color: var(--text-secondary);">
+                            ${u.university ? `<div><span style="color: #64748b; font-weight: 600;">Uni:</span> <span style="color: var(--text-primary); font-weight: 500;">${u.university}</span></div>` : ''}
                             ${u.department ? `<div><span style="color: #64748b; font-weight: 600;">Dept:</span> <span style="color: var(--text-primary); font-weight: 500;">${u.department} ${u.faculty ? `(${u.faculty})` : ''}</span></div>` : ''}
                           </div>`
                         : '';
@@ -1621,7 +1628,7 @@ async function fetchAdminAnalytics() {
                                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                                     <span>Joined:</span>
                                     <strong style="color: var(--text-secondary); font-weight: 500;">${joinedTime}</strong>
-                                </div>    </div>
+                                </div>
                                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                                     <span>Last Active:</span>
                                     <strong style="color: var(--primary); font-weight: 600;">${activeTime}</strong>

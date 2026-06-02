@@ -209,9 +209,10 @@ export default function TopNavbar() {
                   if (typeof window !== "undefined") {
                     localStorage.removeItem("admin_token");
                     localStorage.removeItem("admin_user");
-                    window.location.href = "http://localhost:3001/admin-login.html";
+                    window.location.href = "/admin-login.html";
                   }
                 }}
+
                 className="px-3.5 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/[0.04] cursor-pointer transition-colors border-t border-white/[0.05] flex items-center gap-2"
               >
                 <LogOut className="w-3.5 h-3.5" /> Logout

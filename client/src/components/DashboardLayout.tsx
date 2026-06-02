@@ -18,12 +18,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         } else {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
             // Try to fetch profile from backend (which now defaults to a guest user)
-            fetch('http://localhost:5000/api/users/profile', {
+            fetch(`${apiBase}/users/profile`, {
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : ''
                 }
             })
+
             .then(res => res.json())
             .then(data => {
                 if (data && data._id) {
