@@ -2,12 +2,18 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const connectDB = async () => {
+    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/cgpa_calculator';
+    // Log masked URI for debugging
+    const maskedUri = uri.replace(/:([^@]+)@/, ':****@');
+    console.log(`Attempting to connect to MongoDB: ${maskedUri}`);
+    
     try {
-        const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/cgpa_calculator');
+        const conn = await mongoose.connect(uri);
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
-        console.error(`Error: ${error.message}`);
-        process.exit(1);
+        console.error(`MongoDB connection error: ${error.message}`);
+        console.error('Retrying in 5 seconds...');
+        setTimeout(() => connectDB(), 5000);
     }
 };
 

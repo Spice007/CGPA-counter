@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config(); // Load from root .env first
+require('dotenv').config({ path: path.join(__dirname, '.env') }); // Then server .env
+const connectDB = require('./config/db');
 
 // Connect to Database
 connectDB();
