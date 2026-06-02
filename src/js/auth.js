@@ -2,7 +2,7 @@ const getApiBase = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
         return 'http://localhost:5000/api';
     }
-    return '/api';
+    return 'https://cgpa-counter-production.up.railway.app/api';
 };
 const API_BASE = getApiBase();
 const API_URL = `${API_BASE}/auth`;
