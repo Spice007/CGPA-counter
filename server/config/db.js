@@ -8,7 +8,11 @@ const connectDB = async () => {
     console.log(`Attempting to connect to MongoDB: ${maskedUri}`);
     
     try {
-        const conn = await mongoose.connect(uri);
+        const conn = await mongoose.connect(uri, {
+            serverSelectionTimeoutMS: 10000,
+            connectTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+        });
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (error) {
         console.error(`MongoDB connection error: ${error.message}`);
