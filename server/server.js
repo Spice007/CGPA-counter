@@ -52,9 +52,10 @@ app.get('/health', (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0';
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT} (MongoDB Mode)`);
+app.listen(PORT, HOST, () => {
+    console.log(`Server running on ${HOST}:${PORT} (MongoDB Mode)`);
 });
 
 module.exports = app;
