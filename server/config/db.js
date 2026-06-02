@@ -1,3 +1,9 @@
+const dns = require('dns');
+try {
+    dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+    console.warn('Failed to set DNS servers:', e.message);
+}
 const mongoose = require('mongoose');
 require('dotenv').config();
 
