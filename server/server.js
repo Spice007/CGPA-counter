@@ -54,9 +54,18 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 const HOST = '0.0.0.0';
 
-app.listen(PORT, HOST, () => {
-    console.log(`Server running on ${HOST}:${PORT} (MongoDB Mode)`);
-});
+console.log(`Attempting to start server on ${HOST}:${PORT}...`);
+try {
+    const server = app.listen(PORT, HOST, () => {
+        console.log(`✅ Server successfully running on ${HOST}:${PORT} (MongoDB Mode)`);
+    });
+    
+    server.on('error', (error) => {
+        console.error(`❌ Server error: ${error.message}`);
+    });
+} catch (err) {
+    console.error(`❌ Failed to call app.listen: ${err.message}`);
+}
 
 module.exports = app;
 
