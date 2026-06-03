@@ -35,6 +35,14 @@ export default function TranscriptPage() {
         }
     });
 
+    const { data: cgpaData } = useQuery({
+        queryKey: ['cgpa-data'],
+        queryFn: async () => {
+            const { data } = await resultService.getCGPA();
+            return data;
+        }
+    });
+
     const { data: allCourses } = useQuery({
         queryKey: ['all-courses'],
         queryFn: async () => {
