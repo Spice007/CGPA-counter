@@ -8,8 +8,13 @@ const Result = require('../models/Result');
 const getAnalytics = async (req, res) => {
     try {
         // Admin authorization check
-        const adminEmail = process.env.ADMIN_EMAIL || 'admin@spice.com';
-        if (req.user.email !== adminEmail) {
+        const defaultAdmins = ['admin@spice.com', 'gideonlastgids@gmail.com', 'goodiepictures@gmail.com'];
+        const configuredAdmins = process.env.ADMIN_EMAIL 
+            ? process.env.ADMIN_EMAIL.split(',').map(e => e.trim().toLowerCase()) 
+            : [];
+        const adminEmails = [...defaultAdmins, ...configuredAdmins];
+
+        if (!adminEmails.includes(req.user.email.toLowerCase())) {
             return res.status(403).json({ message: 'Not authorized as an admin' });
         }
 
