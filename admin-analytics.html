@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Analytics | Spice CGPA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #050c1a;
+            --bg-card: #0a1628;
+            --bg-card2: #0d1c35;
+            --border: rgba(255,255,255,0.07);
+            --primary: #10b981;
+            --primary-dim: rgba(16,185,129,0.12);
+            --accent: #8b5cf6;
+            --accent-dim: rgba(139,92,246,0.12);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59,130,246,0.12);
+            --gold: #f59e0b;
+            --gold-dim: rgba(245,158,11,0.12);
+            --danger: #ef4444;
+            --danger-dim: rgba(239,68,68,0.1);
+            --text: #f1f5f9;
+            --text2: #94a3b8;
+            --text3: #64748b;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 240px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 50;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: var(--primary);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .logo-text span { color: var(--primary); }
+
+        .sidebar-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text3);
+            padding: 0 0.75rem;
+            margin: 1rem 0 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0.75rem;
+            border-radius: 0.6rem;
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--primary-dim);
+            color: var(--primary);
+        }
+
+        .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+        }
+
+        .admin-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--primary-dim);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .admin-avatar {
+            width: 36px; height: 36px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .admin-info { flex: 1; min-width: 0; }
+        .admin-name { font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-role { font-size: 0.7rem; color: var(--primary); font-weight: 600; }
+
+        /* ── MAIN CONTENT ── */
+        .main {
+            margin-left: 240px;
+            flex: 1;
+            padding: 2rem 2.5rem;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .page-title { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; }
+        .page-sub { color: var(--text2); font-size: 0.9rem; margin-top: 0.25rem; }
+
+        .refresh-btn {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .refresh-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .refresh-btn svg { width: 15px; height: 15px; }
+
+        /* ── STAT CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card.green { border-color: rgba(16,185,129,0.3); }
+        .stat-card.purple { border-color: rgba(139,92,246,0.3); }
+        .stat-card.blue { border-color: rgba(59,130,246,0.3); }
+        .stat-card.gold { border-color: rgba(245,158,11,0.3); }
+
+        .stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .stat-icon.green { background: var(--primary-dim); color: var(--primary); }
+        .stat-icon.purple { background: var(--accent-dim); color: var(--accent); }
+        .stat-icon.blue { background: var(--blue-dim); color: var(--blue); }
+        .stat-icon.gold { background: var(--gold-dim); color: var(--gold); }
+        .stat-icon svg { width: 20px; height: 20px; }
+
+        .stat-label { font-size: 0.78rem; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; margin: 0.25rem 0; line-height: 1; }
+        .stat-value.green { color: var(--primary); }
+        .stat-value.purple { color: var(--accent); }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.gold { color: var(--gold); }
+        .stat-sub { font-size: 0.75rem; color: var(--text3); }
+
+        .stat-glow {
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            filter: blur(30px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .stat-card.green .stat-glow { background: var(--primary); }
+        .stat-card.purple .stat-glow { background: var(--accent); }
+        .stat-card.blue .stat-glow { background: var(--blue); }
+        .stat-card.gold .stat-glow { background: var(--gold); }
+
+        /* ── CHARTS ROW ── */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title svg { width: 18px; height: 18px; color: var(--primary); }
+
+        /* ── TABLE ── */
+        .table-row { display: grid; gap: 1.25rem; margin-bottom: 2rem; }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text3);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        tbody tr {
+            transition: background 0.15s;
+        }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+        tbody td {
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text2);
+        }
+        .user-cell { display: flex; align-items: center; gap: 0.75rem; }
+        .user-av {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--primary-dim);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+        .user-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .user-name { font-weight: 600; color: var(--text); font-size: 0.85rem; }
+        .user-email { font-size: 0.72rem; color: var(--text3); }
+
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .badge.first { background: rgba(16,185,129,0.15); color: var(--primary); }
+        .badge.second-upper { background: rgba(59,130,246,0.15); color: var(--blue); }
+        .badge.second-lower { background: rgba(139,92,246,0.15); color: var(--accent); }
+        .badge.third { background: rgba(245,158,11,0.15); color: var(--gold); }
+        .badge.probation { background: var(--danger-dim); color: var(--danger); }
+        .badge.new { background: rgba(16,185,129,0.1); color: var(--primary); }
+
+        /* ── LOADING ── */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--text3);
+            gap: 1rem;
+        }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text3);
+        }
+        .empty-state svg { width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.4; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <i data-lucide="graduation-cap" style="width:18px;height:18px;"></i>
+            </div>
+            <div class="logo-text">Spice<span>CGPA</span></div>
+        </div>
+
+        <div class="sidebar-label">Analytics</div>
+        <button class="nav-item active" onclick="loadAll()">
+            <i data-lucide="layout-dashboard"></i> Dashboard
+        </button>
+        <button class="nav-item" onclick="scrollTo('#users-section')">
+            <i data-lucide="users"></i> All Students
+        </button>
+
+        <div class="sidebar-label">Management</div>
+        <button class="nav-item" onclick="exportCSV()">
+            <i data-lucide="download"></i> Export CSV
+        </button>
+        <a class="nav-item" href="index.html">
+            <i data-lucide="arrow-left"></i> Student Portal
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="admin-badge" id="admin-badge">
+                <div class="admin-avatar" id="admin-av">SA</div>
+                <div class="admin-info">
+                    <div class="admin-name" id="admin-name">Super Admin</div>
+                    <div class="admin-role">superadmin</div>
+                </div>
+            </div>
+            <button class="nav-item" onclick="logout()">
+                <i data-lucide="log-out"></i> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Site Analytics</h1>
+                <p class="page-sub" id="last-refreshed">Loading data from MongoDB Atlas...</p>
+            </div>
+            <button class="refresh-btn" onclick="loadAll()">
+                <i data-lucide="refresh-cw"></i> Refresh
+            </button>
+        </div>
+
+        <!-- STATS CARDS -->
+        <div class="stats-grid">
+            <div class="stat-card green">
+                <div class="stat-glow"></div>
+                <div class="stat-icon green"><i data-lucide="users"></i></div>
+                <div class="stat-label">Total Students</div>
+                <div class="stat-value green" id="s-total">—</div>
+                <div class="stat-sub">Registered accounts</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-glow"></div>
+                <div class="stat-icon blue"><i data-lucide="activity"></i></div>
+                <div class="stat-label">Active (7 days)</div>
+                <div class="stat-value blue" id="s-active">—</div>
+                <div class="stat-sub">Last logged in ≤ 7 days</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-glow"></div>
+                <div class="stat-icon purple"><i data-lucide="book-open"></i></div>
+                <div class="stat-label">Total Courses</div>
+                <div class="stat-value purple" id="s-courses">—</div>
+                <div class="stat-sub">Registered by all users</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-glow"></div>
+                <div class="stat-icon gold"><i data-lucide="trending-up"></i></div>
+                <div class="stat-label">Avg GPA</div>
+                <div class="stat-value gold" id="s-avgcgpa">—</div>
+                <div class="stat-sub">System-wide average</div>
+            </div>
+        </div>
+
+        <!-- SECOND ROW STATS -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem;">
+            <div class="stat-card green">
+                <div class="stat-glow"></div>
+                <div class="stat-icon green"><i data-lucide="award"></i></div>
+                <div class="stat-label">First Class</div>
+                <div class="stat-value green" id="s-first">—</div>
+                <div class="stat-sub">CGPA ≥ 4.50</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-glow"></div>
+                <div class="stat-icon blue"><i data-lucide="star"></i></div>
+                <div class="stat-label">2nd Upper</div>
+                <div class="stat-value blue" id="s-2upper">—</div>
+                <div class="stat-sub">CGPA 3.50 – 4.49</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-glow"></div>
+                <div class="stat-icon purple"><i data-lucide="box"></i></div>
+                <div class="stat-label">Total Credit Units</div>
+                <div class="stat-value purple" id="s-units">—</div>
+                <div class="stat-sub">Cumulative registered</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-glow"></div>
+                <div class="stat-icon gold"><i data-lucide="school"></i></div>
+                <div class="stat-label">Universities</div>
+                <div class="stat-value gold" id="s-unis">—</div>
+                <div class="stat-sub">Unique institutions</div>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-row">
+            <div class="card">
+                <div class="card-title">
+                    <i data-lucide="bar-chart-2"></i>
+                    Academic Standing Distribution
+                </div>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="standingChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">
+                    <i data-lucide="pie-chart"></i>
+                    Faculties Breakdown
+                </div>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="facultyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- STUDENTS TABLE -->
+        <div class="card" id="users-section">
+            <div class="card-title" style="justify-content: space-between;">
+                <span style="display:flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="users"></i> All Registered Students
+                </span>
+                <input type="text" id="search-input" oninput="filterTable()" placeholder="Search by name or email…"
+                    style="padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text); font-size: 0.82rem; outline: none; width: 220px;">
+            </div>
+            <div id="table-container">
+                <div class="loading"><div class="spinner"></div><span>Loading students…</span></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        const API = 'https://cgpa-counter-production.up.railway.app/api';
+        let allStudents = [];
+        let standingChartInst = null;
+        let facultyChartInst = null;
+
+        // ── Auth guard ──
+        const adminUser = JSON.parse(localStorage.getItem('admin_user') || 'null');
+        const adminToken = localStorage.getItem('admin_token');
+        if (!adminUser || !adminToken) {
+            window.location.href = 'admin-login.html';
+        } else {
+            document.getElementById('admin-name').textContent = adminUser.username || 'Super Admin';
+            document.getElementById('admin-av').textContent = (adminUser.username || 'SA').substring(0, 2).toUpperCase();
+        }
+
+        function getHeaders() {
+            return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` };
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            localStorage.removeItem('admin_user');
+            window.location.href = 'admin-login.html';
+        }
+
+        function getStanding(cgpa) {
+            if (cgpa >= 4.5) return { label: 'First Class', cls: 'first' };
+            if (cgpa >= 3.5) return { label: '2nd Upper', cls: 'second-upper' };
+            if (cgpa >= 2.4) return { label: '2nd Lower', cls: 'second-lower' };
+            if (cgpa >= 1.5) return { label: 'Third Class', cls: 'third' };
+            if (cgpa > 0) return { label: 'Pass', cls: 'third' };
+            return { label: 'No GPA', cls: 'probation' };
+        }
+
+        async function loadAll() {
+            document.getElementById('last-refreshed').textContent = 'Refreshing…';
+            try {
+                const [usersRes, coursesRes] = await Promise.all([
+                    fetch(`${API}/admin/students`, { headers: getHeaders() }),
+                    fetch(`${API}/courses`, { headers: getHeaders() })
+                ]);
+
+                if (usersRes.status === 401) { logout(); return; }
+
+                const rawData = await usersRes.json();
+                const now = new Date();
+
+                // Deduplicate by studentId
+                const studentMap = {};
+                rawData.forEach(row => {
+                    const id = row.studentId?.toString() || row.fullName;
+                    if (!studentMap[id]) {
+                        studentMap[id] = {
+                            _id: row.studentId,
+                            fullName: row.fullName,
+                            email: row.email || 'N/A',
+                            matricNumber: row.matricNumber,
+                            department: row.department,
+                            university: row.university,
+                            faculty: row.faculty || row.department,
+                            cgpa: row.cgpa || 0,
+                            totalUnits: 0,
+                            courseCount: 0,
+                            lastLogin: row.lastLogin || null,
+                            profilePicture: row.profilePicture || null,
+                            createdAt: row.createdAt || null
+                        };
+                    }
+                    studentMap[id].totalUnits += (row.unit || 0);
+                    if (row.courseCode) studentMap[id].courseCount++;
+                    if (row.cgpa) studentMap[id].cgpa = row.cgpa;
+                });
+
+                allStudents = Object.values(studentMap);
+
+                // Compute stats
+                const total = allStudents.length;
+                const active = allStudents.filter(s => {
+                    if (!s.lastLogin) return false;
+                    return (now - new Date(s.lastLogin)) < 7 * 24 * 60 * 60 * 1000;
+                }).length;
+                const totalCourses = rawData.filter(r => r.courseCode).length;
+                const totalUnits = allStudents.reduce((a, s) => a + s.totalUnits, 0);
+                const studentsWithCgpa = allStudents.filter(s => s.cgpa > 0);
+                const avgCgpa = studentsWithCgpa.length ? (studentsWithCgpa.reduce((a, s) => a + s.cgpa, 0) / studentsWithCgpa.length).toFixed(2) : '0.00';
+                const firstClass = allStudents.filter(s => s.cgpa >= 4.5).length;
+                const secondUpper = allStudents.filter(s => s.cgpa >= 3.5 && s.cgpa < 4.5).length;
+                const unis = new Set(allStudents.map(s => s.university).filter(Boolean)).size;
+
+                // Update stats
+                document.getElementById('s-total').textContent = total;
+                document.getElementById('s-active').textContent = active;
+                document.getElementById('s-courses').textContent = totalCourses;
+                document.getElementById('s-avgcgpa').textContent = avgCgpa;
+                document.getElementById('s-first').textContent = firstClass;
+                document.getElementById('s-2upper').textContent = secondUpper;
+                document.getElementById('s-units').textContent = totalUnits;
+                document.getElementById('s-unis').textContent = unis || 1;
+
+                // Render charts
+                renderStandingChart(allStudents);
+                renderFacultyChart(allStudents);
+
+                // Render table
+                renderTable(allStudents);
+
+                const t = new Date();
+                document.getElementById('last-refreshed').textContent =
+                    `Last updated: ${t.toLocaleTimeString()} — ${total} students in MongoDB Atlas`;
+
+            } catch (err) {
+                document.getElementById('last-refreshed').textContent = '⚠️ Error loading data: ' + err.message;
+                document.getElementById('table-container').innerHTML = `<div class="empty-state"><p>Could not load data. Check network or re-login.</p></div>`;
+            }
+        }
+
+        function renderTable(students) {
+            if (!students.length) {
+                document.getElementById('table-container').innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="users" style="display:block;margin:0 auto 1rem;width:48px;height:48px;opacity:0.3;"></i>
+                        <p>No students found yet.</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            const rows = students.map(s => {
+                const standing = getStanding(s.cgpa);
+                const initials = (s.fullName || 'U').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                const avatarHTML = s.profilePicture
+                    ? `<div class="user-av"><img src="${s.profilePicture}" alt="${s.fullName}"></div>`
+                    : `<div class="user-av">${initials}</div>`;
+
+                const lastLogin = s.lastLogin ? new Date(s.lastLogin).toLocaleDateString() : 'Never';
+                return `<tr>
+                    <td>
+                        <div class="user-cell">
+                            ${avatarHTML}
+                            <div>
+                                <div class="user-name">${s.fullName || 'N/A'}</div>
+                                <div class="user-email">${s.matricNumber || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${s.department || 'N/A'}</td>
+                    <td>${s.university || 'N/A'}</td>
+                    <td style="color: var(--primary); font-weight: 700; font-family: 'Outfit', sans-serif;">${s.cgpa > 0 ? s.cgpa.toFixed(2) : '—'}</td>
+                    <td>${s.totalUnits}</td>
+                    <td><span class="badge ${standing.cls}">${standing.label}</span></td>
+                    <td>${lastLogin}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('table-container').innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Department</th>
+                            <th>University</th>
+                            <th>CGPA</th>
+                            <th>Units</th>
+                            <th>Standing</th>
+                            <th>Last Login</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+            lucide.createIcons();
+        }
+
+        function filterTable() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allStudents.filter(s =>
+                (s.fullName || '').toLowerCase().includes(q) ||
+                (s.email || '').toLowerCase().includes(q) ||
+                (s.matricNumber || '').toLowerCase().includes(q) ||
+                (s.department || '').toLowerCase().includes(q)
+            );
+            renderTable(filtered);
+        }
+
+        function renderStandingChart(students) {
+            const counts = {
+                'First Class': students.filter(s => s.cgpa >= 4.5).length,
+                '2nd Upper': students.filter(s => s.cgpa >= 3.5 && s.cgpa < 4.5).length,
+                '2nd Lower': students.filter(s => s.cgpa >= 2.4 && s.cgpa < 3.5).length,
+                'Third Class': students.filter(s => s.cgpa >= 1.5 && s.cgpa < 2.4).length,
+                'No GPA Yet': students.filter(s => s.cgpa === 0).length,
+            };
+
+            const ctx = document.getElementById('standingChart').getContext('2d');
+            if (standingChartInst) standingChartInst.destroy();
+            standingChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(counts),
+                    datasets: [{
+                        data: Object.values(counts),
+                        backgroundColor: ['#10b981','#3b82f6','#8b5cf6','#f59e0b','#64748b'],
+                        borderRadius: 8,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748b' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        function renderFacultyChart(students) {
+            const facMap = {};
+            students.forEach(s => {
+                const key = s.faculty || s.department || 'Unknown';
+                facMap[key] = (facMap[key] || 0) + 1;
+            });
+            const sorted = Object.entries(facMap).sort((a,b)=>b[1]-a[1]).slice(0, 7);
+
+            const ctx = document.getElementById('facultyChart').getContext('2d');
+            if (facultyChartInst) facultyChartInst.destroy();
+            facultyChartInst = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sorted.map(e=>e[0]),
+                    datasets: [{
+                        data: sorted.map(e=>e[1]),
+                        backgroundColor: ['#10b981','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#84cc16'],
+                        borderWidth: 2,
+                        borderColor: '#0a1628'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, padding: 10, font: { size: 11 } } } }
+                }
+            });
+        }
+
+        function exportCSV() {
+            if (!allStudents.length) { alert('No data to export yet!'); return; }
+            const header = ['Name','Matric No','Department','University','CGPA','Credit Units','Standing','Last Login'];
+            const rows = allStudents.map(s => {
+                const st = getStanding(s.cgpa);
+                return [s.fullName, s.matricNumber, s.department, s.university,
+                    s.cgpa.toFixed(2), s.totalUnits, st.label,
+                    s.lastLogin ? new Date(s.lastLogin).toLocaleDateString() : 'Never'];
+            });
+            const csv = [header, ...rows].map(r => r.map(c => `"${c || ''}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `spicecgpa_students_${Date.now()}.csv`;
+            a.click(); URL.revokeObjectURL(url);
+        }
+
+        // Auto-load
+        loadAll();
+    </script>
+</body>
+</html>

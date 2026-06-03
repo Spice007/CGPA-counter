@@ -87,7 +87,7 @@
             errorMsg.style.display = 'none';
 
             try {
-                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : '/api';
+                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-counter-production.up.railway.app/api';
                 const res = await fetch(`${apiBase}/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -99,17 +99,7 @@
                 if (res.ok) {
                     localStorage.setItem('admin_token', data.token);
                     localStorage.setItem('admin_user', JSON.stringify(data));
-                    
-                    const getAdminClientUrl = () => {
-                        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                            return 'http://localhost:3002';
-                        }
-                        if (window.location.hostname.includes('.vercel.app')) {
-                            return window.location.origin.replace('.vercel.app', '-admin.vercel.app');
-                        }
-                        return window.location.origin + '/admin';
-                    };
-                    window.location.href = getAdminClientUrl();
+                    window.location.href = 'admin-analytics.html';
                 } else {
                     throw new Error(data.message || 'Invalid credentials');
                 }
