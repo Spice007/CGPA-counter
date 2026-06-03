@@ -1,6 +1,9 @@
 'use client';
 
 import Sidebar from './Sidebar';
+import MobileHeader from './MobileHeader';
+import MobileBottomNav from './MobileBottomNav';
+import MobileDrawer from './MobileDrawer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -8,6 +11,7 @@ import { useRouter, usePathname } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);
+    const [drawerOpen, setDrawerOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -39,11 +43,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return (
         <div className="flex min-h-screen bg-[#0f172a] text-white">
-            <Sidebar />
-            
+            {/* ─── Desktop Sidebar (hidden on mobile) ─── */}
+            <div className="hidden md:flex">
+                <Sidebar />
+            </div>
+
+            {/* ─── Mobile Navigation (hidden on desktop) ─── */}
+            <MobileHeader user={user} onMenuOpen={() => setDrawerOpen(true)} />
+            <MobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} user={user} />
+            <MobileBottomNav />
+
+            {/* ─── Main Content ─── */}
             <div className="flex-1 flex flex-col">
-                {/* Top Header */}
-                <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-dark-surface/30 backdrop-blur-md sticky top-0 z-40">
+                {/* Desktop Top Header */}
+                <header className="hidden md:flex h-20 border-b border-white/5 items-center justify-between px-10 bg-dark-surface/30 backdrop-blur-md sticky top-0 z-40">
                     <div className="relative w-96">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                         <input 
@@ -75,7 +88,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                 </header>
 
-                <main className="p-10 flex-1 overflow-y-auto">
+                {/* Page Content */}
+                {/* pt-16 on mobile = clears the sticky top header; pb-28 = clears bottom nav */}
+                <main className="p-10 flex-1 overflow-y-auto pt-16 md:pt-10 pb-28 md:pb-10">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={pathname}

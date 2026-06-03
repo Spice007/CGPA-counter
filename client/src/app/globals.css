@@ -51,3 +51,49 @@ body {
 ::-webkit-scrollbar-thumb {
   @apply bg-white/10 rounded-full hover:bg-white/20;
 }
+
+/* ─── Mobile Utilities ──────────────────────────────────────────────────── */
+
+/* Hide scrollbar but keep scroll functionality (KPI carousel, horizontal charts) */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Scroll snap for KPI carousel */
+.snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.snap-start {
+  scroll-snap-align: start;
+}
+
+/* Safe-area bottom padding (for notched iPhones) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* Prevent text selection on tap-hold for interactive elements */
+@media (max-width: 767px) {
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  /* Slightly increase touch targets */
+  input[type="text"],
+  input[type="email"],
+  select {
+    min-height: 44px;
+  }
+
+  /* Smooth momentum scrolling on iOS */
+  .overflow-x-auto,
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}

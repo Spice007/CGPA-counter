@@ -12,7 +12,8 @@ import {
     BookOpen, 
     Award,
     Loader2,
-    TrendingUp
+    TrendingUp,
+    ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -43,7 +44,7 @@ export default function HistoryPage() {
                     <p className="text-gray-400">View your performance across all semesters.</p>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                     {results?.length > 0 ? (
                         results.map((result: any, index: number) => (
                             <SemesterCard key={index} result={result} index={index} />
@@ -82,6 +83,13 @@ function SemesterCard({ result, index }: { result: any, index: number }) {
         return 'text-warning';
     };
 
+    const getGradeColor = (grade: string) => {
+        if (grade === 'A') return 'bg-emerald-500/20 text-emerald-400';
+        if (grade === 'B') return 'bg-blue-500/20 text-blue-400';
+        if (grade === 'F') return 'bg-red-500/20 text-red-400';
+        return 'bg-white/10 text-gray-300';
+    };
+
     return (
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -89,80 +97,138 @@ function SemesterCard({ result, index }: { result: any, index: number }) {
             transition={{ delay: index * 0.1 }}
             className="glass-card !p-0 overflow-hidden"
         >
+            {/* ── Card Header ── */}
             <div 
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="p-6 cursor-pointer hover:bg-white/5 transition-colors flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+                className="p-4 md:p-6 cursor-pointer hover:bg-white/5 transition-colors active:bg-white/5"
             >
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary border border-white/10">
-                        <Calendar size={24} />
+                {/* Desktop layout */}
+                <div className="hidden md:flex justify-between items-center gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary border border-white/10">
+                            <Calendar size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold">{result.semester} Semester</h3>
+                            <p className="text-sm text-gray-500">{result.session} Session</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-xl font-bold">{result.semester} Semester</h3>
-                        <p className="text-sm text-gray-500">{result.session} Session</p>
+
+                    <div className="flex flex-wrap items-center gap-8">
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-1">GPA</p>
+                            <p className="text-2xl font-black text-primary">{result.gpa.toFixed(2)}</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-1">Standing</p>
+                            <p className={`text-sm font-bold ${getStandingColor(result.academicStanding)}`}>{result.academicStanding}</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-1">Units</p>
+                            <p className="text-sm font-bold">{result.totalUnits}</p>
+                        </div>
+                        <div className="p-2 bg-white/5 rounded-lg text-gray-400">
+                            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-8">
-                    <div className="text-center">
-                        <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-1">GPA</p>
-                        <p className="text-2xl font-black text-primary">{result.gpa.toFixed(2)}</p>
+                {/* Mobile layout */}
+                <div className="flex md:hidden items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Calendar size={18} className="text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="font-bold text-sm truncate">{result.semester} Sem • {result.session}</p>
+                            <div className="flex items-center gap-3 mt-0.5">
+                                <span className="text-xs text-primary font-bold">GPA: {result.gpa.toFixed(2)}</span>
+                                <span className="text-xs text-gray-600">{result.totalUnits} units</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="text-center">
-                        <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-1">Standing</p>
-                        <p className={`text-sm font-bold ${getStandingColor(result.academicStanding)}`}>{result.academicStanding}</p>
-                    </div>
-                    <div className="text-center">
-                        <p className="text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-1">Units</p>
-                        <p className="text-sm font-bold">{result.totalUnits}</p>
-                    </div>
-                    <div className="p-2 bg-white/5 rounded-lg text-gray-400">
-                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs font-bold ${getStandingColor(result.academicStanding)} hidden sm:inline`}>
+                            {result.academicStanding}
+                        </span>
+                        <motion.div
+                            animate={{ rotate: isExpanded ? 90 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center"
+                        >
+                            <ChevronRight size={16} className="text-gray-400" />
+                        </motion.div>
                     </div>
                 </div>
             </div>
 
+            {/* ── Expanded Course List ── */}
             <AnimatePresence>
                 {isExpanded && (
                     <motion.div 
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="border-t border-white/5 bg-black/20"
+                        transition={{ duration: 0.25 }}
+                        className="border-t border-white/5 bg-black/20 overflow-hidden"
                     >
-                        <div className="p-6">
+                        <div className="p-4 md:p-6">
                             {coursesLoading ? (
                                 <div className="flex justify-center py-6">
                                     <Loader2 className="animate-spin text-primary" size={24} />
                                 </div>
                             ) : (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-12 text-[10px] font-bold uppercase text-gray-500 tracking-widest px-4">
-                                        <div className="col-span-2">Code</div>
-                                        <div className="col-span-6">Title</div>
-                                        <div className="col-span-2 text-center">Units</div>
-                                        <div className="col-span-2 text-center">Grade</div>
-                                    </div>
-                                    {courses?.map((course: any, i: number) => (
-                                        <div key={i} className="grid grid-cols-12 bg-white/5 p-4 rounded-xl items-center">
-                                            <div className="col-span-2 font-mono text-xs">{course.code}</div>
-                                            <div className="col-span-6 font-semibold text-sm">{course.title}</div>
-                                            <div className="col-span-2 text-center text-sm">{course.unit}</div>
-                                            <div className="col-span-2 text-center">
-                                                <span className={`px-2 py-1 rounded-md font-bold text-xs ${
-                                                    course.grade === 'A' ? 'bg-primary/20 text-primary' : 
-                                                    course.grade === 'F' ? 'bg-danger/20 text-danger' : 
-                                                    'bg-white/10 text-white'
-                                                }`}>
-                                                    {course.grade}
-                                                </span>
-                                            </div>
+                                <>
+                                    {/* Desktop course table */}
+                                    <div className="hidden md:block space-y-4">
+                                        <div className="grid grid-cols-12 text-[10px] font-bold uppercase text-gray-500 tracking-widest px-4">
+                                            <div className="col-span-2">Code</div>
+                                            <div className="col-span-6">Title</div>
+                                            <div className="col-span-2 text-center">Units</div>
+                                            <div className="col-span-2 text-center">Grade</div>
                                         </div>
-                                    ))}
-                                    {(!courses || courses.length === 0) && (
-                                        <p className="text-center text-gray-500 py-4 italic">No course details found.</p>
-                                    )}
-                                </div>
+                                        {courses?.map((course: any, i: number) => (
+                                            <div key={i} className="grid grid-cols-12 bg-white/5 p-4 rounded-xl items-center">
+                                                <div className="col-span-2 font-mono text-xs">{course.code}</div>
+                                                <div className="col-span-6 font-semibold text-sm">{course.title}</div>
+                                                <div className="col-span-2 text-center text-sm">{course.unit}</div>
+                                                <div className="col-span-2 text-center">
+                                                    <span className={`px-2 py-1 rounded-md font-bold text-xs ${
+                                                        course.grade === 'A' ? 'bg-primary/20 text-primary' : 
+                                                        course.grade === 'F' ? 'bg-danger/20 text-danger' : 
+                                                        'bg-white/10 text-white'
+                                                    }`}>
+                                                        {course.grade}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {(!courses || courses.length === 0) && (
+                                            <p className="text-center text-gray-500 py-4 italic">No course details found.</p>
+                                        )}
+                                    </div>
+
+                                    {/* Mobile course list */}
+                                    <div className="md:hidden space-y-2">
+                                        {courses?.map((course: any, i: number) => (
+                                            <div key={i} className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0">
+                                                <div className="min-w-0 flex-1 pr-3">
+                                                    <p className="text-xs font-mono text-gray-500">{course.code}</p>
+                                                    <p className="text-sm font-semibold truncate">{course.title}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                    <span className="text-xs text-gray-500">{course.unit}u</span>
+                                                    <span className={`px-2 py-0.5 rounded-lg text-xs font-bold ${getGradeColor(course.grade)}`}>
+                                                        {course.grade}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {(!courses || courses.length === 0) && (
+                                            <p className="text-center text-gray-500 py-4 italic text-sm">No course details found.</p>
+                                        )}
+                                    </div>
+                                </>
                             )}
                         </div>
                     </motion.div>
