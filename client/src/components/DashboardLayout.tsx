@@ -22,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         } else {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://cgpa-counter-production.up.railway.app/api';
             // Try to fetch profile from backend (which now defaults to a guest user)
             fetch(`${apiBase}/users/profile`, {
                 headers: {
