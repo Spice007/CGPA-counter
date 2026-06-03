@@ -152,7 +152,7 @@ function recomputeStudent(student, coursesList) {
 // ═══════════════════════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function CGPAGrid({ students, setStudents, courseColumns, setCourseColumns }) {
+export default function CGPAGrid({ students, setStudents, courseColumns, setCourseColumns, onSave, isSaving }) {
   const [autoSave, setAutoSave] = useState(true);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
@@ -533,10 +533,19 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
           </button>
           <button
             onClick={addStudentRow}
-            className="flex items-center gap-1.5 px-3 py-[7px] rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-[7px] rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/[0.08] text-xs font-semibold text-white transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Add Student
           </button>
+          {onSave && (
+            <button
+              onClick={() => onSave(students, courseColumns)}
+              disabled={isSaving}
+              className="flex items-center gap-1.5 px-3.5 py-[7px] rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-xs font-bold text-white transition-colors cursor-pointer shadow-lg shadow-emerald-950/20"
+            >
+              <Database className="w-3.5 h-3.5" /> {isSaving ? "Saving..." : "Save to Database"}
+            </button>
+          )}
         </div>
       </div>
 
