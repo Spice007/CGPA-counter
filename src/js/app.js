@@ -133,16 +133,11 @@ async function loadData() {
             });
         }
         
-        // 3. Check if user is admin by probing analytics route
-        try {
-            const adminRes = await fetch(`${API_BASE}/analytics`, { headers });
-            if (adminRes.ok) {
-                const navItemAdmin = document.getElementById('nav-item-admin');
-                if (navItemAdmin) navItemAdmin.style.display = 'block';
-            }
-        } catch (err) {
-            // Not admin or network error, keep hidden
-        }
+        // 3. Check if user is a known admin by email
+        const ADMIN_EMAILS = ['gideonlastgids@gmail.com', 'admin@spice.com'];
+        const isAdmin = user && ADMIN_EMAILS.includes(user.email);
+        const navItemAdmin = document.getElementById('nav-item-admin');
+        if (navItemAdmin) navItemAdmin.style.display = isAdmin ? 'block' : 'none';
         
         renderAll();
         loadProfile();
