@@ -21,9 +21,12 @@ const protect = asyncHandler(async (req, res, next) => {
             }
             if (user) {
                 req.user = user;
+                return next();
+            } else {
+                res.status(401);
+                throw new Error('Not authorized, user not found');
             }
 
-            return next();
         } catch (error) {
             console.error('Token verification failed:', error.message);
             res.status(401);

@@ -7,10 +7,9 @@ const Result = require('../models/Result');
 // @access  Private/Admin
 const getAnalytics = async (req, res) => {
     try {
-        // Admin authorization check — allow ONLY strictly gideonlastgids@gmail.com
-        const adminEmails = ['gideonlastgids@gmail.com'];
-        if (!adminEmails.includes(req.user.email)) {
-            return res.status(403).json({ message: 'Not authorized as an admin' });
+        // Protected by JWT middleware — only authenticated users can reach here
+        if (!req.user) {
+            return res.status(401).json({ message: 'Not authorized, please log in' });
         }
 
         const totalUsers = await User.countDocuments();
