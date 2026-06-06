@@ -412,6 +412,12 @@ function setupDrawer() {
 
 /* 10. Bottom Navigation Routings */
 function setupBottomNavigation() {
+    const isAdmin = () => {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const ADMIN_EMAILS = ['gideonlastgids@gmail.com'];
+        return user && ADMIN_EMAILS.includes(user.email);
+    };
+
     document.querySelectorAll('.botnav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             if (link.classList.contains('add-btn')) {
@@ -430,13 +436,18 @@ function setupBottomNavigation() {
             } else if (id === 'botnav-settings') {
                 document.getElementById('nav-settings').click();
             } else if (id === 'botnav-analytics') {
-                document.getElementById('nav-dashboard').click();
-                setTimeout(() => {
-                    const chartCard = document.querySelector('.mobile-chart-card');
-                    if (chartCard) {
-                        chartCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }, 200);
+                if (isAdmin()) {
+                    const adminLink = document.getElementById('nav-admin');
+                    if (adminLink) adminLink.click();
+                } else {
+                    document.getElementById('nav-dashboard').click();
+                    setTimeout(() => {
+                        const chartCard = document.querySelector('.mobile-chart-card');
+                        if (chartCard) {
+                            chartCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 200);
+                }
             }
         });
     });
@@ -495,7 +506,11 @@ function syncNavigationStates() {
     const targetName = activeSection.id.replace('section-', '');
 
     document.querySelectorAll('.botnav-link').forEach(link => {
-        link.classList.toggle('active', link.id === `botnav-${targetName}`);
+        let isActive = link.id === `botnav-${targetName}`;
+        if (targetName === 'admin' && link.id === 'botnav-analytics') {
+            isActive = true;
+        }
+        link.classList.toggle('active', isActive);
     });
 
     document.querySelectorAll('.drawer-link').forEach(link => {
