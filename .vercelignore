@@ -1,25 +1,25 @@
-# Exclude everything by default
-*
+# Exclude backend, database, and dev servers
+server/
+client/
+admin-client/
+mongodb_data/
+node_modules/
+.git/
+.agents/
 
-# Allow the main static HTML files
+# Exclude backend helper scripts and bat files
+create-admin.js
+create-admin-direct.js
+create-superadmin.js
+ensure-admin-user.js
+test-db.js
+*.bat
+
+# Allow Vercel configs and frontend assets
+!vercel.json
 !index.html
 !login.html
 !signup.html
 !admin-analytics.html
 !admin-login.html
-!ensure-admin-user.js
-
-# Allow the frontend assets and scripts
 !src/
-!src/css/
-!src/css/style.css
-!src/css/mobile.css
-!src/js/
-!src/js/app.js
-!src/js/auth.js
-!src/js/mobile.js
-
-# Allow configurations
-!vercel.json
-!serve.js
-!package.json
