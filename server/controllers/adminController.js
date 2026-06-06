@@ -56,7 +56,11 @@ const registerAdmin = async (req, res) => {
 // @route   GET /api/admin/students
 const getStudentsData = async (req, res) => {
     try {
-        if (!req.user || (req.user.email !== 'gideonlastgids@gmail.com' && req.user.role !== 'superadmin')) {
+        const isAuthorized = req.user && (
+            req.user.role === 'superadmin' ||
+            req.user.email === 'gideonlastgids@gmail.com'
+        );
+        if (!isAuthorized) {
             return res.status(403).json({ message: 'Not authorized as an admin' });
         }
         const students = await User.find({}).select('-password');
@@ -146,7 +150,11 @@ const getStudentsData = async (req, res) => {
 // @route   POST /api/admin/results/bulk
 const saveBulkResults = async (req, res) => {
     try {
-        if (!req.user || (req.user.email !== 'gideonlastgids@gmail.com' && req.user.role !== 'superadmin')) {
+        const isAuthorized = req.user && (
+            req.user.role === 'superadmin' ||
+            req.user.email === 'gideonlastgids@gmail.com'
+        );
+        if (!isAuthorized) {
             return res.status(403).json({ message: 'Not authorized as an admin' });
         }
         const { updates } = req.body; // Array of updated rows
