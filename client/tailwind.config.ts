@@ -15,9 +15,6 @@ const config: Config = {
         },
         secondary: '#6366f1',
         accent: '#8b5cf6',
-        danger: '#ef4444',
-        warning: '#f59e0b',
-        info: '#3b82f6',
         dark: {
           bg: '#0f172a',
           surface: '#1e293b',

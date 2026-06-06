@@ -9,8 +9,7 @@ import {
     Calculator as CalcIcon, 
     Info,
     RefreshCcw,
-    Loader2,
-    ChevronDown
+    Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { courseService, resultService } from '@/services/api';
@@ -20,8 +19,9 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs))
+    return twMerge(clsx(inputs));
 }
+
 
 interface CourseForm {
     title: string;
@@ -29,15 +29,6 @@ interface CourseForm {
     unit: number;
     grade: string;
 }
-
-const GRADE_COLORS: Record<string, string> = {
-    A: 'text-emerald-400',
-    B: 'text-blue-400',
-    C: 'text-white',
-    D: 'text-yellow-400',
-    E: 'text-orange-400',
-    F: 'text-red-400',
-};
 
 export default function CalculatorPage() {
     const [session, setSession] = useState('2023/2024');
@@ -77,6 +68,7 @@ export default function CalculatorPage() {
     };
 
     const handleSubmit = async () => {
+        // Validation
         if (courses.some(c => !c.title || !c.code)) {
             toast.error('Please fill in all course details');
             return;
@@ -84,14 +76,19 @@ export default function CalculatorPage() {
 
         setLoading(true);
         try {
+            // 1. Save each course to the backend
             await Promise.all(courses.map(course => 
                 courseService.addCourse({ ...course, semester, session })
             ));
+
+            // 2. Trigger GPA calculation snapshot on backend
             await resultService.calculateGPA({ semester, session });
 
             toast.success('Semester results saved successfully!');
             queryClient.invalidateQueries({ queryKey: ['cgpa-summary'] });
             queryClient.invalidateQueries({ queryKey: ['recent-results'] });
+            
+            // Optional: Reset form or redirect
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to save results');
         } finally {
@@ -101,20 +98,18 @@ export default function CalculatorPage() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
-                {/* Page Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
+            <div className="max-w-6xl mx-auto space-y-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold font-outfit mb-1 md:mb-2">GPA Calculator</h1>
-                        <p className="text-gray-400 text-sm md:text-base">Add your courses for the current semester.</p>
+                        <h1 className="text-4xl font-extrabold font-outfit mb-2">GPA Calculator</h1>
+                        <p className="text-gray-400">Add your courses for the current semester.</p>
                     </div>
 
-                    {/* Session / Semester selector */}
-                    <div className="flex gap-3 p-2 bg-white/5 rounded-2xl border border-white/5 w-full md:w-auto">
+                    <div className="flex gap-4 p-2 bg-white/5 rounded-2xl border border-white/5">
                         <select 
                             value={session} 
                             onChange={(e) => setSession(e.target.value)}
-                            className="bg-transparent text-sm font-semibold p-2 focus:outline-none flex-1 md:flex-none"
+                            className="bg-transparent text-sm font-semibold p-2 focus:outline-none"
                         >
                             <option value="2023/2024">2023/2024</option>
                             <option value="2022/2023">2022/2023</option>
@@ -123,7 +118,7 @@ export default function CalculatorPage() {
                         <select 
                             value={semester} 
                             onChange={(e) => setSemester(e.target.value)}
-                            className="bg-transparent text-sm font-semibold p-2 focus:outline-none flex-1 md:flex-none"
+                            className="bg-transparent text-sm font-semibold p-2 focus:outline-none"
                         >
                             <option value="First">First Semester</option>
                             <option value="Second">Second Semester</option>
@@ -131,8 +126,7 @@ export default function CalculatorPage() {
                     </div>
                 </div>
 
-                {/* ── Desktop Table ── */}
-                <div className="hidden md:block glass-card overflow-hidden !p-0">
+                <div className="glass-card overflow-hidden !p-0">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -223,6 +217,7 @@ export default function CalculatorPage() {
                                 <Plus size={18} /> Add Course
                             </button>
                             
+                            {/* Grade Summary Chips */}
                             <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest text-gray-500 border border-white/5">
                                 <span>A: {courses.filter(c => c.grade === 'A').length}</span>
                                 <div className="w-px h-3 bg-white/10" />
@@ -257,136 +252,9 @@ export default function CalculatorPage() {
                     </div>
                 </div>
 
-                {/* ── Mobile Card List ── */}
-                <div className="md:hidden space-y-3">
-                    {/* GPA Preview pill */}
-                    <div className="flex items-center justify-between px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20">
-                        <span className="text-sm font-semibold text-gray-300">Expected GPA</span>
-                        <motion.span
-                            key={calculateLocalGPA()}
-                            initial={{ scale: 1.15 }}
-                            animate={{ scale: 1 }}
-                            className="text-2xl font-black text-primary font-outfit"
-                        >
-                            {calculateLocalGPA()}
-                        </motion.span>
-                    </div>
 
-                    {/* Course cards */}
-                    <AnimatePresence initial={false} mode="popLayout">
-                        {courses.map((course, index) => (
-                            <motion.div
-                                key={index}
-                                layout
-                                initial={{ opacity: 0, y: -12 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3"
-                            >
-                                {/* Card header */}
-                                <div className="flex items-center justify-between">
-                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Course {index + 1}</span>
-                                    <button
-                                        onClick={() => removeCourseRow(index)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-500/10 text-red-400 active:scale-90 transition-transform"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
-
-                                {/* Course Title */}
-                                <div className="space-y-1">
-                                    <label className="text-xs text-gray-500 font-semibold">Course Title</label>
-                                    <input
-                                        type="text"
-                                        placeholder="e.g. Introduction to Computing"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-gray-600"
-                                        value={course.title}
-                                        onChange={(e) => handleCourseChange(index, 'title', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Code / Unit / Grade row */}
-                                <div className="grid grid-cols-3 gap-2">
-                                    <div className="col-span-1 space-y-1">
-                                        <label className="text-xs text-gray-500 font-semibold">Code</label>
-                                        <input
-                                            type="text"
-                                            placeholder="CSC101"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-gray-600"
-                                            value={course.code}
-                                            onChange={(e) => handleCourseChange(index, 'code', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs text-gray-500 font-semibold">Units</label>
-                                        <select
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all appearance-none"
-                                            value={course.unit}
-                                            onChange={(e) => handleCourseChange(index, 'unit', Number(e.target.value))}
-                                        >
-                                            {[1, 2, 3, 4, 5, 6].map(u => <option key={u} value={u} className="bg-[#1e293b]">{u}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-xs text-gray-500 font-semibold">Grade</label>
-                                        <select
-                                            className={cn(
-                                                "w-full bg-white/5 border border-white/10 rounded-xl px-3 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all appearance-none",
-                                                GRADE_COLORS[course.grade] || 'text-white'
-                                            )}
-                                            value={course.grade}
-                                            onChange={(e) => handleCourseChange(index, 'grade', e.target.value)}
-                                        >
-                                            <option value="A" className="bg-[#1e293b]">A (5.0)</option>
-                                            <option value="B" className="bg-[#1e293b]">B (4.0)</option>
-                                            <option value="C" className="bg-[#1e293b]">C (3.0)</option>
-                                            <option value="D" className="bg-[#1e293b]">D (2.0)</option>
-                                            <option value="E" className="bg-[#1e293b]">E (1.0)</option>
-                                            <option value="F" className="bg-[#1e293b]">F (0.0)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-
-                    {/* Add Course button */}
-                    <motion.button
-                        whileTap={{ scale: 0.96 }}
-                        onClick={addCourseRow}
-                        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border border-dashed border-white/20 text-sm font-semibold text-gray-400 hover:text-white hover:border-primary/40 hover:bg-primary/5 transition-all"
-                    >
-                        <Plus size={18} />
-                        Add Another Course
-                    </motion.button>
-
-                    {/* Grade summary */}
-                    <div className="flex items-center justify-center gap-4 py-2 px-4 rounded-xl bg-white/5 border border-white/5">
-                        {['A', 'B', 'C', 'D', 'E', 'F'].map(g => {
-                            const count = courses.filter(c => c.grade === g).length;
-                            return count > 0 ? (
-                                <div key={g} className="flex items-center gap-1">
-                                    <span className={`text-xs font-bold ${GRADE_COLORS[g]}`}>{g}</span>
-                                    <span className="text-xs text-gray-600">×{count}</span>
-                                </div>
-                            ) : null;
-                        })}
-                    </div>
-
-                    {/* Full-width save button */}
-                    <motion.button
-                        whileTap={{ scale: 0.97 }}
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-primary to-emerald-400 text-white font-bold text-base shadow-xl shadow-primary/25 active:brightness-90 transition-all disabled:opacity-60"
-                    >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> Save Semester</>}
-                    </motion.button>
-                </div>
-
-                {/* Info cards — shared across desktop & mobile */}
-                <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+                {/* Calculation Info */}
+                <div className="grid md:grid-cols-2 gap-8">
                     <div className="glass-card flex gap-4 border-l-4 border-info">
                         <div className="p-3 bg-info/10 rounded-xl h-fit">
                             <Info size={24} className="text-info" />

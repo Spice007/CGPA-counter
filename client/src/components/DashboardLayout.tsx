@@ -1,9 +1,6 @@
 'use client';
 
 import Sidebar from './Sidebar';
-import MobileHeader from './MobileHeader';
-import MobileBottomNav from './MobileBottomNav';
-import MobileDrawer from './MobileDrawer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Bell, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -11,7 +8,6 @@ import { useRouter, usePathname } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -22,7 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         } else {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://cgpa-counter-production.up.railway.app/api';
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
             // Try to fetch profile from backend (which now defaults to a guest user)
             fetch(`${apiBase}/users/profile`, {
                 headers: {
@@ -43,20 +39,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return (
         <div className="flex min-h-screen bg-[#0f172a] text-white">
-            {/* ─── Desktop Sidebar (hidden on mobile) ─── */}
-            <div className="hidden md:flex">
-                <Sidebar />
-            </div>
-
-            {/* ─── Mobile Navigation (hidden on desktop) ─── */}
-            <MobileHeader user={user} onMenuOpen={() => setDrawerOpen(true)} />
-            <MobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} user={user} />
-            <MobileBottomNav />
-
-            {/* ─── Main Content ─── */}
+            <Sidebar />
+            
             <div className="flex-1 flex flex-col">
-                {/* Desktop Top Header */}
-                <header className="hidden md:flex h-20 border-b border-white/5 items-center justify-between px-10 bg-dark-surface/30 backdrop-blur-md sticky top-0 z-40">
+                {/* Top Header */}
+                <header className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-dark-surface/30 backdrop-blur-md sticky top-0 z-40">
                     <div className="relative w-96">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                         <input 
@@ -88,9 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                 </header>
 
-                {/* Page Content */}
-                {/* pt-16 on mobile = clears the sticky top header; pb-28 = clears bottom nav */}
-                <main className="p-10 flex-1 overflow-y-auto pt-16 md:pt-10 pb-28 md:pb-10">
+                <main className="p-10 flex-1 overflow-y-auto">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={pathname}

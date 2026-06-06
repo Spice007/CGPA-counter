@@ -1,0 +1,25 @@
+# Exclude everything by default
+*
+
+# Allow the main static HTML files
+!index.html
+!login.html
+!signup.html
+!admin-analytics.html
+!admin-login.html
+!ensure-admin-user.js
+
+# Allow the frontend assets and scripts
+!src/
+!src/css/
+!src/css/style.css
+!src/css/mobile.css
+!src/js/
+!src/js/app.js
+!src/js/auth.js
+!src/js/mobile.js
+
+# Allow configurations
+!vercel.json
+!serve.js
+!package.json

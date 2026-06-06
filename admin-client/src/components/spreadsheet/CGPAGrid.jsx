@@ -149,15 +149,26 @@ function recomputeStudent(student, coursesList) {
   };
 }
 
+import { useEffect } from "react";
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function CGPAGrid({ students, setStudents, courseColumns, setCourseColumns, onSave, isSaving }) {
+export default function CGPAGrid({ students, setStudents, courseColumns, setCourseColumns, onSave, isSaving, saveStatus, lastSaved }) {
   const [autoSave, setAutoSave] = useState(true);
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [selectAll, setSelectAll] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null); // Structured editing modal
   const fileInputRef = useRef(null);
+
+  // Live Sync / Auto Save Trigger with Debounce
+  useEffect(() => {
+    if (!autoSave || !onSave || students.length === 0) return;
+    const delayDebounceFn = setTimeout(() => {
+      onSave(students, courseColumns);
+    }, 1500); // 1.5 seconds debounce
+    return () => clearTimeout(delayDebounceFn);
+  }, [students, courseColumns, autoSave]);
 
   // Dynamic Spreadsheet States
   const [isFrozen, setIsFrozen] = useState(false);
@@ -533,19 +544,10 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
           </button>
           <button
             onClick={addStudentRow}
-            className="flex items-center gap-1.5 px-3 py-[7px] rounded-lg bg-slate-800 hover:bg-slate-700 border border-white/[0.08] text-xs font-semibold text-white transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-[7px] rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Add Student
           </button>
-          {onSave && (
-            <button
-              onClick={() => onSave(students, courseColumns)}
-              disabled={isSaving}
-              className="flex items-center gap-1.5 px-3.5 py-[7px] rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-xs font-bold text-white transition-colors cursor-pointer shadow-lg shadow-emerald-950/20"
-            >
-              <Database className="w-3.5 h-3.5" /> {isSaving ? "Saving..." : "Save to Database"}
-            </button>
-          )}
         </div>
       </div>
 
@@ -588,6 +590,38 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
               {autoSave ? "ON" : "OFF"}
             </span>
           </button>
+
+          {/* Cloud Sync Status Indicator */}
+          {onSave && (
+            <div className="flex items-center gap-1.5 px-2.5 py-[5px] rounded-md border border-white/[0.06] bg-[#111927]/60 text-[10px] font-semibold tracking-wide">
+              {saveStatus === "saving" && (
+                <>
+                  <div className="w-2 h-2 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                  <span className="text-slate-400">SYNCING...</span>
+                </>
+              )}
+              {saveStatus === "all-saved" && (
+                <>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)]"></div>
+                  <span className="text-emerald-400 uppercase">CLOUD SYNCED {lastSaved && `(${lastSaved})`}</span>
+                </>
+              )}
+              {saveStatus === "error" && (
+                <>
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                  <span className="text-red-400 uppercase">SYNC ERROR</span>
+                </>
+              )}
+              {!autoSave && saveStatus !== "saving" && (
+                <button
+                  onClick={() => onSave(students, courseColumns)}
+                  className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold uppercase cursor-pointer"
+                >
+                  SAVE NOW
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right tools */}

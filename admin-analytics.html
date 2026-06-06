@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CGPA Spreadsheet Dashboard | Spice CGPA</title>
+    <title>Super Admin Analytics | Spice CGPA</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -36,7 +37,6 @@
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
-            overflow-x: hidden;
         }
 
         /* ── SIDEBAR ── */
@@ -149,234 +149,209 @@
             flex: 1;
             padding: 2rem 2.5rem;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
         .page-header {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .page-title { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; }
         .page-sub { color: var(--text2); font-size: 0.9rem; margin-top: 0.25rem; }
 
-        /* ── SPREADSHEET CARD ── */
+        .refresh-btn {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .refresh-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .refresh-btn svg { width: 15px; height: 15px; }
+
+        /* ── STAT CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.25rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card.green { border-color: rgba(16,185,129,0.3); }
+        .stat-card.purple { border-color: rgba(139,92,246,0.3); }
+        .stat-card.blue { border-color: rgba(59,130,246,0.3); }
+        .stat-card.gold { border-color: rgba(245,158,11,0.3); }
+
+        .stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .stat-icon.green { background: var(--primary-dim); color: var(--primary); }
+        .stat-icon.purple { background: var(--accent-dim); color: var(--accent); }
+        .stat-icon.blue { background: var(--blue-dim); color: var(--blue); }
+        .stat-icon.gold { background: var(--gold-dim); color: var(--gold); }
+        .stat-icon svg { width: 20px; height: 20px; }
+
+        .stat-label { font-size: 0.78rem; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 800; margin: 0.25rem 0; line-height: 1; }
+        .stat-value.green { color: var(--primary); }
+        .stat-value.purple { color: var(--accent); }
+        .stat-value.blue { color: var(--blue); }
+        .stat-value.gold { color: var(--gold); }
+        .stat-sub { font-size: 0.75rem; color: var(--text3); }
+
+        .stat-glow {
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            filter: blur(30px);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .stat-card.green .stat-glow { background: var(--primary); }
+        .stat-card.purple .stat-glow { background: var(--accent); }
+        .stat-card.blue .stat-glow { background: var(--blue); }
+        .stat-card.gold .stat-glow { background: var(--gold); }
+
+        /* ── CHARTS ROW ── */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 1rem;
             padding: 1.5rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
         }
 
-        /* ── TOOLBAR ── */
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-group {
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            flex-wrap: wrap;
         }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.5rem 0.85rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            background: rgba(255,255,255,0.02);
-            color: var(--text2);
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn:hover {
-            background: rgba(255,255,255,0.06);
-            color: var(--text);
-            border-color: rgba(255,255,255,0.15);
-        }
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-        }
-        .btn-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        .btn-danger {
-            background: rgba(239,68,68,0.1);
-            color: var(--danger);
-            border-color: rgba(239,68,68,0.2);
-        }
-        .btn-danger:hover {
-            background: rgba(239,68,68,0.2);
-            color: white;
-        }
+        .card-title svg { width: 18px; height: 18px; color: var(--primary); }
 
-        /* ── SPREADSHEET TABLE ── */
-        .table-container {
-            overflow-x: auto;
-            border-radius: 0.75rem;
-            border: 1px solid var(--border);
-            background: rgba(0,0,0,0.2);
-            flex: 1;
-            max-height: 60vh;
-        }
+        /* ── TABLE ── */
+        .table-row { display: grid; gap: 1.25rem; margin-bottom: 2rem; }
 
-        .spreadsheet-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            text-align: left;
-            min-width: 1300px;
-        }
-
-        .spreadsheet-table th, .spreadsheet-table td {
-            border: 1px solid var(--border);
-            padding: 0.5rem 0.75rem;
-            position: relative;
-        }
-
-        .spreadsheet-table th {
-            background: rgba(10, 22, 40, 0.9);
-            color: var(--text2);
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.72rem;
-            letter-spacing: 0.05em;
-            user-select: none;
+            letter-spacing: 0.06em;
+            color: var(--text3);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
         }
+        tbody tr {
+            transition: background 0.15s;
+        }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+        tbody td {
+            padding: 0.875rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text2);
+        }
+        .user-cell { display: flex; align-items: center; gap: 0.75rem; }
+        .user-av {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--primary-dim);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+        .user-av img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+        .user-name { font-weight: 600; color: var(--text); font-size: 0.85rem; }
+        .user-email { font-size: 0.72rem; color: var(--text3); }
 
-        .spreadsheet-table tr:hover td {
-            background: rgba(255,255,255,0.015);
-        }
-
-        .spreadsheet-table input[type="text"],
-        .spreadsheet-table input[type="number"],
-        .spreadsheet-table select {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: var(--text);
-            font-size: 0.8rem;
-            outline: none;
-            padding: 0.2rem 0.4rem;
-            border-radius: 0.25rem;
-            transition: background 0.1s;
-        }
-
-        .spreadsheet-table input[type="text"]:focus,
-        .spreadsheet-table input[type="number"]:focus,
-        .spreadsheet-table select:focus {
-            background: rgba(255,255,255,0.06);
-            box-shadow: 0 0 0 2px var(--primary);
-        }
-
-        /* ── FREEZE PANES / STICKY ── */
-        .sticky-name {
-            position: sticky !important;
-            left: 0;
-            background: #091222 !important;
-            z-index: 10;
-            border-right: 2px solid rgba(255,255,255,0.12) !important;
-        }
-        .sticky-matric {
-            position: sticky !important;
-            left: 170px;
-            background: #091222 !important;
-            z-index: 10;
-            border-right: 2px solid rgba(255,255,255,0.12) !important;
-        }
-
-        /* ── BADGES ── */
         .badge {
             display: inline-block;
-            padding: 0.15rem 0.45rem;
-            border-radius: 0.25rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 700;
-            text-align: center;
         }
         .badge.first { background: rgba(16,185,129,0.15); color: var(--primary); }
         .badge.second-upper { background: rgba(59,130,246,0.15); color: var(--blue); }
         .badge.second-lower { background: rgba(139,92,246,0.15); color: var(--accent); }
         .badge.third { background: rgba(245,158,11,0.15); color: var(--gold); }
-        .badge.probation { background: rgba(239,68,68,0.15); color: var(--danger); }
+        .badge.probation { background: var(--danger-dim); color: var(--danger); }
+        .badge.new { background: rgba(16,185,129,0.1); color: var(--primary); }
 
-        /* ── SAVING BANNER ── */
-        .toast-banner {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            padding: 0.75rem 1.25rem;
-            background: #0d1e3d;
-            border: 1px solid rgba(16,185,129,0.2);
-            border-radius: 0.5rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            transform: translateY(-20px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: none;
-        }
-        .toast-banner.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        /* Footer Summary */
-        .footer-summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.78rem;
-            color: var(--text3);
-            border-top: 1px solid var(--border);
-            padding-top: 0.75rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        /* Spinner */
-        .spinner {
-            width: 14px; height: 14px;
-            border: 2px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Full page loader */
-        .full-page-loader {
+        /* ── LOADING ── */
+        .loading {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex: 1;
+            padding: 4rem;
             color: var(--text3);
             gap: 1rem;
+        }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text3);
+        }
+        .empty-state svg { width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.4; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -392,11 +367,17 @@
         </div>
 
         <div class="sidebar-label">Analytics</div>
-        <button class="nav-item active">
-            <i data-lucide="table-2"></i> Spreadsheet
+        <button class="nav-item active" onclick="loadAll()">
+            <i data-lucide="layout-dashboard"></i> Dashboard
+        </button>
+        <button class="nav-item" onclick="scrollTo('#users-section')">
+            <i data-lucide="users"></i> All Students
         </button>
 
         <div class="sidebar-label">Management</div>
+        <button class="nav-item" onclick="exportCSV()">
+            <i data-lucide="download"></i> Export CSV
+        </button>
         <a class="nav-item" href="index.html">
             <i data-lucide="arrow-left"></i> Student Portal
         </a>
@@ -419,75 +400,124 @@
     <main class="main">
         <div class="page-header">
             <div>
-                <h1 class="page-title">CGPA Result Spreadsheet</h1>
-                <p class="page-sub" id="last-refreshed">Loading records from database...</p>
+                <h1 class="page-title">Site Analytics</h1>
+                <p class="page-sub" id="last-refreshed">Loading data from MongoDB Atlas...</p>
+            </div>
+            <button class="refresh-btn" onclick="loadAll()">
+                <i data-lucide="refresh-cw"></i> Refresh
+            </button>
+        </div>
+
+        <!-- STATS CARDS -->
+        <div class="stats-grid">
+            <div class="stat-card green">
+                <div class="stat-glow"></div>
+                <div class="stat-icon green"><i data-lucide="users"></i></div>
+                <div class="stat-label">Total Students</div>
+                <div class="stat-value green" id="s-total">—</div>
+                <div class="stat-sub">Registered accounts</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-glow"></div>
+                <div class="stat-icon blue"><i data-lucide="activity"></i></div>
+                <div class="stat-label">Active (7 days)</div>
+                <div class="stat-value blue" id="s-active">—</div>
+                <div class="stat-sub">Last logged in ≤ 7 days</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-glow"></div>
+                <div class="stat-icon purple"><i data-lucide="book-open"></i></div>
+                <div class="stat-label">Total Courses</div>
+                <div class="stat-value purple" id="s-courses">—</div>
+                <div class="stat-sub">Registered by all users</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-glow"></div>
+                <div class="stat-icon gold"><i data-lucide="trending-up"></i></div>
+                <div class="stat-label">Avg GPA</div>
+                <div class="stat-value gold" id="s-avgcgpa">—</div>
+                <div class="stat-sub">System-wide average</div>
             </div>
         </div>
 
-        <!-- SPREADSHEET CARD -->
-        <div class="card">
-            <!-- Toolbar -->
-            <div class="toolbar">
-                <div class="btn-group">
-                    <button class="btn" onclick="addStudentRow()"><i data-lucide="user-plus"></i> Add Student</button>
-                    <button class="btn" onclick="addCourseColumn()"><i data-lucide="book-plus"></i> Add Course</button>
-                    <button class="btn" onclick="document.getElementById('admin-file-import').click()"><i data-lucide="upload"></i> Import Excel</button>
-                    <button class="btn" onclick="exportCSV()"><i data-lucide="download"></i> Export Excel</button>
-                    <input type="file" id="admin-file-import" accept=".csv" style="display: none;" onchange="importCSV(event)">
-                </div>
+        <!-- SECOND ROW STATS -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 2rem;">
+            <div class="stat-card green">
+                <div class="stat-glow"></div>
+                <div class="stat-icon green"><i data-lucide="award"></i></div>
+                <div class="stat-label">First Class</div>
+                <div class="stat-value green" id="s-first">—</div>
+                <div class="stat-sub">CGPA ≥ 4.50</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-glow"></div>
+                <div class="stat-icon blue"><i data-lucide="star"></i></div>
+                <div class="stat-label">2nd Upper</div>
+                <div class="stat-value blue" id="s-2upper">—</div>
+                <div class="stat-sub">CGPA 3.50 – 4.49</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-glow"></div>
+                <div class="stat-icon purple"><i data-lucide="box"></i></div>
+                <div class="stat-label">Total Credit Units</div>
+                <div class="stat-value purple" id="s-units">—</div>
+                <div class="stat-sub">Cumulative registered</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-glow"></div>
+                <div class="stat-icon gold"><i data-lucide="school"></i></div>
+                <div class="stat-label">Universities</div>
+                <div class="stat-value gold" id="s-unis">—</div>
+                <div class="stat-sub">Unique institutions</div>
+            </div>
+        </div>
 
-                <div class="btn-group">
-                    <label style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: var(--text2); cursor: pointer; user-select: none; margin-right: 0.5rem;">
-                        <input type="checkbox" id="freeze-names" onchange="toggleFreezePanes(this)" style="accent-color: var(--primary);"> Freeze Names
-                    </label>
-                    <button class="btn btn-danger" onclick="clearSheet()"><i data-lucide="trash-2"></i> Clear Sheet</button>
-                    <button class="btn" onclick="loadMockData()"><i data-lucide="database"></i> Load Mock Data</button>
-                    <button class="btn btn-primary" id="save-btn" onclick="saveToDatabase()"><i data-lucide="save"></i> Save to Cloud</button>
+        <!-- CHARTS -->
+        <div class="charts-row">
+            <div class="card">
+                <div class="card-title">
+                    <i data-lucide="bar-chart-2"></i>
+                    Academic Standing Distribution
+                </div>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="standingChart"></canvas>
                 </div>
             </div>
-
-            <!-- Table Container -->
-            <div class="table-container" id="grid-container">
-                <div class="full-page-loader" id="loader">
-                    <div class="spinner" style="width: 32px; height: 32px;"></div>
-                    <span>Fetching student records...</span>
+            <div class="card">
+                <div class="card-title">
+                    <i data-lucide="pie-chart"></i>
+                    Faculties Breakdown
+                </div>
+                <div style="position: relative; height: 280px;">
+                    <canvas id="facultyChart"></canvas>
                 </div>
             </div>
+        </div>
 
-            <!-- Footer Summary -->
-            <div class="footer-summary">
-                <div style="display: flex; gap: 1.5rem;">
-                    <span>Total Students: <strong id="foot-total" style="color: var(--text);">0</strong></span>
-                    <span>System Average CGPA: <strong id="foot-avg" style="color: var(--gold);">0.00</strong></span>
-                    <span>Pass Rate: <strong id="foot-pass" style="color: var(--primary);">0.0%</strong></span>
-                </div>
-                <div>
-                    <span>Adjust credit units directly underneath headers. Edits calculate automatically.</span>
-                </div>
+        <!-- STUDENTS TABLE -->
+        <div class="card" id="users-section">
+            <div class="card-title" style="justify-content: space-between;">
+                <span style="display:flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="users"></i> All Registered Students
+                </span>
+                <input type="text" id="search-input" oninput="filterTable()" placeholder="Search by name or email…"
+                    style="padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background: var(--bg-card2); color: var(--text); font-size: 0.82rem; outline: none; width: 220px;">
+            </div>
+            <div id="table-container">
+                <div class="loading"><div class="spinner"></div><span>Loading students…</span></div>
             </div>
         </div>
     </main>
-
-    <!-- TOAST OVERLAY -->
-    <div class="toast-banner" id="toast">
-        <div class="spinner" id="toast-spinner"></div>
-        <span id="toast-msg">Saving...</span>
-    </div>
 
     <script>
         lucide.createIcons();
 
         const API = 'https://cgpa-counter-production.up.railway.app/api';
-        let studentsState = [];
-        let coursesState = [
-            { key: 'csc101', label: 'CSC101', units: 3 },
-            { key: 'mth101', label: 'MTH101', units: 3 },
-            { key: 'gst101', label: 'GST101', units: 2 }
-        ];
-        let isFrozen = false;
-        let autoSaveTimer = null;
+        let allStudents = [];
+        let standingChartInst = null;
+        let facultyChartInst = null;
 
-        // Auth guard
+        // ── Auth guard ──
         const adminUser = JSON.parse(localStorage.getItem('admin_user') || 'null');
         const adminToken = localStorage.getItem('admin_token');
         if (!adminUser || !adminToken) {
@@ -507,554 +537,243 @@
             window.location.href = 'admin-login.html';
         }
 
-        // Show/hide toast
-        function showToast(message, type = 'load') {
-            const toast = document.getElementById('toast');
-            const msg = document.getElementById('toast-msg');
-            const spinner = document.getElementById('toast-spinner');
-            
-            msg.textContent = message;
-            if (type === 'success' || type === 'error') {
-                spinner.style.display = 'none';
-            } else {
-                spinner.style.display = 'block';
-            }
-            toast.className = 'toast-banner show';
-            
-            if (type === 'success' || type === 'error') {
-                setTimeout(() => {
-                    toast.className = 'toast-banner';
-                }, 2500);
-            }
-        }
-
-        function hideToast() {
-            document.getElementById('toast').className = 'toast-banner';
-        }
-
-        // Standing computed badge
         function getStanding(cgpa) {
             if (cgpa >= 4.5) return { label: 'First Class', cls: 'first' };
             if (cgpa >= 3.5) return { label: '2nd Upper', cls: 'second-upper' };
             if (cgpa >= 2.4) return { label: '2nd Lower', cls: 'second-lower' };
             if (cgpa >= 1.5) return { label: 'Third Class', cls: 'third' };
-            return { label: 'Probation', cls: 'probation' };
+            if (cgpa > 0) return { label: 'Pass', cls: 'third' };
+            return { label: 'No GPA', cls: 'probation' };
         }
 
-        // Calculate student GPA
-        function recomputeStudent(student) {
-            let totalUnits = 0;
-            let totalPoints = 0;
-            
-            coursesState.forEach(c => {
-                const scoreVal = student[c.key];
-                if (scoreVal !== undefined && scoreVal !== null && scoreVal !== '') {
-                    const score = parseFloat(scoreVal);
-                    if (!isNaN(score)) {
-                        totalUnits += c.units;
-                        let gp = 0;
-                        if (score >= 70) gp = 5;
-                        else if (score >= 60) gp = 4;
-                        else if (score >= 50) gp = 3;
-                        else if (score >= 45) gp = 2;
-                        else if (score >= 40) gp = 1;
-                        totalPoints += (c.units * gp);
-                    }
-                }
-            });
-
-            student.totalUnits = totalUnits;
-            student.cgpa = totalUnits > 0 ? parseFloat((totalPoints / totalUnits).toFixed(2)) : 0.00;
-            student.gpa = student.cgpa;
-            const standing = getStanding(student.cgpa);
-            student.grade = student.cgpa >= 4.5 ? 'A' : student.cgpa >= 3.5 ? 'B' : student.cgpa >= 2.4 ? 'C' : student.cgpa >= 1.5 ? 'D' : 'F';
-            student.remarks = standing.label;
-            return student;
-        }
-
-        // Load all data
         async function loadAll() {
+            document.getElementById('last-refreshed').textContent = 'Refreshing…';
             try {
-                const res = await fetch(`${API}/admin/students`, { headers: getHeaders() });
-                if (res.status === 401) { logout(); return; }
-                if (!res.ok) throw new Error('Database response failed');
-                
-                const rawData = await res.json();
-                
-                // Pivot flat database course-enrollments to student-centric rows
-                const studentMap = {};
-                const courseMap = {};
+                const [usersRes, coursesRes] = await Promise.all([
+                    fetch(`${API}/admin/students`, { headers: getHeaders() }),
+                    fetch(`${API}/courses`, { headers: getHeaders() })
+                ]);
 
+                if (usersRes.status === 401) { logout(); return; }
+
+                const rawData = await usersRes.json();
+                const now = new Date();
+
+                // Deduplicate by studentId
+                const studentMap = {};
                 rawData.forEach(row => {
                     const id = row.studentId?.toString() || row.fullName;
                     if (!studentMap[id]) {
                         studentMap[id] = {
-                            id: row.studentId || id,
-                            name: row.fullName,
-                            matric: row.matricNumber === 'N/A' ? '' : row.matricNumber,
-                            dept: row.department === 'N/A' ? '' : row.department,
-                            level: parseInt(row.level) || 200,
-                            courseIds: {},
-                            courseTitles: {},
-                            semesters: {},
-                            sessions: {}
+                            _id: row.studentId,
+                            fullName: row.fullName,
+                            email: row.email || 'N/A',
+                            matricNumber: row.matricNumber,
+                            department: row.department,
+                            university: row.university,
+                            faculty: row.faculty || row.department,
+                            cgpa: row.cgpa || 0,
+                            totalUnits: 0,
+                            courseCount: 0,
+                            lastLogin: row.lastLogin || null,
+                            profilePicture: row.profilePicture || null,
+                            createdAt: row.createdAt || null
                         };
                     }
-                    if (row.courseCode) {
-                        const courseKey = row.courseCode.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        courseMap[courseKey] = {
-                            key: courseKey,
-                            label: row.courseCode.toUpperCase(),
-                            units: row.unit || 3
-                        };
-                        studentMap[id][courseKey] = row.score;
-                        studentMap[id].courseIds[courseKey] = row.courseId;
-                        studentMap[id].courseTitles[courseKey] = row.courseTitle;
-                        studentMap[id].semesters[courseKey] = row.semester || '1st Semester';
-                        studentMap[id].sessions[courseKey] = row.session || '2024/2025';
-                    }
+                    studentMap[id].totalUnits += (row.unit || 0);
+                    if (row.courseCode) studentMap[id].courseCount++;
+                    if (row.cgpa) studentMap[id].cgpa = row.cgpa;
                 });
 
-                const fetchedCourses = Object.values(courseMap);
-                if (fetchedCourses.length > 0) {
-                    coursesState = fetchedCourses;
-                }
+                allStudents = Object.values(studentMap);
 
-                studentsState = Object.values(studentMap).map(s => recomputeStudent(s));
-                
-                renderSpreadsheet();
-                updateFooterStats();
+                // Compute stats
+                const total = allStudents.length;
+                const active = allStudents.filter(s => {
+                    if (!s.lastLogin) return false;
+                    return (now - new Date(s.lastLogin)) < 7 * 24 * 60 * 60 * 1000;
+                }).length;
+                const totalCourses = rawData.filter(r => r.courseCode).length;
+                const totalUnits = allStudents.reduce((a, s) => a + s.totalUnits, 0);
+                const studentsWithCgpa = allStudents.filter(s => s.cgpa > 0);
+                const avgCgpa = studentsWithCgpa.length ? (studentsWithCgpa.reduce((a, s) => a + s.cgpa, 0) / studentsWithCgpa.length).toFixed(2) : '0.00';
+                const firstClass = allStudents.filter(s => s.cgpa >= 4.5).length;
+                const secondUpper = allStudents.filter(s => s.cgpa >= 3.5 && s.cgpa < 4.5).length;
+                const unis = new Set(allStudents.map(s => s.university).filter(Boolean)).size;
+
+                // Update stats
+                document.getElementById('s-total').textContent = total;
+                document.getElementById('s-active').textContent = active;
+                document.getElementById('s-courses').textContent = totalCourses;
+                document.getElementById('s-avgcgpa').textContent = avgCgpa;
+                document.getElementById('s-first').textContent = firstClass;
+                document.getElementById('s-2upper').textContent = secondUpper;
+                document.getElementById('s-units').textContent = totalUnits;
+                document.getElementById('s-unis').textContent = unis || 1;
+
+                // Render charts
+                renderStandingChart(allStudents);
+                renderFacultyChart(allStudents);
+
+                // Render table
+                renderTable(allStudents);
 
                 const t = new Date();
-                document.getElementById('last-refreshed').textContent = 
-                    `Last updated: ${t.toLocaleTimeString()} — synchronized with MongoDB Atlas`;
+                document.getElementById('last-refreshed').textContent =
+                    `Last updated: ${t.toLocaleTimeString()} — ${total} students in MongoDB Atlas`;
 
             } catch (err) {
-                console.error(err);
-                document.getElementById('last-refreshed').textContent = '⚠️ Error loading from Atlas';
-                // Fallback to empty grid
-                studentsState = [];
-                renderSpreadsheet();
+                document.getElementById('last-refreshed').textContent = '⚠️ Error loading data: ' + err.message;
+                document.getElementById('table-container').innerHTML = `<div class="empty-state"><p>Could not load data. Check network or re-login.</p></div>`;
             }
         }
 
-        // Render Spreadsheet grid
-        function renderSpreadsheet() {
-            const container = document.getElementById('grid-container');
-            if (studentsState.length === 0) {
-                container.innerHTML = `
-                    <div style="padding:4rem; text-align:center; color:var(--text3);">
-                        <i data-lucide="sheet" style="width:48px; height:48px; margin-bottom:1rem; opacity:0.3; display:block; margin: 0 auto 1rem;"></i>
-                        <p>No student results loaded yet. Click <strong>Add Student</strong> or <strong>Load Mock Data</strong>.</p>
+        function renderTable(students) {
+            if (!students.length) {
+                document.getElementById('table-container').innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="users" style="display:block;margin:0 auto 1rem;width:48px;height:48px;opacity:0.3;"></i>
+                        <p>No students found yet.</p>
                     </div>`;
                 lucide.createIcons();
                 return;
             }
 
-            const headerRow = coursesState.map(c => `
-                <th style="min-width: 100px; text-align: center;">
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:0.25rem;">
-                        <span style="font-weight:700; color:var(--text);">${c.label}</span>
-                        <div style="display:flex; align-items:center; gap:0.2rem; font-size:0.7rem;">
-                            <input type="number" min="1" max="6" value="${c.units}" 
-                                   style="width:30px; background:rgba(255,255,255,0.05); text-align:center; border:1px solid var(--border); padding:0.05rem; color:var(--primary); font-weight:700; border-radius:0.25rem;" 
-                                   onchange="updateCourseUnits('${c.key}', this.value)">
-                            <span style="font-size:0.6rem; color:var(--text3);">Units</span>
-                        </div>
-                    </div>
-                </th>
-            `).join('');
-
-            const tableHeaderHTML = `
-                <tr>
-                    <th style="width:40px; text-align:center;">#</th>
-                    <th class="${isFrozen ? 'sticky-name' : ''}" style="width:170px;">Student Name</th>
-                    <th class="${isFrozen ? 'sticky-matric' : ''}" style="width:130px;">Matric Number</th>
-                    <th style="width:130px;">Department</th>
-                    <th style="width:90px; text-align:center;">Level</th>
-                    ${headerRow}
-                    <th style="width:80px; text-align:center;">Units</th>
-                    <th style="width:70px; text-align:center;">GPA</th>
-                    <th style="width:70px; text-align:center;">CGPA</th>
-                    <th style="width:70px; text-align:center;">Grade</th>
-                    <th style="width:110px; text-align:center;">Standing</th>
-                    <th style="width:60px; text-align:center;">Actions</th>
-                </tr>
-            `;
-
-            const rowsHTML = studentsState.map((s, index) => {
-                const courseCells = coursesState.map(c => {
-                    const score = s[c.key] !== undefined && s[c.key] !== null ? s[c.key] : '';
-                    return `<td>
-                        <input type="number" min="0" max="100" placeholder="—" value="${score}" 
-                               style="text-align:center;"
-                               oninput="handleCellEdit('${s.id}', '${c.key}', this.value)">
-                    </td>`;
-                }).join('');
-
+            const rows = students.map(s => {
                 const standing = getStanding(s.cgpa);
+                const initials = (s.fullName || 'U').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                const avatarHTML = s.profilePicture
+                    ? `<div class="user-av"><img src="${s.profilePicture}" alt="${s.fullName}"></div>`
+                    : `<div class="user-av">${initials}</div>`;
 
-                return `
-                    <tr>
-                        <td style="text-align:center; color:var(--text3); font-family:monospace;">${index + 1}</td>
-                        <td class="${isFrozen ? 'sticky-name' : ''}">
-                            <input type="text" value="${s.name || ''}" placeholder="Name" oninput="handleCellEdit('${s.id}', 'name', this.value)">
-                        </td>
-                        <td class="${isFrozen ? 'sticky-matric' : ''}">
-                            <input type="text" value="${s.matric || ''}" placeholder="Matric" oninput="handleCellEdit('${s.id}', 'matric', this.value)" style="font-family:monospace;">
-                        </td>
-                        <td>
-                            <input type="text" value="${s.dept || ''}" placeholder="Department" oninput="handleCellEdit('${s.id}', 'dept', this.value)">
-                        </td>
-                        <td style="text-align:center;">
-                            <select onchange="handleCellEdit('${s.id}', 'level', this.value)" style="text-align:center;">
-                                <option value="100" ${s.level == 100 ? 'selected' : ''}>100</option>
-                                <option value="200" ${s.level == 200 ? 'selected' : ''}>200</option>
-                                <option value="300" ${s.level == 300 ? 'selected' : ''}>300</option>
-                                <option value="400" ${s.level == 400 ? 'selected' : ''}>400</option>
-                                <option value="500" ${s.level == 500 ? 'selected' : ''}>500</option>
-                            </select>
-                        </td>
-                        ${courseCells}
-                        <td style="text-align:center; font-weight:600; color:var(--text2);">${s.totalUnits}</td>
-                        <td style="text-align:center; font-weight:700; color:var(--primary); font-family:monospace;">${s.cgpa.toFixed(2)}</td>
-                        <td style="text-align:center; font-weight:700; color:var(--primary); font-family:monospace;">${s.cgpa.toFixed(2)}</td>
-                        <td style="text-align:center; font-weight:700; font-family:monospace;">${s.grade}</td>
-                        <td style="text-align:center;">
-                            <span class="badge ${standing.cls}">${standing.label}</span>
-                        </td>
-                        <td style="text-align:center;">
-                            <button onclick="deleteStudentRow('${s.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer;" title="Delete Row">
-                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                const lastLogin = s.lastLogin ? new Date(s.lastLogin).toLocaleDateString() : 'Never';
+                return `<tr>
+                    <td>
+                        <div class="user-cell">
+                            ${avatarHTML}
+                            <div>
+                                <div class="user-name">${s.fullName || 'N/A'}</div>
+                                <div class="user-email">${s.matricNumber || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${s.department || 'N/A'}</td>
+                    <td>${s.university || 'N/A'}</td>
+                    <td style="color: var(--primary); font-weight: 700; font-family: 'Outfit', sans-serif;">${s.cgpa > 0 ? s.cgpa.toFixed(2) : '—'}</td>
+                    <td>${s.totalUnits}</td>
+                    <td><span class="badge ${standing.cls}">${standing.label}</span></td>
+                    <td>${lastLogin}</td>
+                </tr>`;
             }).join('');
 
-            container.innerHTML = `
-                <table class="spreadsheet-table">
-                    <thead>${tableHeaderHTML}</thead>
-                    <tbody>${rowsHTML}</tbody>
-                </table>
-            `;
+            document.getElementById('table-container').innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Department</th>
+                            <th>University</th>
+                            <th>CGPA</th>
+                            <th>Units</th>
+                            <th>Standing</th>
+                            <th>Last Login</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
             lucide.createIcons();
         }
 
-        // Cell editing
-        function handleCellEdit(studentId, field, value) {
-            studentsState = studentsState.map(s => {
-                if (s.id.toString() === studentId.toString()) {
-                    let updated = { ...s };
-                    if (field === 'name') updated.name = value;
-                    else if (field === 'matric') updated.matric = value;
-                    else if (field === 'dept') updated.dept = value;
-                    else if (field === 'level') updated.level = parseInt(value) || 200;
-                    else {
-                        updated[field] = value === '' ? null : parseFloat(value);
-                    }
-                    return recomputeStudent(updated);
-                }
-                return s;
-            });
-            
-            // Re-render only metrics and relevant UI quickly
-            updateFooterStats();
-            
-            // Debounced rendering to prevent cursor jumping
-            if (autoSaveTimer) clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                renderSpreadsheet();
-            }, 1200);
+        function filterTable() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allStudents.filter(s =>
+                (s.fullName || '').toLowerCase().includes(q) ||
+                (s.email || '').toLowerCase().includes(q) ||
+                (s.matricNumber || '').toLowerCase().includes(q) ||
+                (s.department || '').toLowerCase().includes(q)
+            );
+            renderTable(filtered);
         }
 
-        // Update credit units
-        function updateCourseUnits(courseKey, val) {
-            const units = parseInt(val) || 1;
-            coursesState = coursesState.map(c => c.key === courseKey ? { ...c, units } : c);
-            studentsState = studentsState.map(s => recomputeStudent(s));
-            renderSpreadsheet();
-            updateFooterStats();
-        }
-
-        // Toggle freeze panes
-        function toggleFreezePanes(chk) {
-            isFrozen = chk.checked;
-            renderSpreadsheet();
-        }
-
-        // Add blank student
-        function addStudentRow() {
-            const newId = Date.now().toString();
-            const row = {
-                id: newId,
-                name: '',
-                matric: '',
-                dept: 'Computer Sci.',
-                level: 200,
-                courseIds: {},
-                courseTitles: {},
-                semesters: {},
-                sessions: {}
+        function renderStandingChart(students) {
+            const counts = {
+                'First Class': students.filter(s => s.cgpa >= 4.5).length,
+                '2nd Upper': students.filter(s => s.cgpa >= 3.5 && s.cgpa < 4.5).length,
+                '2nd Lower': students.filter(s => s.cgpa >= 2.4 && s.cgpa < 3.5).length,
+                'Third Class': students.filter(s => s.cgpa >= 1.5 && s.cgpa < 2.4).length,
+                'No GPA Yet': students.filter(s => s.cgpa === 0).length,
             };
-            coursesState.forEach(c => {
-                row[c.key] = null;
-            });
-            studentsState.push(recomputeStudent(row));
-            renderSpreadsheet();
-            updateFooterStats();
-        }
 
-        // Add course column
-        function addCourseColumn() {
-            const code = prompt("Enter Course Code (e.g., GST102):");
-            if (!code) return;
-            const cleanCode = code.trim().toUpperCase();
-            if (!cleanCode) return;
-            
-            const key = cleanCode.toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (coursesState.some(c => c.key === key)) {
-                alert("Course already exists!");
-                return;
-            }
-
-            const unitsStr = prompt(`Enter Credit Units for ${cleanCode}:`, "3");
-            const units = parseInt(unitsStr) || 3;
-
-            coursesState.push({ key, label: cleanCode, units });
-            studentsState = studentsState.map(s => {
-                s[key] = null;
-                return recomputeStudent(s);
-            });
-            renderSpreadsheet();
-        }
-
-        // Delete student
-        function deleteStudentRow(studentId) {
-            if (confirm("Delete this student row?")) {
-                studentsState = studentsState.filter(s => s.id.toString() !== studentId.toString());
-                renderSpreadsheet();
-                updateFooterStats();
-            }
-        }
-
-        // Clear spreadsheet
-        function clearSheet() {
-            if (confirm("Clear all rows in the spreadsheet?")) {
-                studentsState = [];
-                renderSpreadsheet();
-                updateFooterStats();
-            }
-        }
-
-        // Load mock results
-        function loadMockData() {
-            const defaultCols = [
-                { key: 'csc101', label: 'CSC101', units: 3 },
-                { key: 'mth101', label: 'MTH101', units: 3 },
-                { key: 'gst101', label: 'GST101', units: 2 }
-            ];
-            coursesState = defaultCols;
-
-            const mock = [
-                { id: '1', name: "John David", matric: "22/CSC/004", dept: "Computer Sci.", level: 200, csc101: 78, mth101: 65, gst101: 70 },
-                { id: '2', name: "Mary Johnson", matric: "22/CSC/008", dept: "Computer Sci.", level: 200, csc101: 55, mth101: 72, gst101: 68 },
-                { id: '3', name: "Daniel Okoro", matric: "22/CSC/012", dept: "Computer Sci.", level: 200, csc101: 82, mth101: 90, gst101: 75 },
-                { id: '4', name: "Blessing Nneka", matric: "22/CSC/015", dept: "Computer Sci.", level: 200, csc101: 45, mth101: 50, gst101: 48 },
-                { id: '5', name: "Peter Emmanuel", matric: "22/CSC/019", dept: "Computer Sci.", level: 200, csc101: 39, mth101: 42, gst101: 40 }
-            ];
-
-            studentsState = mock.map(s => {
-                s.courseIds = {};
-                s.courseTitles = {};
-                s.semesters = {};
-                s.sessions = {};
-                return recomputeStudent(s);
-            });
-
-            renderSpreadsheet();
-            updateFooterStats();
-        }
-
-        // Update footer stats
-        function updateFooterStats() {
-            const total = studentsState.length;
-            document.getElementById('foot-total').textContent = total;
-
-            const cgpas = studentsState.map(s => s.cgpa).filter(c => c > 0);
-            const avg = cgpas.length > 0 ? (cgpas.reduce((a, b) => a + b, 0) / cgpas.length).toFixed(2) : '0.00';
-            document.getElementById('foot-avg').textContent = avg;
-
-            const passed = studentsState.filter(s => s.cgpa >= 1.0).length;
-            const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : '0.0';
-            document.getElementById('foot-pass').textContent = passRate + '%';
-        }
-
-        // Save back to database (bulk)
-        async function saveToDatabase() {
-            showToast('Saving to cloud database...');
-            const updates = [];
-
-            studentsState.forEach(student => {
-                const isMockId = isNaN(student.id) ? false : student.id.length < 5;
-                const studentId = isMockId ? undefined : student.id;
-
-                coursesState.forEach(c => {
-                    const score = student[c.key];
-                    if (score !== null && score !== undefined && score !== '') {
-                        const numericScore = parseFloat(score);
-                        if (!isNaN(numericScore)) {
-                            let gp = 0;
-                            let grade = 'F';
-                            if (numericScore >= 70) { gp = 5; grade = 'A'; }
-                            else if (numericScore >= 60) { gp = 4; grade = 'B'; }
-                            else if (numericScore >= 50) { gp = 3; grade = 'C'; }
-                            else if (numericScore >= 45) { gp = 2; grade = 'D'; }
-                            else if (numericScore >= 40) { gp = 1; grade = 'E'; }
-
-                            updates.push({
-                                studentId: studentId,
-                                fullName: student.name,
-                                matricNumber: student.matric,
-                                department: student.dept || 'Computer Sci.',
-                                level: student.level?.toString() || '200',
-                                courseId: student.courseIds?.[c.key],
-                                courseCode: c.label,
-                                courseTitle: student.courseTitles?.[c.key] || `${c.label} Course`,
-                                unit: c.units,
-                                score: numericScore,
-                                grade: grade,
-                                gradePoint: gp,
-                                session: student.sessions?.[c.key] || '2024/2025',
-                                semester: student.semesters?.[c.key] || '1st Semester'
-                            });
-                        }
+            const ctx = document.getElementById('standingChart').getContext('2d');
+            if (standingChartInst) standingChartInst.destroy();
+            standingChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(counts),
+                    datasets: [{
+                        data: Object.values(counts),
+                        backgroundColor: ['#10b981','#3b82f6','#8b5cf6','#f59e0b','#64748b'],
+                        borderRadius: 8,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#64748b' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', stepSize: 1 } }
                     }
-                });
-
-                // Demographic only row if no courses
-                const studentCourses = coursesState.filter(c => student[c.key] !== null && student[c.key] !== undefined && student[c.key] !== '');
-                if (studentCourses.length === 0) {
-                    updates.push({
-                        studentId: studentId,
-                        fullName: student.name,
-                        matricNumber: student.matric,
-                        department: student.dept || 'Computer Sci.',
-                        level: student.level?.toString() || '200'
-                    });
                 }
             });
-
-            try {
-                const res = await fetch(`${API}/admin/results/bulk`, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify({ updates })
-                });
-
-                if (!res.ok) throw new Error('Database updates rejected');
-                
-                showToast('Database updated successfully!', 'success');
-                loadAll(); // Reload actual IDs from DB
-            } catch (err) {
-                console.error(err);
-                showToast('Failed to save to database: ' + err.message, 'error');
-            }
         }
 
-        // CSV Export
-        function exportCSV() {
-            if (studentsState.length === 0) { alert('No data to export!'); return; }
-            const headers = ['Student Name', 'Matric Number', 'Department', 'Level', ...coursesState.map(c => `${c.label} (${c.units}U)`), 'Total Units', 'GPA', 'CGPA', 'Grade', 'Remarks'];
-            
-            const rows = studentsState.map(s => [
-                s.name, s.matric, s.dept, s.level,
-                ...coursesState.map(c => s[c.key] !== null && s[c.key] !== undefined ? s[c.key] : ''),
-                s.totalUnits, s.cgpa.toFixed(2), s.cgpa.toFixed(2), s.grade, s.remarks
-            ]);
+        function renderFacultyChart(students) {
+            const facMap = {};
+            students.forEach(s => {
+                const key = s.faculty || s.department || 'Unknown';
+                facMap[key] = (facMap[key] || 0) + 1;
+            });
+            const sorted = Object.entries(facMap).sort((a,b)=>b[1]-a[1]).slice(0, 7);
 
-            const csv = [headers, ...rows].map(r => r.map(c => `"${c || ''}"`).join(',')).join('\n');
+            const ctx = document.getElementById('facultyChart').getContext('2d');
+            if (facultyChartInst) facultyChartInst.destroy();
+            facultyChartInst = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sorted.map(e=>e[0]),
+                    datasets: [{
+                        data: sorted.map(e=>e[1]),
+                        backgroundColor: ['#10b981','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#84cc16'],
+                        borderWidth: 2,
+                        borderColor: '#0a1628'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', boxWidth: 12, padding: 10, font: { size: 11 } } } }
+                }
+            });
+        }
+
+        function exportCSV() {
+            if (!allStudents.length) { alert('No data to export yet!'); return; }
+            const header = ['Name','Matric No','Department','University','CGPA','Credit Units','Standing','Last Login'];
+            const rows = allStudents.map(s => {
+                const st = getStanding(s.cgpa);
+                return [s.fullName, s.matricNumber, s.department, s.university,
+                    s.cgpa.toFixed(2), s.totalUnits, st.label,
+                    s.lastLogin ? new Date(s.lastLogin).toLocaleDateString() : 'Never'];
+            });
+            const csv = [header, ...rows].map(r => r.map(c => `"${c || ''}"`).join(',')).join('\n');
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `CGPA_Spreadsheet_${Date.now()}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+            a.href = url; a.download = `spicecgpa_students_${Date.now()}.csv`;
+            a.click(); URL.revokeObjectURL(url);
         }
 
-        // CSV Import
-        function importCSV(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const text = evt.target.result;
-                    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                    if (lines.length < 2) throw new Error('Empty CSV file');
-
-                    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
-                    const importedCourses = [];
-                    const courseColIdx = [];
-
-                    for (let i = 4; i < headers.length; i++) {
-                        const h = headers[i];
-                        if (h === 'Total Units' || h === 'GPA' || h === 'CGPA' || h === 'Grade' || h === 'Remarks') break;
-                        
-                        courseColIdx.push(i);
-                        const match = h.match(/^([A-Z0-9]+)(?:\s*\((\d+)\s*U?\))?/i);
-                        const label = match ? match[1].toUpperCase() : h.toUpperCase();
-                        const units = match && match[2] ? parseInt(match[2]) : 3;
-                        const key = label.toLowerCase().replace(/[^a-z0-9]/g, '');
-                        
-                        importedCourses.push({ key, label, units });
-                    }
-
-                    if (importedCourses.length === 0) throw new Error('No course columns found in CSV header');
-
-                    coursesState = importedCourses;
-
-                    const parsedStudents = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                        if (cols.length < 4) continue;
-
-                        const row = {
-                            id: (Date.now() + i).toString(),
-                            name: cols[0],
-                            matric: cols[1],
-                            dept: cols[2],
-                            level: parseInt(cols[3]) || 200,
-                            courseIds: {},
-                            courseTitles: {},
-                            semesters: {},
-                            sessions: {}
-                        };
-
-                        importedCourses.forEach((c, idx) => {
-                            const csvIdx = courseColIdx[idx];
-                            const val = cols[csvIdx];
-                            row[c.key] = val === '' || val === undefined ? null : parseFloat(val);
-                        });
-
-                        parsedStudents.push(recomputeStudent(row));
-                    }
-
-                    studentsState = parsedStudents;
-                    renderSpreadsheet();
-                    updateFooterStats();
-                    alert(`Imported ${parsedStudents.length} student records and ${importedCourses.length} courses!`);
-                } catch (err) {
-                    alert('Error parsing CSV file: ' + err.message);
-                }
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-        }
-
-        // Auto load from MongoDB Atlas on start
+        // Auto-load
         loadAll();
     </script>
 </body>

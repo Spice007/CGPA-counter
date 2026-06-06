@@ -8,6 +8,7 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="src/css/style.css">
+    <link rel="stylesheet" href="src/css/mobile.css">
     
     <!-- External Libraries -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,6 +18,76 @@
     <script>checkAuth();</script>
 </head>
 <body>
+    <!-- Mobile Sticky Top Header -->
+    <header class="mobile-top-header">
+        <button id="mobile-menu-trigger" class="mobile-icon-btn">
+            <i data-lucide="menu"></i>
+        </button>
+        <span class="mobile-logo">Spice<span style="color:#10b981">CGPA</span></span>
+        <button id="mobile-profile-trigger" class="mobile-icon-btn">
+            <i data-lucide="user"></i>
+        </button>
+    </header>
+
+    <!-- Mobile Drawer Menu -->
+    <div class="mobile-drawer-overlay" id="mobile-drawer-overlay"></div>
+    <aside class="mobile-drawer" id="mobile-drawer">
+        <div class="drawer-header">
+            <span class="mobile-logo">Spice<span style="color:#10b981">CGPA</span></span>
+            <button id="mobile-drawer-close" class="mobile-icon-btn">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <div class="drawer-profile-card">
+            <div class="drawer-avatar" id="drawer-avatar">G</div>
+            <div class="drawer-profile-info">
+                <h4 id="drawer-student-name">Student Name</h4>
+                <p id="drawer-student-uni">University</p>
+            </div>
+        </div>
+        <nav class="drawer-nav">
+            <a href="#" id="mobnav-dashboard" class="drawer-link active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="#" id="mobnav-courses" class="drawer-link"><i data-lucide="book-open"></i> Courses</a>
+            <a href="#" id="mobnav-planner" class="drawer-link"><i data-lucide="calendar"></i> Academic Planner</a>
+            <a href="#" id="mobnav-resources" class="drawer-link"><i data-lucide="folder-kanban"></i> Course Resources</a>
+            <a href="#" id="mobnav-archives" class="drawer-link"><i data-lucide="archive"></i> Semester Archives</a>
+            <a href="#" id="mobnav-admin" class="drawer-link" style="display: none; color: var(--warning) !important;"><i data-lucide="activity"></i> Site Analytics</a>
+            <a href="#" id="mobnav-profile" class="drawer-link"><i data-lucide="user"></i> Profile</a>
+            <a href="#" id="mobnav-settings" class="drawer-link"><i data-lucide="settings"></i> Advanced Settings</a>
+            <a href="#" id="mobnav-logout" class="drawer-link text-danger"><i data-lucide="log-out"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav">
+        <a href="#" id="botnav-dashboard" class="botnav-link active">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="#" id="botnav-courses" class="botnav-link">
+            <i data-lucide="book-open"></i>
+            <span>Courses</span>
+        </a>
+        <a href="#" id="botnav-add" class="botnav-link add-btn">
+            <div class="botnav-add-icon">
+                <i data-lucide="plus"></i>
+            </div>
+        </a>
+        <a href="#" id="botnav-analytics" class="botnav-link">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Analytics</span>
+        </a>
+        <a href="#" id="botnav-settings" class="botnav-link">
+            <i data-lucide="settings"></i>
+            <span>Settings</span>
+        </a>
+    </nav>
+
+    <!-- Mobile FAB (Floating Action Button) -->
+    <button class="mobile-fab" id="mobile-fab">
+        <i data-lucide="plus"></i>
+    </button>
+
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -54,7 +125,11 @@
                             <i data-lucide="archive"></i> Semester Archives
                         </a>
                     </li>
-
+                    <li id="nav-item-admin" style="display: none;">
+                        <a href="#" id="nav-admin" class="nav-link" style="color: var(--warning) !important;">
+                            <i data-lucide="activity"></i> Site Analytics
+                        </a>
+                    </li>
                     <li>
                         <a href="#" id="nav-profile" class="nav-link">
                             <i data-lucide="user"></i> Profile
@@ -115,8 +190,10 @@
 
             <!-- Dashboard Section -->
             <div id="section-dashboard" class="app-section" style="display: block;">
-                <!-- Stats Overview Grid (4 standalone cards) -->
-                <div class="stats-grid animate-fade-in">
+                <!-- Desktop and Tablet view (Hidden on Mobile) -->
+                <div class="desktop-tablet-dashboard">
+                    <!-- Stats Overview Grid (4 standalone cards) -->
+                    <div class="stats-grid animate-fade-in">
                     <!-- Card 1: Current CGPA -->
                     <div class="stat-card">
                         <div class="stat-card-header">
@@ -300,7 +377,184 @@
                         </div>
                     </aside>
                 </div>
+            </div> <!-- End of desktop-tablet-dashboard -->
+
+            <!-- Mobile View (Hidden on Desktop/Tablet) -->
+            <div class="mobile-dashboard">
+                <!-- Welcome Glass Card -->
+                <div class="mobile-welcome-card glass">
+                    <div class="mobile-welcome-header">
+                        <div class="mobile-welcome-avatar" id="mobile-welcome-avatar">G</div>
+                        <div class="mobile-welcome-title">
+                            <span class="mobile-welcome-greet" id="mobile-welcome-greeting">👋 Good Evening</span>
+                            <h2 class="mobile-student-name" id="mobile-student-name">Gideon</h2>
+                        </div>
+                    </div>
+                    <div class="mobile-welcome-body">
+                        <div class="mobile-welcome-badge" id="mobile-student-dept">Computer Science</div>
+                        <div class="mobile-welcome-session" id="mobile-student-session">2023/2024 Session</div>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Carousel -->
+                <div class="mobile-carousel-container">
+                    <div class="mobile-kpi-carousel" id="mobile-kpi-carousel">
+                        <!-- Card 1: CGPA -->
+                        <div class="mobile-kpi-card glass scroll-snap-align-start">
+                            <span class="mobile-kpi-label">Current CGPA</span>
+                            <div class="mobile-kpi-value-row">
+                                <h3 class="mobile-kpi-value green" id="mobile-cgpa-val">0.00</h3>
+                                <span class="mobile-kpi-badge green" id="mobile-standing-val">Pass/Fail</span>
+                            </div>
+                            <div class="mobile-kpi-footer">Across all semesters</div>
+                        </div>
+                        <!-- Card 2: Total Units -->
+                        <div class="mobile-kpi-card glass scroll-snap-align-start">
+                            <span class="mobile-kpi-label">Total Units</span>
+                            <div class="mobile-kpi-value-row">
+                                <h3 class="mobile-kpi-value purple" id="mobile-units-val">0</h3>
+                                <span class="mobile-kpi-badge purple">Units</span>
+                            </div>
+                            <div class="mobile-kpi-footer">Credit units registered</div>
+                        </div>
+                        <!-- Card 3: Grade Points -->
+                        <div class="mobile-kpi-card glass scroll-snap-align-start">
+                            <span class="mobile-kpi-label">Grade Points</span>
+                            <div class="mobile-kpi-value-row">
+                                <h3 class="mobile-kpi-value gold" id="mobile-points-val">0</h3>
+                                <span class="mobile-kpi-badge gold">GP</span>
+                            </div>
+                            <div class="mobile-kpi-footer">Cumulative points earned</div>
+                        </div>
+                        <!-- Card 4: Academic Standing -->
+                        <div class="mobile-kpi-card glass scroll-snap-align-start">
+                            <span class="mobile-kpi-label">Academic Standing</span>
+                            <div class="mobile-kpi-value-row">
+                                <h3 class="mobile-kpi-value blue" id="mobile-standing-card-val">Excellent</h3>
+                                <span class="mobile-kpi-badge blue">Standing</span>
+                            </div>
+                            <div class="mobile-kpi-footer">Keep up the great work!</div>
+                        </div>
+                    </div>
+                    <div class="mobile-carousel-dots" id="mobile-kpi-dots">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Section -->
+                <div class="mobile-section-title">Quick Actions</div>
+                <div class="mobile-quick-actions">
+                    <button class="mobile-action-btn glass" id="mobile-action-add-course">
+                        <div class="action-icon green"><i data-lucide="plus-circle"></i></div>
+                        <span>Add Course</span>
+                    </button>
+                    <button class="mobile-action-btn glass" id="mobile-action-add-semester">
+                        <div class="action-icon purple"><i data-lucide="plus"></i></div>
+                        <span>Add Semester</span>
+                    </button>
+                    <button class="mobile-action-btn glass" id="mobile-action-export-pdf">
+                        <div class="action-icon gold"><i data-lucide="download"></i></div>
+                        <span>Export PDF</span>
+                    </button>
+                    <button class="mobile-action-btn glass" id="mobile-action-save-image">
+                        <div class="action-icon blue"><i data-lucide="image"></i></div>
+                        <span>Save Image</span>
+                    </button>
+                </div>
+
+                <!-- Academic Standing highlight card -->
+                <div class="mobile-standing-highlight-card glass">
+                    <div class="highlight-header">
+                        <i data-lucide="graduation-cap"></i>
+                        <span>Academic Standing</span>
+                    </div>
+                    <div class="highlight-main">
+                        <h2 id="mobile-highlight-standing">Pass/Fail</h2>
+                        <div class="highlight-details">
+                            <div>
+                                <p>Current CGPA</p>
+                                <strong id="mobile-highlight-cgpa">0.00</strong>
+                            </div>
+                            <div>
+                                <p>Target CGPA</p>
+                                <strong>4.50+</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="highlight-progress-bar">
+                        <div class="highlight-progress-fill" id="mobile-highlight-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Level Breakdown progress bars -->
+                <div class="mobile-section-title">Level Breakdown</div>
+                <div class="mobile-level-breakdown glass" id="mobile-level-performance-container">
+                    <!-- Injected via mobile.js -->
+                </div>
+
+                <!-- Accordion semesters -->
+                <div class="mobile-section-title-row">
+                    <span>Semesters</span>
+                    <button id="mobile-add-semester-text-btn" class="mobile-text-btn"><i data-lucide="plus"></i> Add Semester</button>
+                </div>
+                <div class="mobile-accordion-container" id="mobile-semesters-accordion">
+                    <!-- Accordion items injected via mobile.js -->
+                </div>
+
+                <!-- Mobile Chart -->
+                <div class="mobile-section-title">Performance Trend</div>
+                <div class="mobile-chart-card glass">
+                    <div class="mobile-chart-header">
+                        <span class="chart-title">Performance Trend</span>
+                        <div class="mobile-chart-toggles">
+                            <button class="chart-toggle-btn active" data-chart-type="cgpa" id="mobile-toggle-cgpa">CGPA</button>
+                            <button class="chart-toggle-btn" data-chart-type="gpa" id="mobile-toggle-gpa">GPA</button>
+                        </div>
+                    </div>
+                    <div class="mobile-chart-wrapper">
+                        <div style="position: relative; height: 220px; width: 100%;">
+                            <canvas id="mobileCgpaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Section -->
+                <div class="mobile-section-title">Analytics</div>
+                <div class="mobile-carousel-container">
+                    <div class="mobile-analytics-carousel" id="mobile-analytics-carousel">
+                        <div class="mobile-analytics-card glass scroll-snap-align-start">
+                            <div class="analytics-icon-wrap green"><i data-lucide="trending-up"></i></div>
+                            <span class="analytics-label">Highest GPA</span>
+                            <h3 class="analytics-val" id="mobile-analytics-highest-gpa">0.00</h3>
+                        </div>
+                        <div class="mobile-analytics-card glass scroll-snap-align-start">
+                            <div class="analytics-icon-wrap purple"><i data-lucide="award"></i></div>
+                            <span class="analytics-label">Best Semester</span>
+                            <h3 class="analytics-val" id="mobile-analytics-best-semester">N/A</h3>
+                        </div>
+                        <div class="mobile-analytics-card glass scroll-snap-align-start">
+                            <div class="analytics-icon-wrap gold"><i data-lucide="book-open"></i></div>
+                            <span class="analytics-label">Total Courses</span>
+                            <h3 class="analytics-val" id="mobile-analytics-total-courses">0</h3>
+                        </div>
+                        <div class="mobile-analytics-card glass scroll-snap-align-start">
+                            <div class="analytics-icon-wrap blue"><i data-lucide="shield"></i></div>
+                            <span class="analytics-label">Projected CGPA</span>
+                            <h3 class="analytics-val" id="mobile-analytics-projected-cgpa">0.00</h3>
+                        </div>
+                    </div>
+                    <div class="mobile-carousel-dots" id="mobile-analytics-dots">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                </div>
             </div>
+        </div>
 
             <!-- Courses Section -->
             <div id="section-courses" class="app-section" style="display: none;">
@@ -409,9 +663,142 @@
                 </div>
             </div>
             
+            <!-- Site Analytics Section -->
+            <div id="section-admin" class="app-section" style="display: none;">
+                <div style="margin-bottom: 2rem;">
+                    <h1 class="font-heading" style="font-size: 2.5rem; color: var(--warning);">Site Analytics Dashboard</h1>
+                    <p style="color: var(--text-secondary);">Real-time metrics for Spice CGPA Pro.</p>
+                </div>
+                
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem; gap: 1.25rem;">
+                    <!-- Card 1: Total Users -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.1s; border-color: var(--primary); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Total Users</span>
+                            <div class="stat-icon-circle green" style="width: 32px; height: 32px;">
+                                <i data-lucide="users" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value green" id="admin-total-users" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Registered student accounts</p>
+                    </div>
+
+                    <!-- Card 2: Active Users -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.15s; border-color: var(--info); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Active Users</span>
+                            <div class="stat-icon-circle blue" style="width: 32px; height: 32px;">
+                                <i data-lucide="activity" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value blue" id="admin-active-users" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Active in the last 7 days</p>
+                    </div>
+
+                    <!-- Card 3: Profile Pictures -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.2s; border-color: var(--secondary); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Profile Pictures</span>
+                            <div class="stat-icon-circle purple" style="width: 32px; height: 32px;">
+                                <i data-lucide="image" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value purple" id="admin-total-pics" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Uploaded student avatars</p>
+                    </div>
+
+                    <!-- Card 4: Registered Universities -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.25s; border-color: var(--accent); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Universities</span>
+                            <div class="stat-icon-circle purple" style="width: 32px; height: 32px; background: rgba(139, 92, 246, 0.12); color: var(--accent);">
+                                <i data-lucide="school" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value" id="admin-total-unis" style="color: var(--accent); font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Unique tertiary institutions</p>
+                    </div>
+
+                    <!-- Card 5: Total Courses -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.3s; border-color: var(--warning); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Total Courses</span>
+                            <div class="stat-icon-circle gold" style="width: 32px; height: 32px;">
+                                <i data-lucide="book-open" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value gold" id="admin-total-courses" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Courses saved by all users</p>
+                    </div>
+
+                    <!-- Card 6: Total Results -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.35s; border-color: var(--danger); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Total Results</span>
+                            <div class="stat-icon-circle red" style="width: 32px; height: 32px; background: rgba(239, 68, 68, 0.12); color: var(--danger);">
+                                <i data-lucide="award" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value red" id="admin-total-results" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Calculated student semesters</p>
+                    </div>
+
+                    <!-- Card 7: Total Credit Units -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.4s; border-color: var(--primary); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Credit Units</span>
+                            <div class="stat-icon-circle green" style="width: 32px; height: 32px;">
+                                <i data-lucide="box" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value green" id="admin-total-units" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">Cumulative units registered</p>
+                    </div>
+
+                    <!-- Card 8: Average GPA -->
+                    <div class="stat-card glass animate-fade-in" style="animation-delay: 0.45s; border-color: var(--warning); padding: 0.9rem 1.15rem; min-height: 120px;">
+                        <div class="stat-card-header" style="margin-bottom: 0.4rem;">
+                            <span class="stat-card-label" style="font-size: 0.75rem;">Average GPA</span>
+                            <div class="stat-icon-circle gold" style="width: 32px; height: 32px;">
+                                <i data-lucide="trending-up" style="width: 15px; height: 15px;"></i>
+                            </div>
+                        </div>
+                        <h3 class="stat-card-value gold" id="admin-average-gpa" style="font-size: 1.8rem; margin-bottom: 0.1rem;">0.00</h3>
+                        <p class="stat-card-sub" style="font-size: 0.75rem;">System-wide grade average</p>
+                    </div>
+                </div>
+
+                 <!-- Detailed Analytics: Users & Pictures -->
+                 <div style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 2rem; align-items: start;">
+                     <!-- Registered Users List -->
+                     <div class="glass card animate-fade-in" style="animation-delay: 0.5s;">
+                         <h3 class="font-heading" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                             <i data-lucide="users" style="color: var(--primary);"></i> Registered Users
+                         </h3>
+                         <div id="admin-users-list" style="max-height: 550px; overflow-y: auto; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <!-- Injected via JS -->
+                            <p style="color: var(--text-secondary); text-align: center; padding: 1rem;">Loading users...</p>
+                        </div>
+                    </div>
+
+                    <!-- Profile Pictures Gallery -->
+                    <div class="glass card animate-fade-in" style="animation-delay: 0.6s;">
+                        <h3 class="font-heading" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="image" style="color: var(--secondary);"></i> Uploaded Pictures
+                        </h3>
+                        <div id="admin-pictures-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+                            <!-- Injected via JS -->
+                            <p style="color: var(--text-secondary); text-align: center; padding: 1rem; grid-column: 1 / -1;">Loading pictures...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Advanced Settings Section -->
             <div id="section-settings" class="app-section" style="display: none;">
-                <div style="margin-bottom: 2rem;">
+                <!-- Desktop and Tablet view (Hidden on Mobile) -->
+                <div class="desktop-tablet-settings">
+                    <div style="margin-bottom: 2rem;">
                     <h1 class="font-heading" style="font-size: 2.5rem;">Advanced Settings</h1>
                     <p style="color: var(--text-secondary);">Customize your SpiceCGPA experience.</p>
                 </div>
@@ -455,7 +842,69 @@
                         </div>
                     </div>
                 </div>
+            </div> <!-- End of desktop-tablet-settings -->
+
+            <!-- Mobile View (Hidden on Desktop/Tablet) -->
+            <div class="mobile-settings">
+                <h2 class="mobile-page-title">Settings</h2>
+                
+                <div class="mobile-settings-group">
+                    <div class="mobile-settings-card glass" id="mob-set-account">
+                        <div class="mobile-settings-icon purple"><i data-lucide="user"></i></div>
+                        <div class="mobile-settings-details">
+                            <h3>Account</h3>
+                            <p>Manage your profile details and picture</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="mobile-settings-arrow"></i>
+                    </div>
+                    
+                    <div class="mobile-settings-card glass" id="mob-set-appearance">
+                        <div class="mobile-settings-icon warning"><i data-lucide="sun"></i></div>
+                        <div class="mobile-settings-details">
+                            <h3>Appearance</h3>
+                            <p>Switch between light and dark mode</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="mobile-settings-arrow"></i>
+                    </div>
+
+                    <div class="mobile-settings-card glass" id="mob-set-grading">
+                        <div class="mobile-settings-icon accent"><i data-lucide="award"></i></div>
+                        <div class="mobile-settings-details">
+                            <h3>Grading System</h3>
+                            <p>Select standard scale (4.0 or 5.0)</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="mobile-settings-arrow"></i>
+                    </div>
+
+                    <div class="mobile-settings-card glass" id="mob-set-notifications">
+                        <div class="mobile-settings-icon blue"><i data-lucide="bell"></i></div>
+                        <div class="mobile-settings-details">
+                            <h3>Notifications</h3>
+                            <p>Configure push and email alerts</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="mobile-settings-arrow"></i>
+                    </div>
+
+                    <div class="mobile-settings-card glass" id="mob-set-backup">
+                        <div class="mobile-settings-icon green"><i data-lucide="database"></i></div>
+                        <div class="mobile-settings-details">
+                            <h3>Data Backup</h3>
+                            <p>Export your records as a CSV spreadsheet</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="mobile-settings-arrow"></i>
+                    </div>
+
+                    <div class="mobile-settings-card glass" id="mob-set-advanced">
+                        <div class="mobile-settings-icon danger"><i data-lucide="sliders"></i></div>
+                        <div class="mobile-settings-details">
+                            <h3>Advanced Settings</h3>
+                            <p>Clear cache, reset database, developer settings</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="mobile-settings-arrow"></i>
+                    </div>
+                </div>
             </div>
+        </div>
         </main>
     </div>
 
@@ -617,6 +1066,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="src/js/app.js"></script>
+    <script src="src/js/mobile.js"></script>
     <script>
         // Logout logic
         document.getElementById('logout-btn').addEventListener('click', (e) => {

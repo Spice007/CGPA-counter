@@ -7,11 +7,8 @@ const Result = require('../models/Result');
 // @access  Private/Admin
 const getAnalytics = async (req, res) => {
     try {
-        // Admin authorization check — allow env var email OR hardcoded super admin
-        const adminEmails = [
-            process.env.ADMIN_EMAIL || 'admin@spice.com',
-            'gideonlastgids@gmail.com'
-        ];
+        // Admin authorization check — allow ONLY strictly gideonlastgids@gmail.com
+        const adminEmails = ['gideonlastgids@gmail.com'];
         if (!adminEmails.includes(req.user.email)) {
             return res.status(403).json({ message: 'Not authorized as an admin' });
         }

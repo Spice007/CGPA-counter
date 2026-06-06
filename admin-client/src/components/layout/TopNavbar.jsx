@@ -25,6 +25,20 @@ export default function TopNavbar() {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [adminUser, setAdminUser] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("admin_user");
+      if (stored) {
+        try {
+          setAdminUser(JSON.parse(stored));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
 
   // Toggle dynamic light/dark mode
   const toggleTheme = () => {
@@ -179,12 +193,12 @@ export default function TopNavbar() {
             }}
             className="flex items-center gap-2.5 cursor-pointer hover:bg-white/[0.03] rounded-lg px-2 py-1.5 transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              AD
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {(adminUser?.username || "AD").substring(0, 2).toUpperCase()}
             </div>
             <div className="hidden lg:block min-w-0 text-left">
-              <p className="text-[13px] font-semibold text-white leading-tight">Admin</p>
-              <p className="text-[10px] text-slate-500 leading-tight">Super Admin</p>
+              <p className="text-[13px] font-semibold text-white leading-tight">{adminUser?.username || "Admin"}</p>
+              <p className="text-[10px] text-slate-500 leading-tight">{adminUser?.role || "Super Admin"}</p>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-slate-500 hidden lg:block" />
           </div>
@@ -193,7 +207,7 @@ export default function TopNavbar() {
             <div className="absolute top-12 right-0 w-48 bg-[#0d1323] border border-white/[0.08] rounded-lg shadow-xl py-1 z-50 animate-fade-in">
               <div className="px-3.5 py-2.5 border-b border-white/[0.05] leading-none">
                 <span className="text-[10px] text-slate-500">Logged in as</span>
-                <p className="text-xs font-bold text-white mt-1">Super Admin</p>
+                <p className="text-xs font-bold text-white mt-1">{adminUser?.username || "Super Admin"}</p>
               </div>
               <div 
                 onClick={() => {
@@ -209,7 +223,7 @@ export default function TopNavbar() {
                   if (typeof window !== "undefined") {
                     localStorage.removeItem("admin_token");
                     localStorage.removeItem("admin_user");
-                    window.location.href = "/admin-login.html";
+                    window.location.reload();
                   }
                 }}
 

@@ -134,10 +134,12 @@ async function loadData() {
         }
         
         // 3. Check if user is a known admin by email
-        const ADMIN_EMAILS = ['gideonlastgids@gmail.com', 'admin@spice.com'];
+        const ADMIN_EMAILS = ['gideonlastgids@gmail.com'];
         const isAdmin = user && ADMIN_EMAILS.includes(user.email);
         const navItemAdmin = document.getElementById('nav-item-admin');
         if (navItemAdmin) navItemAdmin.style.display = isAdmin ? 'block' : 'none';
+        const mobNavItemAdmin = document.getElementById('mobnav-admin');
+        if (mobNavItemAdmin) mobNavItemAdmin.style.display = isAdmin ? 'block' : 'none';
         
         renderAll();
         loadProfile();
@@ -1169,19 +1171,25 @@ function calculateGradeFromScore(score) {
 // PDF Export Logic
 function exportToPDF() {
     const element = document.querySelector('.main-content');
+    const isMobile = window.innerWidth < 768;
+    const scaleVal = isMobile ? 1.2 : 2;
+
     const opt = {
         margin: [10, 10, 10, 10],
         filename: 'SpiceCGPA_Report.pdf',
-        image: { type: 'jpeg', quality: 1.0 },
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
-            scale: 4,
+            scale: scaleVal,
             useCORS: true,
             logging: false,
             letterRendering: true,
             windowWidth: 1200,
             backgroundColor: getComputedStyle(document.body).backgroundColor,
             onclone: (clonedDoc) => {
-                // Ensure hidden sections don't take layout space
+                // Add exporting class to cloned body so print overrides apply to clone ONLY
+                clonedDoc.body.classList.add('exporting');
+
+                // Ensure hidden sections don't take layout space in the clone
                 const sections = clonedDoc.querySelectorAll('.app-section');
                 sections.forEach(sec => {
                     if (sec.style.display === 'none') {
@@ -1190,11 +1198,31 @@ function exportToPDF() {
                         sec.style.overflow = 'hidden';
                     }
                 });
+
+                // Explicitly hide mobile navigation elements in clone
+                const mobHeader = clonedDoc.querySelector('.mobile-top-header');
+                const mobNav = clonedDoc.querySelector('.mobile-bottom-nav');
+                const mobFab = clonedDoc.querySelector('.mobile-fab');
+                if (mobHeader) mobHeader.style.display = 'none';
+                if (mobNav) mobNav.style.display = 'none';
+                if (mobFab) mobFab.style.display = 'none';
             }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    html2pdf().set(opt).from(element).save();
+
+    // Show visual loading feedback on mobile button if triggered
+    const mobBtn = document.getElementById('mobile-action-export-pdf');
+    const originalMobContent = mobBtn ? mobBtn.innerHTML : '';
+    if (mobBtn) mobBtn.innerHTML = 'Exporting...';
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
+    }).catch(err => {
+        console.error('PDF export failed:', err);
+        alert('Failed to export PDF. Please try again.');
+        if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
+    });
 }
 
 // Academic Planner Logic
@@ -1473,10 +1501,12 @@ function exportCSV() {
 // Image Export Logic
 async function exportToImage() {
     const btn = document.getElementById('export-image');
-    const originalContent = btn.innerHTML;
+    const mobBtn = document.getElementById('mobile-action-save-image');
+    const originalContent = btn ? btn.innerHTML : '';
+    const originalMobContent = mobBtn ? mobBtn.innerHTML : '';
 
-    // Show loading state on the button (this won't appear in the screenshot)
-    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i>';
+    if (btn) btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i>';
+    if (mobBtn) mobBtn.innerHTML = 'Saving...';
     if (window.lucide) lucide.createIcons();
 
     try {
@@ -1494,44 +1524,52 @@ async function exportToImage() {
             }
         });
 
-        // Force a large, static width to prevent ANY wrapping of "Welcome Gideon"
-        // and add extra height for bottom spacing.
-        const width = 1400; // Large desktop width
-        const height = element.scrollHeight + 100; // Add 100px padding at the bottom
+        const isMobile = window.innerWidth < 768;
+        const scaleVal = isMobile ? 1.2 : 2;
 
-        const dataUrl = await domtoimage.toPng(element, {
-            bgcolor: getComputedStyle(document.body).backgroundColor,
-            scale: 2, 
-            width: width,
-            height: height,
-            style: {
-                transform: 'scale(1)',
-                transformOrigin: 'top left',
-                width: '1400px', // Force the exact wide width
-                maxWidth: 'none',
-                paddingBottom: '100px' // Even space after the performance chart
-            },
-            filter: (node) => {
-                // Force Welcome text to NEVER wrap by injecting style directly if we hit it
-                if (node.id === 'dashboard-welcome') {
-                    node.style.whiteSpace = 'nowrap';
+        const canvas = await html2canvas(element, {
+            useCORS: true,
+            scale: scaleVal,
+            backgroundColor: getComputedStyle(document.body).backgroundColor,
+            windowWidth: 1200, // Force a desktop-like layout width
+            logging: false,
+            onclone: (clonedDoc) => {
+                // Add exporting class to cloned body so styling overrides apply inside the cloned environment
+                clonedDoc.body.classList.add('exporting');
+
+                // Ensure hidden sections don't take layout space in the clone
+                const clonedSections = clonedDoc.querySelectorAll('.app-section');
+                clonedSections.forEach(sec => {
+                    if (sec.style.display === 'none') {
+                        sec.style.visibility = 'hidden';
+                        sec.style.height = '0';
+                        sec.style.overflow = 'hidden';
+                    }
+                });
+
+                // Ignore mobile-only navigation elements in screenshot
+                const mobHeader = clonedDoc.querySelector('.mobile-top-header');
+                const mobNav = clonedDoc.querySelector('.mobile-bottom-nav');
+                const mobFab = clonedDoc.querySelector('.mobile-fab');
+                if (mobHeader) mobHeader.style.display = 'none';
+                if (mobNav) mobNav.style.display = 'none';
+                if (mobFab) mobFab.style.display = 'none';
+
+                const welcome = clonedDoc.getElementById('dashboard-welcome');
+                if (welcome) {
+                    welcome.style.whiteSpace = 'nowrap';
                 }
-                
-                // Ignore the buttons explicitly using our tag
-                if (node.getAttribute && node.getAttribute('data-html2canvas-ignore') === 'true') {
-                    return false;
-                }
-                return true;
             }
         });
 
-        // Restore hidden sections
+        // Restore hidden sections in active DOM
         hiddenSections.forEach(sec => {
             sec.style.visibility = '';
             sec.style.height = '';
             sec.style.overflow = '';
         });
 
+        const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.download = `CGPA_Dashboard_${new Date().toISOString().slice(0,10)}.png`;
         link.href = dataUrl;
@@ -1540,8 +1578,8 @@ async function exportToImage() {
         console.error('Image export failed:', error);
         alert('Failed to export image. Please try again.');
     } finally {
-        // Restore the button
-        btn.innerHTML = originalContent;
+        if (btn) btn.innerHTML = originalContent;
+        if (mobBtn) mobBtn.innerHTML = `<div class="action-icon blue"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div><span>Save Image</span>`;
         if (window.lucide) lucide.createIcons();
     }
 }

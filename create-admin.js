@@ -4,7 +4,10 @@ require('dotenv').config({ path: path.join(__dirname, 'server/.env') });
 const Admin = require('./server/models/Admin');
 
 async function createAdmin() {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/cgpa_calculator');
+    console.log('Connecting to MongoDB on 127.0.0.1:27017...');
+    await mongoose.connect('mongodb://127.0.0.1:27017/cgpa_calculator', {
+        serverSelectionTimeoutMS: 5000
+    });
     
     // Delete old admin if exists
     await Admin.deleteMany({ username: 'admin' });

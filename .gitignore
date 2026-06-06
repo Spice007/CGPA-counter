@@ -9,3 +9,5 @@ build/
 mongodb_data/
 .agents/
 scratch/
+
+.vercel
