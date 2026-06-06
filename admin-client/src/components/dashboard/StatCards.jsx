@@ -32,18 +32,21 @@ export default function StatCards({ students = [], courseColumns = [] }) {
   let bestCGPA = "0.00";
   let bestStudentName = "N/A";
   if (students.length > 0) {
-    const sorted = [...students].sort((a, b) => b.cgpa - a.cgpa);
-    if (sorted[0]) {
-      bestCGPA = sorted[0].cgpa.toFixed(2);
-      bestStudentName = sorted[0].name || "Unnamed Student";
+    const validCGPAStudents = students.filter((s) => s.cgpa !== null && s.cgpa !== undefined && !isNaN(s.cgpa));
+    if (validCGPAStudents.length > 0) {
+      const sorted = [...validCGPAStudents].sort((a, b) => b.cgpa - a.cgpa);
+      if (sorted[0]) {
+        bestCGPA = typeof sorted[0].cgpa === 'number' ? sorted[0].cgpa.toFixed(2) : parseFloat(sorted[0].cgpa || 0).toFixed(2);
+        bestStudentName = sorted[0].name || "Unnamed Student";
+      }
     }
   }
 
-  // Calculate pass & fail numbers dynamically
-  const passedCount = students.filter((s) => s.cgpa >= 1.00).length;
+  // Calculate pass & fail numbers dynamically (default to 0.0 for students with no CGPA calculated yet)
+  const passedCount = students.filter((s) => s.cgpa !== null && s.cgpa !== undefined && s.cgpa >= 1.00).length;
   const passPercent = totalStudents > 0 ? ((passedCount / totalStudents) * 100).toFixed(1) : "0.0";
 
-  const failedCount = students.filter((s) => s.cgpa < 1.00).length;
+  const failedCount = students.filter((s) => s.cgpa !== null && s.cgpa !== undefined && s.cgpa < 1.00).length;
   const failPercent = totalStudents > 0 ? ((failedCount / totalStudents) * 100).toFixed(1) : "0.0";
 
   const stats = [

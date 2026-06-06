@@ -1588,6 +1588,9 @@ async function exportToImage() {
 async function fetchAdminAnalytics() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || !user.token) return;
+
+    const usersListContainer = document.getElementById('admin-users-list');
+    const picturesGallery = document.getElementById('admin-pictures-gallery');
     
     try {
         const response = await fetch(`${API_BASE}/analytics`, {
@@ -1606,9 +1609,6 @@ async function fetchAdminAnalytics() {
             document.getElementById('admin-total-unis').textContent = data.totalUniversities || 0;
             document.getElementById('admin-total-units').textContent = data.totalUnits || 0;
             document.getElementById('admin-average-gpa').textContent = data.averageGPA || "0.00";
-
-            const usersListContainer = document.getElementById('admin-users-list');
-            const picturesGallery = document.getElementById('admin-pictures-gallery');
 
             if (data.users && data.users.length > 0) {
                 // Populate Users List with large, rich student profile boxes
@@ -1691,9 +1691,13 @@ async function fetchAdminAnalytics() {
 
         } else {
             console.error('Failed to load analytics', response.status);
-            alert('Not authorized to view analytics');
+            const errData = await response.json().catch(() => ({}));
+            usersListContainer.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem;">Failed to load users: ${errData.message || response.statusText || response.status}</p>`;
+            picturesGallery.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem; grid-column: 1 / -1;">Failed to load pictures.</p>`;
         }
     } catch (error) {
         console.error('Error fetching admin analytics:', error);
+        if (usersListContainer) usersListContainer.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem;">Error: ${error.message}</p>`;
+        if (picturesGallery) picturesGallery.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem; grid-column: 1 / -1;">Error loading pictures.</p>`;
     }
 }

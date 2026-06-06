@@ -365,8 +365,8 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
       s.level,
       ...courseColumns.map(c => s[c.key] !== null && s[c.key] !== undefined ? s[c.key] : ""),
       s.totalUnits,
-      s.gpa.toFixed(2),
-      s.cgpa.toFixed(2),
+      s.gpa !== undefined && s.gpa !== null ? s.gpa.toFixed(2) : "0.00",
+      s.cgpa !== undefined && s.cgpa !== null ? s.cgpa.toFixed(2) : "0.00",
       s.grade,
       s.remarks
     ]);
@@ -861,14 +861,18 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
                 {/* GPA */}
                 {visibleColumns.gpa && (
                   <td className="px-3 py-2.5 text-center">
-                    <span className="text-white font-semibold text-[12.5px]">{s.gpa.toFixed(2)}</span>
+                    <span className="text-white font-semibold text-[12.5px]">
+                      {s.gpa !== undefined && s.gpa !== null ? s.gpa.toFixed(2) : "0.00"}
+                    </span>
                   </td>
                 )}
 
                 {/* CGPA */}
                 {visibleColumns.cgpa && (
                   <td className="px-3 py-2.5 text-center">
-                    <span className="text-white font-semibold text-[12.5px]">{s.cgpa.toFixed(2)}</span>
+                    <span className="text-white font-semibold text-[12.5px]">
+                      {s.cgpa !== undefined && s.cgpa !== null ? s.cgpa.toFixed(2) : "0.00"}
+                    </span>
                   </td>
                 )}
 

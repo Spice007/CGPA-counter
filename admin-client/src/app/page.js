@@ -6,6 +6,51 @@ import StatCards from "@/components/dashboard/StatCards";
 import CGPAGrid from "@/components/spreadsheet/CGPAGrid";
 import Login from "@/components/auth/Login";
 
+// Helper to pre-calculate GPA & CGPA for student list on load
+function calculateStudentGPAs(student, columnsList) {
+  let totalUnits = 0;
+  let totalPoints = 0;
+  
+  columnsList.forEach(c => {
+    const val = student[c.key];
+    if (val !== null && val !== undefined && val !== "") {
+      const score = parseFloat(val);
+      if (!isNaN(score)) {
+        totalUnits += c.units;
+        let gp = 0;
+        if (score >= 70) gp = 5;
+        else if (score >= 60) gp = 4;
+        else if (score >= 50) gp = 3;
+        else if (score >= 45) gp = 2;
+        else if (score >= 40) gp = 1;
+        else gp = 0;
+        
+        totalPoints += c.units * gp;
+      }
+    }
+  });
+  
+  const gpa = totalUnits > 0 ? parseFloat((totalPoints / totalUnits).toFixed(2)) : 0.00;
+  const cgpa = gpa; // single semester view
+  
+  let grade = "F";
+  let remarks = "Fail";
+  if (cgpa >= 4.50) { grade = "A"; remarks = "Excellent"; }
+  else if (cgpa >= 3.50) { grade = "B"; remarks = "Very Good"; }
+  else if (cgpa >= 2.40) { grade = "C"; remarks = "Good"; }
+  else if (cgpa >= 1.50) { grade = "D"; remarks = "Pass"; }
+  else if (cgpa >= 1.00) { grade = "E"; remarks = "Pass"; }
+
+  return {
+    ...student,
+    totalUnits,
+    gpa,
+    cgpa,
+    grade,
+    remarks
+  };
+}
+
 const API_BASE = (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
   ? "http://localhost:5000/api"
   : "https://cgpa-counter-production.up.railway.app/api";
@@ -13,6 +58,7 @@ const API_BASE = (typeof window !== "undefined" && (window.location.hostname ===
 export default function Dashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [students, setStudents] = useState([]);
   const [courseColumns, setCourseColumns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +66,7 @@ export default function Dashboard() {
   const [saveStatus, setSaveStatus] = useState("all-saved"); // "all-saved", "saving", "error"
   const [lastSaved, setLastSaved] = useState(null);
 
-  // Check auth state on mount
+  // Check auth state on mount and determine initial active tab
   useEffect(() => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("admin_token");
@@ -30,9 +76,47 @@ export default function Dashboard() {
       } else {
         setIsAuthenticated(false);
       }
+
+      // Determine initial active tab based on pathname
+      const path = window.location.pathname;
+      if (path === "/spreadsheet") setActiveTab("cgpa spreadsheet");
+      else if (path === "/students") setActiveTab("students");
+      else if (path === "/results") setActiveTab("results entry");
+      else if (path === "/courses") setActiveTab("courses");
+      else if (path === "/semesters") setActiveTab("semesters");
+      else if (path === "/analytics") setActiveTab("analytics");
+      else if (path === "/rankings") setActiveTab("rankings");
+      else if (path === "/reports") setActiveTab("reports");
+      else if (path === "/import-export") setActiveTab("import/export");
+      else if (path === "/settings") setActiveTab("settings");
+      else setActiveTab("dashboard");
+
       setCheckingAuth(false);
     }
   }, []);
+
+  // Sync activeTab state changes to browser history/URL bar
+  useEffect(() => {
+    if (typeof window !== "undefined" && isAuthenticated) {
+      const pathMap = {
+        "dashboard": "/",
+        "cgpa spreadsheet": "/spreadsheet",
+        "students": "/students",
+        "results entry": "/results",
+        "courses": "/courses",
+        "semesters": "/semesters",
+        "analytics": "/analytics",
+        "rankings": "/rankings",
+        "reports": "/reports",
+        "import/export": "/import-export",
+        "settings": "/settings"
+      };
+      const newPath = pathMap[activeTab] || "/";
+      if (window.location.pathname !== newPath) {
+        window.history.pushState(null, "", newPath);
+      }
+    }
+  }, [activeTab, isAuthenticated]);
 
   // Fetch live student records and courses when authenticated
   useEffect(() => {
@@ -41,7 +125,10 @@ export default function Dashboard() {
     async function fetchData() {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE}/admin/students`);
+        const token = localStorage.getItem("admin_token");
+        const res = await fetch(`${API_BASE}/admin/students`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
         if (!res.ok) throw new Error("Failed to fetch student data");
         const rawData = await res.json();
 
@@ -93,8 +180,11 @@ export default function Dashboard() {
           { key: "gst101", label: "GST101", units: 2 },
         ];
 
-        setCourseColumns(columnsList.length > 0 ? columnsList : defaultCols);
-        setStudents(studentList);
+        const finalCols = columnsList.length > 0 ? columnsList : defaultCols;
+        const computedStudentList = studentList.map(s => calculateStudentGPAs(s, finalCols));
+
+        setCourseColumns(finalCols);
+        setStudents(computedStudentList);
         setLastSaved(new Date().toLocaleTimeString());
       } catch (err) {
         console.error("Error loading live dashboard data:", err);
@@ -161,9 +251,13 @@ export default function Dashboard() {
         });
       });
 
+      const token = localStorage.getItem("admin_token");
       const res = await fetch(`${API_BASE}/admin/results/bulk`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({ updates }),
       });
 
@@ -193,6 +287,107 @@ export default function Dashboard() {
     }
   };
 
+  const renderTabContent = () => {
+    if (loading && ["dashboard", "cgpa spreadsheet", "students", "results entry", "courses"].includes(activeTab)) {
+      return (
+        <div className="flex flex-col items-center justify-center p-20 glass rounded-xl border border-white/5 my-6">
+          <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+          <span className="mt-4 text-sm text-slate-400 font-medium animate-pulse">
+            Loading live results database...
+          </span>
+        </div>
+      );
+    }
+
+    switch (activeTab) {
+      case "dashboard":
+        return (
+          <div className="space-y-6">
+            <StatCards students={students} courseColumns={courseColumns} />
+            <div className="glass rounded-xl border border-white/5 p-5">
+              <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                CGPA Excel Spreadsheet
+              </h3>
+              <CGPAGrid
+                students={students}
+                setStudents={setStudents}
+                courseColumns={courseColumns}
+                setCourseColumns={setCourseColumns}
+                onSave={saveStudentsToDatabase}
+                isSaving={isSaving}
+                saveStatus={saveStatus}
+                lastSaved={lastSaved}
+              />
+            </div>
+          </div>
+        );
+
+      case "cgpa spreadsheet":
+      case "students":
+      case "results entry":
+      case "courses":
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h2 className="text-2xl font-black text-white capitalize tracking-wide">{activeTab}</h2>
+                <p className="text-sm text-slate-400">Manage, edit, and sync records in real-time</p>
+              </div>
+            </div>
+            <CGPAGrid
+              students={students}
+              setStudents={setStudents}
+              courseColumns={courseColumns}
+              setCourseColumns={setCourseColumns}
+              onSave={saveStudentsToDatabase}
+              isSaving={isSaving}
+              saveStatus={saveStatus}
+              lastSaved={lastSaved}
+            />
+          </div>
+        );
+
+      default:
+        // Render a gorgeous glassmorphic "Coming Soon / Under Development" view
+        return (
+          <div className="flex flex-col items-center justify-center p-16 glass rounded-2xl border border-white/5 max-w-2xl mx-auto my-12 text-center relative overflow-hidden group">
+            {/* Ambient background glow */}
+            <div className="absolute -inset-10 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 blur-3xl opacity-30 group-hover:opacity-50 transition-opacity duration-700 pointer-events-none" />
+            
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-cyan-500/20 flex items-center justify-center mb-6 border border-white/10 relative">
+              <div className="absolute inset-0 rounded-2xl bg-emerald-500/10 blur animate-pulse" />
+              <span className="text-2xl">⚡</span>
+            </div>
+            
+            <h3 className="text-xl font-bold text-white mb-2 capitalize">
+              {activeTab.replace("-", " ")} Module
+            </h3>
+            
+            <p className="text-slate-400 text-sm max-w-md mb-8 leading-relaxed">
+              This module is currently being calibrated and connected to the Federal Polytechnic portal databases. 
+              Real-time synchronization services are undergoing security testing.
+            </p>
+
+            <div className="w-full max-w-sm bg-white/[0.03] border border-white/[0.05] rounded-xl p-4 mb-6">
+              <div className="flex justify-between items-center text-xs text-slate-400 mb-2">
+                <span>Database Sync Tunnel</span>
+                <span className="text-emerald-400 font-semibold animate-pulse">75% Connected</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full w-[75%]" />
+              </div>
+            </div>
+
+            <div className="inline-flex items-center gap-2 text-xs text-slate-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-ping"></span>
+              Secure Socket Shell (SSH) active
+            </div>
+          </div>
+        );
+    }
+  };
+
   if (checkingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0B0F19]">
@@ -207,29 +402,12 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="flex-1 ml-56 flex flex-col relative overflow-hidden">
         <TopNavbar />
         <main className="flex-1 overflow-auto p-5 relative z-10">
           <div className="max-w-full mx-auto pb-8">
-            <StatCards students={students} courseColumns={courseColumns} />
-            {loading ? (
-              <div className="flex flex-col items-center justify-center p-20 glass rounded-xl border border-white/5">
-                <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-                <span className="mt-4 text-sm text-slate-400 font-medium animate-pulse">Loading live results database...</span>
-              </div>
-            ) : (
-              <CGPAGrid
-                students={students}
-                setStudents={setStudents}
-                courseColumns={courseColumns}
-                setCourseColumns={setCourseColumns}
-                onSave={saveStudentsToDatabase}
-                isSaving={isSaving}
-                saveStatus={saveStatus}
-                lastSaved={lastSaved}
-              />
-            )}
+            {renderTabContent()}
           </div>
         </main>
       </div>

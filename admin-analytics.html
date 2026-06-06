@@ -555,6 +555,10 @@
                 ]);
 
                 if (usersRes.status === 401) { logout(); return; }
+                if (!usersRes.ok) {
+                    const errData = await usersRes.json().catch(() => ({}));
+                    throw new Error(errData.message || `HTTP error ${usersRes.status}`);
+                }
 
                 const rawData = await usersRes.json();
                 const now = new Date();

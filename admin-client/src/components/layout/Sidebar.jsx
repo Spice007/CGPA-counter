@@ -16,7 +16,6 @@ const navItems = [
   { label: "Results Entry", icon: FileSignature, href: "/results" },
   { label: "Courses", icon: BookOpen, href: "/courses" },
   { label: "Semesters", icon: Calendar, href: "/semesters", expandable: true },
-  { label: "Analytics", icon: LineChart, href: "/analytics" },
   { label: "Rankings", icon: Trophy, href: "/rankings" },
   { label: "Reports", icon: FileText, href: "/reports" },
   { label: "Import/Export", icon: ArrowDownUp, href: "/import-export", expandable: true },
@@ -27,7 +26,7 @@ const STORAGE_USED_GB = 2.48;
 const STORAGE_TOTAL_GB = 10;
 const STORAGE_PERCENT = ((STORAGE_USED_GB / STORAGE_TOTAL_GB) * 100).toFixed(1);
 
-export default function Sidebar() {
+export default function Sidebar({ activeTab, setActiveTab }) {
   const pathname = usePathname();
 
   return (
@@ -68,46 +67,47 @@ export default function Sidebar() {
       {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto py-2 px-2.5 space-y-0.5">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const tabKey = item.label.toLowerCase();
+          const isActive = activeTab === tabKey;
           const Icon = item.icon;
 
           return (
-            <Link key={item.label} href={item.href}>
-              <div
-                className={clsx(
-                  "group relative flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg transition-all duration-200 cursor-pointer",
-                  isActive
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]"
-                )}
-              >
-                {/* Active left border indicator */}
-                {isActive && (
-                  <div
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-emerald-400 rounded-r-full"
-                  />
-                )}
+            <div 
+              key={item.label} 
+              onClick={() => setActiveTab(tabKey)}
+              className={clsx(
+                "group relative flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg transition-all duration-200 cursor-pointer select-none",
+                isActive
+                  ? "bg-emerald-500/10 text-emerald-400"
+                  : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]"
+              )}
+            >
+              {/* Active left border indicator */}
+              {isActive && (
+                <div
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-emerald-400 rounded-r-full"
+                />
+              )}
 
-                <Icon
+              <Icon
+                className={clsx(
+                  "w-4 h-4 flex-shrink-0",
+                  isActive ? "text-emerald-400" : "group-hover:text-slate-300"
+                )}
+              />
+              <span className="text-[12px] font-medium flex-1 truncate">
+                {item.label}
+              </span>
+
+              {item.expandable && (
+                <ChevronRight
                   className={clsx(
-                    "w-4 h-4 flex-shrink-0",
-                    isActive ? "text-emerald-400" : "group-hover:text-slate-300"
+                    "w-3 h-3 flex-shrink-0 transition-colors",
+                    isActive ? "text-emerald-400/60" : "text-slate-700"
                   )}
                 />
-                <span className="text-[12px] font-medium flex-1 truncate">
-                  {item.label}
-                </span>
-
-                {item.expandable && (
-                  <ChevronRight
-                    className={clsx(
-                      "w-3 h-3 flex-shrink-0 transition-colors",
-                      isActive ? "text-emerald-400/60" : "text-slate-700"
-                    )}
-                  />
-                )}
-              </div>
-            </Link>
+              )}
+            </div>
           );
         })}
       </nav>
@@ -140,10 +140,9 @@ export default function Sidebar() {
             if (typeof window !== "undefined") {
               localStorage.removeItem("admin_token");
               localStorage.removeItem("admin_user");
-              window.location.href = "/admin-login.html";
+              window.location.reload();
             }
           }}
-
           className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors text-[11px] font-medium cursor-pointer border border-red-500/10"
         >
           <LogOut className="w-3.5 h-3.5" />
