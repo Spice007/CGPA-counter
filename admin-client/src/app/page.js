@@ -51,11 +51,16 @@ function calculateStudentGPAs(student, columnsList) {
   };
 }
 
-const API_BASE = (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"))
-  ? "http://localhost:5000/api"
-  : "https://cgpa-counter-production.up.railway.app/api";
+// API_BASE is computed at runtime inside the component to guarantee client-side window access
+const getAPIBase = () => {
+  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+    return "http://localhost:5000/api";
+  }
+  return "https://cgpa-counter-production.up.railway.app/api";
+};
 
 export default function Dashboard() {
+  const API_BASE = getAPIBase();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");

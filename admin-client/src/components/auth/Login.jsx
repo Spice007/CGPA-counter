@@ -99,7 +99,7 @@ export default function Login({ onLoginSuccess, apiBase }) {
 
         <div className="mt-8 text-center">
           <a
-            href="http://localhost:3001"
+            href={typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:3001" : "https://cgpa-counter-itkv.vercel.app"}
             className="text-[11px] text-slate-500 hover:text-slate-400 transition-colors"
           >
             &larr; Back to Student Portal

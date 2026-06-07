@@ -1383,9 +1383,12 @@
             });
         }
 
-        // Google login mock alert
+        // Real Google OAuth login
         document.getElementById('google-login-btn').addEventListener('click', () => {
-            alert("Google Sign-In is mocked for this offline student project. Please use your standard email/password fields to register and log in.");
+            const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+                ? 'http://localhost:5000/api'
+                : 'https://cgpa-counter-production.up.railway.app/api';
+            window.location.href = `${apiBase}/auth/google`;
         });
 
         // Error helper

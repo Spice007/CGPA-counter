@@ -66,7 +66,7 @@
                 <p id="login-error" class="error-msg">Invalid credentials</p>
             </form>
             
-            <a href="index.html" style="display: block; margin-top: 2rem; color: var(--text-secondary); font-size: 0.875rem; text-decoration: none;">
+            <a href="https://cgpa-counter-itkv.vercel.app" style="display: block; margin-top: 2rem; color: var(--text-secondary); font-size: 0.875rem; text-decoration: none;">
                 &larr; Back to Student Portal
             </a>
         </div>
@@ -97,9 +97,10 @@
                 const data = await res.json();
                 
                 if (res.ok) {
+                    // Store token then redirect to the live admin dashboard
                     localStorage.setItem('admin_token', data.token);
                     localStorage.setItem('admin_user', JSON.stringify(data));
-                    window.location.href = 'admin-analytics.html';
+                    window.location.href = 'https://admin-client-dusky.vercel.app';
                 } else {
                     throw new Error(data.message || 'Invalid credentials');
                 }
