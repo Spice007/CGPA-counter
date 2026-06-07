@@ -513,6 +513,10 @@ h1, h2, h3, h4, .font-heading {
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes spin-anim {
+    to { transform: rotate(360deg); }
+}
+
 .animate-fade-in {
     animation: fadeIn 0.5s ease-out forwards;
 }

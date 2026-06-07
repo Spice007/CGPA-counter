@@ -1591,113 +1591,124 @@ async function fetchAdminAnalytics() {
 
     const usersListContainer = document.getElementById('admin-users-list');
     const picturesGallery = document.getElementById('admin-pictures-gallery');
-    
+    const analyticsStatus = document.getElementById('analytics-status');
+
+    // Show loading state
+    if (usersListContainer) usersListContainer.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:center; gap:0.75rem; padding:2rem; color:var(--text-secondary);">
+            <div style="width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin-anim 0.8s linear infinite;"></div>
+            <span>Loading users...</span>
+        </div>`;
+    if (picturesGallery) picturesGallery.innerHTML = `<p style="color:var(--text-secondary);text-align:center;padding:1rem;grid-column:1/-1;">Loading...</p>`;
+    if (analyticsStatus) analyticsStatus.textContent = 'Fetching live data...';
+
     try {
         const response = await fetch(`${API_BASE}/analytics`, {
-            headers: { 'Authorization': `Bearer ${user.token}` }
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+                'Content-Type': 'application/json'
+            }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('admin-total-users').textContent = data.totalUsers || 0;
-            document.getElementById('admin-total-pics').textContent = data.usersWithProfilePic || 0;
-            document.getElementById('admin-total-courses').textContent = data.totalCourses || 0;
-            document.getElementById('admin-total-results').textContent = data.totalResults || 0;
-            
-            // Populate the four new premium analytics boxes
-            document.getElementById('admin-active-users').textContent = data.activeUsers || 0;
-            document.getElementById('admin-total-unis').textContent = data.totalUniversities || 0;
-            document.getElementById('admin-total-units').textContent = data.totalUnits || 0;
-            document.getElementById('admin-average-gpa').textContent = data.averageGPA || "0.00";
+
+            // Update stat cards
+            const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+            setEl('admin-total-users', data.totalUsers ?? 0);
+            setEl('admin-total-pics', data.usersWithProfilePic ?? 0);
+            setEl('admin-total-courses', data.totalCourses ?? 0);
+            setEl('admin-total-results', data.totalResults ?? 0);
+            setEl('admin-active-users', data.activeUsers ?? 0);
+            setEl('admin-total-unis', data.totalUniversities ?? 0);
+            setEl('admin-total-units', data.totalUnits ?? 0);
+            setEl('admin-average-gpa', data.averageGPA ?? '0.00');
+
+            const now = new Date();
+            if (analyticsStatus) analyticsStatus.textContent = `Last updated: ${now.toLocaleTimeString()} · ${data.totalUsers ?? 0} registered users`;
 
             if (data.users && data.users.length > 0) {
-                // Populate Users List with large, rich student profile boxes
+                // Build user cards
                 usersListContainer.innerHTML = data.users.map(u => {
-                    const formatDateTime = (dateStr) => {
-                        if (!dateStr) return 'N/A';
+                    const fmt = (dateStr) => {
+                        if (!dateStr) return 'Never';
                         const d = new Date(dateStr);
                         if (isNaN(d.getTime())) return 'N/A';
-                        const datePart = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-                        const timePart = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-                        return `${datePart} at ${timePart}`;
+                        return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                             + ' at ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true });
                     };
 
-                    const joinedTime = formatDateTime(u.createdAt);
-                    const activeTime = formatDateTime(u.lastLogin || u.createdAt);
-                    
-                    const avatarHTML = u.profilePicture 
-                        ? `<img src="${u.profilePicture}" alt="Avatar" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.08);">`
-                        : `<div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0;"><i data-lucide="user" style="width: 18px; height: 18px;"></i></div>`;
+                    const initials = ((u.fullName || 'U').split(' ').map(w => w[0]).join('').substring(0, 2) || 'U').toUpperCase();
+                    const avatarHTML = u.profilePicture
+                        ? `<img src="${u.profilePicture}" alt="${initials}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(16,185,129,0.3);">`
+                        : `<div style="width:44px;height:44px;border-radius:50%;background:rgba(16,185,129,0.08);border:2px solid rgba(16,185,129,0.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:var(--primary);flex-shrink:0;">${initials}</div>`;
 
-                    const matricHTML = u.matricNumber 
-                        ? `<span style="font-family: monospace; font-size: 0.7rem; background: rgba(16, 185, 129, 0.1); color: var(--primary); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-weight: 700;">${u.matricNumber}</span>`
-                        : `<span style="font-size: 0.7rem; color: var(--text-secondary); font-style: italic;">No Matric</span>`;
-
-                    const academicHTML = (u.university || u.department)
-                        ? `<div style="margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.75rem; color: var(--text-secondary);">
-                            ${u.university ? `<div><span style="color: #64748b; font-weight: 600;">Uni:</span> <span style="color: var(--text-primary); font-weight: 500;">${u.university}</span></div>` : ''}
-                            ${u.department ? `<div><span style="color: #64748b; font-weight: 600;">Dept:</span> <span style="color: var(--text-primary); font-weight: 500;">${u.department} ${u.faculty ? `(${u.faculty})` : ''}</span></div>` : ''}
-                          </div>`
-                        : '';
+                    const hasPic = u.profilePicture ? '📷' : '';
+                    const isActive = u.lastLogin && (Date.now() - new Date(u.lastLogin).getTime()) < 7 * 24 * 60 * 60 * 1000;
 
                     return `
-                        <div style="display: flex; flex-direction: column; padding: 1rem 1.25rem; background: rgba(13, 20, 35, 0.45); border-radius: 0.85rem; border: 1px solid var(--border); gap: 0.5rem; transition: all 0.25s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" class="glass-card">
-                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0.75rem;">
-                                <div style="display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex: 1;">
+                        <div style="display:flex;flex-direction:column;padding:1rem 1.15rem;background:rgba(13,20,35,0.5);border-radius:0.85rem;border:1px solid var(--border);gap:0.45rem;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(16,185,129,0.3)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;">
+                                <div style="display:flex;align-items:center;gap:0.75rem;min-width:0;flex:1;">
                                     ${avatarHTML}
-                                    <div style="min-width: 0; flex: 1;">
-                                        <h4 style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25;">${u.fullName || 'Unknown User'}</h4>
-                                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0.15rem 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; line-height: 1.2;">${u.email}</p>
+                                    <div style="min-width:0;flex:1;">
+                                        <div style="display:flex;align-items:center;gap:0.4rem;">
+                                            <h4 style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.fullName || 'Unknown User'}</h4>
+                                            ${isActive ? '<span style="font-size:0.6rem;background:rgba(16,185,129,0.15);color:var(--primary);padding:0.1rem 0.35rem;border-radius:99px;font-weight:700;white-space:nowrap;">ACTIVE</span>' : ''}
+                                            ${hasPic}
+                                        </div>
+                                        <p style="font-size:0.72rem;color:var(--text-secondary);margin:0.1rem 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email || ''}</p>
                                     </div>
                                 </div>
-                                <div style="flex-shrink: 0; text-align: right;">
-                                    ${matricHTML}
+                                <div style="flex-shrink:0;">
+                                    ${u.matricNumber ? `<span style="font-family:monospace;font-size:0.65rem;background:rgba(16,185,129,0.1);color:var(--primary);padding:0.15rem 0.4rem;border-radius:0.25rem;font-weight:700;">${u.matricNumber}</span>` : ''}
                                 </div>
                             </div>
-                            
-                            ${academicHTML}
-                            
-                            <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.7rem; color: var(--text-secondary); padding-top: 0.55rem; border-top: 1px solid rgba(255,255,255,0.04);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                    <span>Joined:</span>
-                                    <strong style="color: var(--text-secondary); font-weight: 500;">${joinedTime}</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                    <span>Last Active:</span>
-                                    <strong style="color: var(--primary); font-weight: 600;">${activeTime}</strong>
-                                </div>
+                            ${(u.university || u.department) ? `
+                            <div style="font-size:0.72rem;color:var(--text-secondary);padding-top:0.4rem;border-top:1px solid rgba(255,255,255,0.04);display:flex;flex-wrap:wrap;gap:0.4rem;">
+                                ${u.university ? `<span style="background:rgba(255,255,255,0.04);padding:0.1rem 0.4rem;border-radius:0.25rem;">🏫 ${u.university}</span>` : ''}
+                                ${u.department ? `<span style="background:rgba(255,255,255,0.04);padding:0.1rem 0.4rem;border-radius:0.25rem;">📚 ${u.department}</span>` : ''}
+                            </div>` : ''}
+                            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:#64748b;padding-top:0.3rem;border-top:1px solid rgba(255,255,255,0.04);">
+                                <span>Joined: <strong style="color:var(--text-secondary);">${fmt(u.createdAt)}</strong></span>
+                                <span>Last seen: <strong style="color:${isActive ? 'var(--primary)' : 'var(--text-secondary)'};">${fmt(u.lastLogin)}</strong></span>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 }).join('');
 
                 if (window.lucide) lucide.createIcons();
 
-                // Populate Pictures Gallery
-                const usersWithPics = data.users.filter(u => u.profilePicture && u.profilePicture !== '');
-                if (usersWithPics.length > 0) {
-                    picturesGallery.innerHTML = usersWithPics.map(u => `
-                        <div style="aspect-ratio: 1; border-radius: 0.5rem; overflow: hidden; border: 2px solid var(--border); position: relative; background: #000;" title="${u.fullName} (${u.email})">
-                            <img src="${u.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                    `).join('');
+                // Pictures gallery
+                const withPics = data.users.filter(u => u.profilePicture && u.profilePicture !== '');
+                if (withPics.length > 0) {
+                    picturesGallery.innerHTML = withPics.map(u => `
+                        <div style="aspect-ratio:1;border-radius:0.5rem;overflow:hidden;border:2px solid var(--border);background:#000;cursor:pointer;transition:border-color 0.2s;"
+                             title="${(u.fullName || '')} — ${(u.email || '')}"
+                             onmouseover="this.style.borderColor='rgba(16,185,129,0.4)'" onmouseout="this.style.borderColor='var(--border)'">
+                            <img src="${u.profilePicture}" alt="${u.fullName || 'User'}" style="width:100%;height:100%;object-fit:cover;">
+                        </div>`).join('');
                 } else {
-                    picturesGallery.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 1rem; grid-column: 1 / -1;">No pictures uploaded yet.</p>';
+                    picturesGallery.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:1.5rem;grid-column:1/-1;font-size:0.85rem;">No profile pictures uploaded yet.</p>';
                 }
+
             } else {
-                usersListContainer.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 1rem;">No users found.</p>';
-                picturesGallery.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 1rem; grid-column: 1 / -1;">No pictures uploaded yet.</p>';
+                usersListContainer.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:2rem;">No registered users found.</p>';
+                picturesGallery.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:1.5rem;grid-column:1/-1;">No pictures yet.</p>';
             }
 
         } else {
-            console.error('Failed to load analytics', response.status);
             const errData = await response.json().catch(() => ({}));
-            usersListContainer.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem;">Failed to load users: ${errData.message || response.statusText || response.status}</p>`;
-            picturesGallery.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem; grid-column: 1 / -1;">Failed to load pictures.</p>`;
+            const msg = errData.message || `HTTP ${response.status}`;
+            console.error('Analytics failed:', msg);
+            if (analyticsStatus) analyticsStatus.textContent = '⚠️ Failed to load analytics';
+            if (usersListContainer) usersListContainer.innerHTML = `<p style="color:var(--danger);text-align:center;padding:2rem;font-size:0.85rem;">⚠️ ${msg}<br><small style="color:var(--text-secondary);margin-top:0.5rem;display:block;">Try logging out and back in.</small></p>`;
+            if (picturesGallery) picturesGallery.innerHTML = `<p style="color:var(--danger);text-align:center;padding:1rem;grid-column:1/-1;">—</p>`;
         }
     } catch (error) {
-        console.error('Error fetching admin analytics:', error);
-        if (usersListContainer) usersListContainer.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem;">Error: ${error.message}</p>`;
-        if (picturesGallery) picturesGallery.innerHTML = `<p style="color: var(--danger); text-align: center; padding: 1rem; grid-column: 1 / -1;">Error loading pictures.</p>`;
+        console.error('Analytics fetch error:', error);
+        if (analyticsStatus) analyticsStatus.textContent = '⚠️ Network error';
+        if (usersListContainer) usersListContainer.innerHTML = `<p style="color:var(--danger);text-align:center;padding:2rem;font-size:0.85rem;">Network error. Check your connection.<br><small style="color:var(--text-secondary);margin-top:0.5rem;display:block;">${error.message}</small></p>`;
+        if (picturesGallery) picturesGallery.innerHTML = `<p style="color:var(--danger);text-align:center;padding:1rem;grid-column:1/-1;">—</p>`;
     }
 }

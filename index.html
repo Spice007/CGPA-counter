@@ -665,9 +665,14 @@
             
             <!-- Site Analytics Section -->
             <div id="section-admin" class="app-section" style="display: none;">
-                <div style="margin-bottom: 2rem;">
-                    <h1 class="font-heading" style="font-size: 2.5rem; color: var(--warning);">Site Analytics Dashboard</h1>
-                    <p style="color: var(--text-secondary);">Real-time metrics for Spice CGPA Pro.</p>
+                <div style="margin-bottom: 2rem; display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h1 class="font-heading" style="font-size: 2.5rem; color: var(--warning);">Site Analytics Dashboard</h1>
+                        <p id="analytics-status" style="color: var(--text-secondary); margin-top:0.25rem; font-size:0.85rem;">Real-time metrics for Spice CGPA Pro.</p>
+                    </div>
+                    <button onclick="fetchAdminAnalytics()" style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1.2rem;background:rgba(16,185,129,0.1);color:var(--primary);border:1px solid rgba(16,185,129,0.3);border-radius:0.6rem;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.2)'" onmouseout="this.style.background='rgba(16,185,129,0.1)'">
+                        <i data-lucide="refresh-cw" style="width:15px;height:15px;"></i> Refresh
+                    </button>
                 </div>
                 
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem; gap: 1.25rem;">
