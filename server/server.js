@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
+const passport = require('passport');
 require('dotenv').config(); // Load from root .env first
 require('dotenv').config({ path: path.join(__dirname, '.env') }); // Then server .env
 const connectDB = require('./config/db');
@@ -23,6 +24,7 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors());
+app.use(passport.initialize());
 app.use(morgan('dev'));
 
 // Routes

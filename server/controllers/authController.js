@@ -1,7 +1,59 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { asyncHandler } = require('../middleware/errorMiddleware');
+
+// ─── Google OAuth Strategy ────────────────────────────────────────────────────
+passport.use(new GoogleStrategy({
+    clientID:     process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL:  process.env.GOOGLE_CALLBACK_URL || 'https://cgpa-counter-production.up.railway.app/api/auth/google/callback',
+    scope: ['profile', 'email']
+}, async (accessToken, refreshToken, profile, done) => {
+    try {
+        const email = profile.emails?.[0]?.value;
+        if (!email) return done(new Error('No email returned from Google'), null);
+
+        // Find existing user or create one
+        let user = await User.findOne({ $or: [{ googleId: profile.id }, { email }] });
+
+        if (user) {
+            // Link Google ID if they previously registered with email/password
+            if (!user.googleId) {
+                user.googleId = profile.id;
+                user.authProvider = 'google';
+                user.profilePicture = profile.photos?.[0]?.value || user.profilePicture;
+                await user.save();
+            }
+        } else {
+            // Brand new user via Google
+            user = await User.create({
+                fullName:       profile.displayName || email.split('@')[0],
+                email,
+                googleId:       profile.id,
+                authProvider:   'google',
+                profilePicture: profile.photos?.[0]?.value || '',
+                matricNumber:   '',
+                department:     '',
+                faculty:        ''
+            });
+        }
+
+        user.lastLogin = new Date();
+        await user.save();
+        return done(null, user);
+    } catch (err) {
+        return done(err, null);
+    }
+}));
+
+passport.serializeUser((user, done) => done(null, user._id));
+passport.deserializeUser(async (id, done) => {
+    try { done(null, await User.findById(id)); }
+    catch (err) { done(err, null); }
+});
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -93,8 +145,36 @@ const generateToken = (id) => {
     });
 };
 
+// @desc  Start Google OAuth flow
+// @route GET /api/auth/google
+const googleAuth = passport.authenticate('google', { scope: ['profile', 'email'] });
+
+// @desc  Google OAuth callback
+// @route GET /api/auth/google/callback
+const googleCallback = [
+    passport.authenticate('google', { session: false, failureRedirect: '/login.html?error=google_failed' }),
+    (req, res) => {
+        const token = generateToken(req.user._id);
+        const user = {
+            _id:          req.user._id,
+            fullName:     req.user.fullName,
+            email:        req.user.email,
+            matricNumber: req.user.matricNumber,
+            department:   req.user.department,
+            faculty:      req.user.faculty,
+            profilePicture: req.user.profilePicture
+        };
+        // Redirect to student portal with token — frontend reads it from URL
+        const encoded = encodeURIComponent(JSON.stringify(user));
+        const frontendURL = process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
+        res.redirect(`${frontendURL}/auth-callback.html?token=${token}&user=${encoded}`);
+    }
+];
+
 module.exports = {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    googleAuth,
+    googleCallback
 };
