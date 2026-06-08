@@ -6,6 +6,12 @@ import StatCards from "@/components/dashboard/StatCards";
 import CGPAGrid from "@/components/spreadsheet/CGPAGrid";
 import Login from "@/components/auth/Login";
 
+import SemestersTab from "@/components/dashboard/SemestersTab";
+import RankingsTab from "@/components/dashboard/RankingsTab";
+import ReportsTab from "@/components/dashboard/ReportsTab";
+import ImportExportTab from "@/components/dashboard/ImportExportTab";
+import SettingsTab from "@/components/dashboard/SettingsTab";
+
 // Helper to pre-calculate GPA & CGPA for student list on load
 function calculateStudentGPAs(student, columnsList) {
   let totalUnits = 0;
@@ -293,7 +299,7 @@ export default function Dashboard() {
   };
 
   const renderTabContent = () => {
-    if (loading && ["dashboard", "cgpa spreadsheet", "students", "results entry", "courses"].includes(activeTab)) {
+    if (loading && ["dashboard", "cgpa spreadsheet", "students", "results entry", "courses", "rankings", "reports", "import/export"].includes(activeTab)) {
       return (
         <div className="flex flex-col items-center justify-center p-20 glass rounded-xl border border-white/5 my-6">
           <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -352,6 +358,21 @@ export default function Dashboard() {
             />
           </div>
         );
+
+      case "semesters":
+        return <SemestersTab />;
+
+      case "rankings":
+        return <RankingsTab students={students} />;
+
+      case "reports":
+        return <ReportsTab students={students} />;
+
+      case "import/export":
+        return <ImportExportTab students={students} />;
+
+      case "settings":
+        return <SettingsTab />;
 
       default:
         // Render a gorgeous glassmorphic "Coming Soon / Under Development" view
