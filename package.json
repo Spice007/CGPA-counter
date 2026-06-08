@@ -1,6 +1,6 @@
 {
   "name": "cgpa-counter-root",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "start": "node server/server.js"
   },
