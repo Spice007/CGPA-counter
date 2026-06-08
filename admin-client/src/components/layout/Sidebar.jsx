@@ -32,34 +32,42 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   return (
     <aside className="w-56 h-screen fixed left-0 top-0 bg-[#0a0e1a] flex flex-col z-50 border-r border-white/[0.06]">
       {/* ── Logo / Brand ── */}
-      <div className="px-4 pt-4 pb-3 border-b border-white/[0.06] flex flex-col gap-2.5">
-        <div className="flex items-center gap-2">
-          {/* Student Logo */}
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-            <GraduationCap className="w-4.5 h-4.5 text-emerald-400" />
-          </div>
-          {/* School Logo */}
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
-            <School className="w-4.5 h-4.5 text-cyan-400" />
-          </div>
+      <div className="px-4 pt-6 pb-4 border-b border-white/[0.06] flex flex-col items-center text-center">
+        {/* Custom Combined Logo (Student Cap + School Building) */}
+        <div className="mb-3.5 flex items-center justify-center">
+          <svg viewBox="0 0 64 64" className="w-14 h-14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Graduation Cap (Top) */}
+            <path d="M32 6L14 14L32 22L50 14L32 6Z" fill="#10b981" />
+            <path d="M20 17.5V23C20 27 25 28.5 32 28.5C39 28.5 44 27 44 23V17.5" stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+            <path d="M46.5 15.5V26.5" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="46.5" cy="27.5" r="1.5" fill="#10b981" />
+
+            {/* School Building (Bottom) */}
+            <path d="M32 32L14 39H50L32 32Z" fill="#ffffff" />
+            <rect x="18" y="41" width="28" height="2" fill="#ffffff" />
+            <rect x="21" y="45" width="4" height="10" fill="#ffffff" />
+            <rect x="30" y="45" width="4" height="10" fill="#ffffff" />
+            <rect x="39" y="45" width="4" height="10" fill="#ffffff" />
+            <rect x="16" y="57" width="32" height="3" rx="1.5" fill="#ffffff" />
+          </svg>
         </div>
 
-        <div className="space-y-0.5">
-          <p className="text-[12px] font-bold text-white tracking-wide">
-            Federal Polytechnic
-          </p>
-          <div className="flex items-center gap-1.5">
-            <h1 className="font-semibold text-slate-300 text-[11px] tracking-wider uppercase">
-              CGPA Counter
+        <div className="space-y-1">
+          <div className="flex items-center justify-center gap-1.5">
+            <h1 className="font-bold text-white text-[13px] tracking-wider uppercase">
+              CGPA COUNTER
             </h1>
-            <span className="text-[8px] font-bold bg-emerald-500/90 text-white px-1.5 py-0.5 rounded leading-none">
+            <span className="text-[8px] font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded leading-none">
               Excel
             </span>
           </div>
-          <div className="flex items-center gap-1.5 pt-0.5">
+          <p className="text-[10px] text-slate-400 font-medium tracking-wide">
+            Federal Polytechnic
+          </p>
+          <div className="flex items-center justify-center gap-1.5 pt-0.5">
             <p className="text-[10px] text-slate-500">School Admin</p>
-            <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full leading-none">
-              <CheckCircle2 className="w-2.5 h-2.5" />
+            <span className="inline-flex items-center gap-1 text-[9px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full leading-none border border-emerald-500/10">
+              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse"></span>
               Verified
             </span>
           </div>
