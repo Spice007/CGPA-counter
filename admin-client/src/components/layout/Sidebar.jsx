@@ -3,7 +3,7 @@ import {
   LayoutDashboard, TableProperties, Users, FileSignature,
   BookOpen, Calendar, LineChart, Trophy, FileText,
   Settings, LogOut, ChevronRight, ArrowDownUp, Shield,
-  HardDrive, CheckCircle2,
+  HardDrive, CheckCircle2, GraduationCap, School,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -32,29 +32,31 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   return (
     <aside className="w-56 h-screen fixed left-0 top-0 bg-[#0a0e1a] flex flex-col z-50 border-r border-white/[0.06]">
       {/* ── Logo / Brand ── */}
-      <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2.5">
-          {/* Shield crest icon */}
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-            <Shield className="w-4 h-4 text-white" />
+      <div className="px-4 pt-4 pb-3 border-b border-white/[0.06] flex flex-col gap-2.5">
+        <div className="flex items-center gap-2">
+          {/* Student Logo */}
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
+            <GraduationCap className="w-4.5 h-4.5 text-emerald-400" />
           </div>
-
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-bold text-white text-[13px] tracking-wide whitespace-nowrap">
-                CGPA COUNTER
-              </h1>
-              <span className="text-[9px] font-semibold bg-emerald-500/90 text-white px-1.5 py-0.5 rounded leading-none">
-                Excel
-              </span>
-            </div>
+          {/* School Logo */}
+          <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center flex-shrink-0">
+            <School className="w-4.5 h-4.5 text-cyan-400" />
           </div>
         </div>
 
-        {/* School info */}
-        <div className="mt-2 pl-[42px]">
-          <p className="text-[10px] text-slate-500 leading-relaxed">Federal Polytechnic</p>
-          <div className="flex items-center gap-1 mt-0.5">
+        <div className="space-y-0.5">
+          <p className="text-[12px] font-bold text-white tracking-wide">
+            Federal Polytechnic
+          </p>
+          <div className="flex items-center gap-1.5">
+            <h1 className="font-semibold text-slate-300 text-[11px] tracking-wider uppercase">
+              CGPA Counter
+            </h1>
+            <span className="text-[8px] font-bold bg-emerald-500/90 text-white px-1.5 py-0.5 rounded leading-none">
+              Excel
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 pt-0.5">
             <p className="text-[10px] text-slate-500">School Admin</p>
             <span className="inline-flex items-center gap-0.5 text-[9px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-full leading-none">
               <CheckCircle2 className="w-2.5 h-2.5" />
