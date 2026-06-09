@@ -813,37 +813,57 @@
                 </div>
                 <div class="glass card" style="max-width: 800px;">
                     <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                        <!-- Appearance Card -->
-                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--warning);">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: var(--warning); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                <i data-lucide="sun" style="width: 32px; height: 32px;"></i>
+                        <!-- University Settings Card -->
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                            <div>
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                    <i data-lucide="school" style="width: 32px; height: 32px;"></i>
+                                </div>
+                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">University & Session</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Configure university name and current session</p>
                             </div>
-                            <h3 class="font-heading" style="margin-bottom: 0.5rem;">Appearance</h3>
-                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Switch between light and dark themes</p>
+                            <button id="settings-uni-btn" class="btn btn-primary" style="width: 100%; border: none;">
+                                <i data-lucide="edit-3" style="width: 18px;"></i> Edit Settings
+                            </button>
+                        </div>
+
+                        <!-- Appearance Card -->
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--warning); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                            <div>
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: var(--warning); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                    <i data-lucide="sun" style="width: 32px; height: 32px;"></i>
+                                </div>
+                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">Appearance</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Switch between light and dark themes</p>
+                            </div>
                             <button id="settings-theme-toggle" class="btn btn-primary" style="width: 100%; background: var(--warning); border: none;">
                                 <i data-lucide="repeat" style="width: 18px;"></i> Toggle Theme
                             </button>
                         </div>
 
                         <!-- Data Export Card -->
-                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--info);">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(14, 165, 233, 0.1); color: var(--info); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                <i data-lucide="database" style="width: 32px; height: 32px;"></i>
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--info); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                            <div>
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(14, 165, 233, 0.1); color: var(--info); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                    <i data-lucide="database" style="width: 32px; height: 32px;"></i>
+                                </div>
+                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">Data Export</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Download your entire record as CSV</p>
                             </div>
-                            <h3 class="font-heading" style="margin-bottom: 0.5rem;">Data Export</h3>
-                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Download your entire record as CSV</p>
                             <button id="settings-export-btn" class="btn btn-primary" style="width: 100%; background: var(--info); border: none;">
                                 <i data-lucide="download" style="width: 18px;"></i> Export Data
                             </button>
                         </div>
 
                         <!-- Grading Scale Card -->
-                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--accent);">
-                            <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                <i data-lucide="award" style="width: 32px; height: 32px;"></i>
+                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--accent); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                            <div>
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                                    <i data-lucide="award" style="width: 32px; height: 32px;"></i>
+                                </div>
+                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">Grading Scale</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Choose between 4.0 or 5.0 systems</p>
                             </div>
-                            <h3 class="font-heading" style="margin-bottom: 0.5rem;">Grading Scale</h3>
-                            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Choose between 4.0 or 5.0 systems</p>
                             <select id="settings-scale-select" class="glass-card" style="width: 100%; padding: 0.75rem; border: none; margin-bottom: 0.5rem;">
                                 <option value="5">Nigeria Standard (5.0 Scale)</option>
                                 <option value="4">International Standard (4.0 Scale)</option>

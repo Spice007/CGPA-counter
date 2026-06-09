@@ -361,6 +361,11 @@ function setupEventListeners() {
         lucide.createIcons();
     });
     document.getElementById('settings-export-btn').addEventListener('click', exportCSV);
+
+    const settingsUniBtn = document.getElementById('settings-uni-btn');
+    if (settingsUniBtn) {
+        settingsUniBtn.addEventListener('click', openUniModal);
+    }
 }
 
 // Rendering Functions
