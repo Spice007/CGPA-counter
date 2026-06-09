@@ -908,10 +908,20 @@ async function deleteCourse(semId, courseId) {
         if (response.ok) {
             await loadData(); // Refresh courses from backend
         } else {
-            alert('Failed to delete course');
+            let errorMsg = 'Failed to delete course';
+            try {
+                const errData = await response.json();
+                errorMsg += ': ' + (errData.message || errData.error || response.statusText);
+            } catch (e) {
+                try {
+                    errorMsg += ': ' + await response.text();
+                } catch (e2) {}
+            }
+            alert(errorMsg);
         }
     } catch (err) {
         console.error('Error deleting course:', err);
+        alert('Network error deleting course. Check your internet connection.');
     }
 }
 

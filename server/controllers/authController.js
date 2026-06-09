@@ -76,6 +76,9 @@ const registerUser = asyncHandler(async (req, res) => {
     const userExists = await User.findOne({ email });
     if (userExists) {
         res.status(400);
+        if (userExists.authProvider === 'google' || !userExists.password) {
+            throw new Error('An account with this email already exists via Google. Please use Google Login.');
+        }
         throw new Error('User already exists');
     }
 
@@ -114,23 +117,31 @@ const loginUser = asyncHandler(async (req, res) => {
     // Check for user email
     const user = await User.findOne({ email });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
-        user.lastLogin = new Date();
-        await user.save();
+    if (user) {
+        if (!user.password) {
+            res.status(400);
+            throw new Error('This account uses Google Login. Please use the "Continue with Google" button.');
+        }
 
-        res.json({
-            _id: user.id || user._id,
-            fullName: user.fullName,
-            email: user.email,
-            matricNumber: user.matricNumber,
-            department: user.department,
-            faculty: user.faculty,
-            token: generateToken(user.id || user._id)
-        });
-    } else {
-        res.status(401);
-        throw new Error('Invalid credentials');
+        if (await bcrypt.compare(password, user.password)) {
+            user.lastLogin = new Date();
+            await user.save();
+
+            res.json({
+                _id: user.id || user._id,
+                fullName: user.fullName,
+                email: user.email,
+                matricNumber: user.matricNumber,
+                department: user.department,
+                faculty: user.faculty,
+                token: generateToken(user.id || user._id)
+            });
+            return;
+        }
     }
+
+    res.status(401);
+    throw new Error('Invalid credentials');
 });
 
 // @desc    Logout user

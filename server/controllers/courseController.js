@@ -97,24 +97,43 @@ const updateCourse = asyncHandler(async (req, res) => {
 // @route   DELETE /api/courses/:id
 // @access  Private
 const deleteCourse = asyncHandler(async (req, res) => {
+    console.log(`[DELETE COURSE] Request to delete course ID: ${req.params.id}`);
+    
     const course = await Course.findById(req.params.id);
 
     if (!course) {
-        res.status(404);
-        throw new Error('Course not found');
+        console.log(`[DELETE COURSE] Course ${req.params.id} not found in database. Returning success as it is already deleted.`);
+        return res.status(200).json({ id: req.params.id, message: 'Course already deleted' });
     }
 
-    // Make sure logged in user matches course user
-    if (course.user.toString() !== (req.user.id || req.user._id).toString()) {
+    const userIdStr = (req.user.id || req.user._id || '').toString();
+    const courseOwnerStr = (course.user || '').toString();
+
+    console.log(`[DELETE COURSE] Course owner: ${courseOwnerStr}, Logged-in user: ${userIdStr}`);
+
+    // Make sure logged in user matches course user OR is an authorized admin
+    const isAdmin = req.user && (
+        req.user.role === 'superadmin' || 
+        req.user.email === 'gideonlastgids@gmail.com'
+    );
+
+    if (courseOwnerStr !== userIdStr && !isAdmin) {
+        console.warn(`[DELETE COURSE] Unauthorized delete attempt: User ${userIdStr} tried to delete course owned by ${courseOwnerStr}`);
         res.status(401);
-        throw new Error('User not authorized');
+        throw new Error('User not authorized to delete this course');
     }
 
     const { session, semester } = course;
     await course.deleteOne();
+    console.log(`[DELETE COURSE] Course ${req.params.id} successfully deleted from database.`);
 
-    // Recalculate GPA after deletion
-    await performGPACalculation(req.user.id || req.user._id, session, semester);
+    // Recalculate GPA after deletion (for the owner of the course)
+    try {
+        await performGPACalculation(course.user, session, semester);
+        console.log(`[DELETE COURSE] GPA recalculated for user ${course.user} (${session} - ${semester})`);
+    } catch (gpaErr) {
+        console.error('[DELETE COURSE] Error recalculating GPA after course deletion:', gpaErr.message);
+    }
 
     res.status(200).json({ id: req.params.id });
 });
