@@ -39,10 +39,23 @@ const addCourse = asyncHandler(async (req, res) => {
         throw new Error('Please add all fields');
     }
 
+    // Check if duplicate course code already exists for the user in this session & semester
+    const existingCourse = await Course.findOne({
+        user: req.user.id || req.user._id,
+        session,
+        semester,
+        code: code.toUpperCase()
+    });
+
+    if (existingCourse) {
+        res.status(400);
+        throw new Error(`Course with code "${code.toUpperCase()}" already exists in this semester.`);
+    }
+
     const course = await Course.create({
         user: req.user.id || req.user._id,
         title,
-        code,
+        code: code.toUpperCase(),
         unit: Number(unit),
         grade,
         gradePoint: calculateGradePoint(grade),

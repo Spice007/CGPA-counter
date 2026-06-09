@@ -800,6 +800,26 @@ async function saveCourse() {
     const sem = semesters.find(s => s.id === activeSemesterId);
     if (!sem) return;
 
+    // Check for duplicate course in this semester
+    const isDuplicate = sem.courses.some(c => 
+        (c.code && c.code.toUpperCase() === title.toUpperCase()) || 
+        (c.title && c.title.trim().toUpperCase() === title.toUpperCase())
+    );
+    if (isDuplicate) {
+        alert(`Course "${title.toUpperCase()}" is already added in this semester.`);
+        return;
+    }
+
+    const saveBtn = document.getElementById('modal-save');
+    const originalText = saveBtn ? saveBtn.innerText : 'Save Course';
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+    }
+
+    // Close the modal immediately so it "leaves"
+    closeModal();
+
     let session = studentProfile.session || '2023/2024';
     let semester = 'First';
 
@@ -849,7 +869,6 @@ async function saveCourse() {
             });
 
             await loadData(); // Sync backend state
-            closeModal();
         } else {
             const errData = await response.json();
             alert('Failed to save course: ' + (errData.message || 'Unknown error'));
@@ -857,6 +876,11 @@ async function saveCourse() {
     } catch (err) {
         console.error('Error saving course to MongoDB:', err);
         alert('Server error saving course.');
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = originalText;
+        }
     }
 }
 

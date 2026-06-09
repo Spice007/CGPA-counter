@@ -326,14 +326,6 @@ function setupQuickActions() {
         const btn = document.getElementById('export-image');
         if (btn) btn.click();
     });
-
-    const mobileEditUniBtn = document.getElementById('mobile-edit-uni-btn');
-    if (mobileEditUniBtn) {
-        mobileEditUniBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (typeof openUniModal === 'function') openUniModal();
-        });
-    }
 }
 
 function handleAddSemesterAction() {
@@ -343,17 +335,7 @@ function handleAddSemesterAction() {
 
 function handleAddCourseQuickAction() {
     if (typeof semesters === 'undefined' || semesters.length === 0) {
-        const addSemBtn = document.getElementById('add-semester-btn');
-        if (addSemBtn) {
-            addSemBtn.click();
-            setTimeout(() => {
-                if (semesters && semesters.length > 0) {
-                    openCourseModal(semesters[semesters.length - 1].id);
-                }
-            }, 250);
-        } else {
-            alert('Please add a semester first.');
-        }
+        alert('Please add a semester first.');
     } else {
         openCourseModal(semesters[semesters.length - 1].id);
     }
