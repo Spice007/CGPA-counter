@@ -326,6 +326,14 @@ function setupQuickActions() {
         const btn = document.getElementById('export-image');
         if (btn) btn.click();
     });
+
+    const mobileEditUniBtn = document.getElementById('mobile-edit-uni-btn');
+    if (mobileEditUniBtn) {
+        mobileEditUniBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (typeof openUniModal === 'function') openUniModal();
+        });
+    }
 }
 
 function handleAddSemesterAction() {
@@ -458,6 +466,13 @@ function setupSettingsGroup() {
     document.getElementById('mob-set-account').addEventListener('click', () => {
         document.getElementById('nav-profile').click();
     });
+
+    const mobSetUni = document.getElementById('mob-set-university');
+    if (mobSetUni) {
+        mobSetUni.addEventListener('click', () => {
+            if (typeof openUniModal === 'function') openUniModal();
+        });
+    }
 
     document.getElementById('mob-set-appearance').addEventListener('click', () => {
         document.getElementById('theme-toggle').click();
