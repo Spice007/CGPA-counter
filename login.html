@@ -1385,10 +1385,18 @@
 
         // Real Google OAuth login
         document.getElementById('google-login-btn').addEventListener('click', () => {
-            const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+            const apiBase = isLocal
                 ? 'http://localhost:5000/api'
                 : 'https://cgpa-counter-production.up.railway.app/api';
-            window.location.href = `${apiBase}/auth/google`;
+            
+            // Get the current origin (fallback if on file://)
+            let frontendUrl = window.location.origin;
+            if (window.location.protocol === 'file:') {
+                frontendUrl = 'http://localhost:3001';
+            }
+            
+            window.location.href = `${apiBase}/auth/google?frontend=${encodeURIComponent(frontendUrl)}`;
         });
 
         // Error helper

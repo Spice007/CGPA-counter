@@ -160,33 +160,48 @@ const generateToken = (id) => {
 
 // @desc  Start Google OAuth flow
 // @route GET /api/auth/google
-const googleAuth = hasGoogleCreds
-    ? passport.authenticate('google', { scope: ['profile', 'email'] })
-    : (req, res) => res.status(501).json({ message: 'Google OAuth not configured on this server.' });
+const googleAuth = (req, res, next) => {
+    if (!hasGoogleCreds) {
+        return res.status(501).json({ message: 'Google OAuth not configured on this server.' });
+    }
+    const frontendUrl = req.query.frontend || '';
+    passport.authenticate('google', { 
+        scope: ['profile', 'email'],
+        state: frontendUrl
+    })(req, res, next);
+};
 
 // @desc  Google OAuth callback
 // @route GET /api/auth/google/callback
-const googleCallback = hasGoogleCreds
-    ? [
-        passport.authenticate('google', { session: false, failureRedirect: '/login.html?error=google_failed' }),
-        (req, res) => {
-            const token = generateToken(req.user._id);
-            const user = {
-                _id:          req.user._id,
-                fullName:     req.user.fullName,
-                email:        req.user.email,
-                matricNumber: req.user.matricNumber,
-                department:   req.user.department,
-                faculty:      req.user.faculty,
-                profilePicture: req.user.profilePicture
-            };
-            // Redirect to student portal with token — frontend reads it from URL
-            const encoded = encodeURIComponent(JSON.stringify(user));
-            const frontendURL = process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
-            res.redirect(`${frontendURL}/auth-callback.html?token=${token}&user=${encoded}`);
+const googleCallback = (req, res, next) => {
+    if (!hasGoogleCreds) {
+        return res.status(501).json({ message: 'Google OAuth not configured on this server.' });
+    }
+    
+    let frontendURL = req.query.state || process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
+    if (frontendURL.endsWith('/')) {
+        frontendURL = frontendURL.slice(0, -1);
+    }
+    
+    passport.authenticate('google', { session: false }, (err, user, info) => {
+        if (err || !user) {
+            return res.redirect(`${frontendURL}/login.html?error=google_failed`);
         }
-      ]
-    : (req, res) => res.status(501).json({ message: 'Google OAuth not configured on this server.' });
+        
+        const token = generateToken(user._id);
+        const userObj = {
+            _id:          user._id,
+            fullName:     user.fullName,
+            email:        user.email,
+            matricNumber: user.matricNumber,
+            department:   user.department,
+            faculty:      user.faculty,
+            profilePicture: user.profilePicture
+        };
+        const encoded = encodeURIComponent(JSON.stringify(userObj));
+        res.redirect(`${frontendURL}/auth-callback.html?token=${token}&user=${encoded}`);
+    })(req, res, next);
+};
 
 module.exports = {
     registerUser,
