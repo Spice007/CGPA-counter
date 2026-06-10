@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const crypto = require('crypto');
+const { sendResetEmail } = require('../utils/emailService');
 const { asyncHandler } = require('../middleware/errorMiddleware');
 
 // ─── Google OAuth Strategy ────────────────────────────────────────────────────
@@ -203,10 +205,114 @@ const googleCallback = (req, res, next) => {
     })(req, res, next);
 };
 
+// @desc    Request password reset token
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        res.status(400);
+        throw new Error('Please provide an email address');
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        res.status(404);
+        throw new Error('No account found with this email');
+    }
+
+    // Google OAuth accounts do not have passwords, so they cannot reset password
+    if (user.authProvider === 'google' || !user.password) {
+        res.status(400);
+        throw new Error('This account uses Google Login. Please sign in with Google.');
+    }
+
+    // Generate a secure reset token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    // Set token and expiry (1 hour)
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+    await user.save();
+
+    // Determine the frontend URL based on where the request came from
+    let frontendURL = req.headers.origin || process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
+    if (frontendURL.endsWith('/')) {
+        frontendURL = frontendURL.slice(0, -1);
+    }
+
+    const resetUrl = `${frontendURL}/reset-password.html?token=${resetToken}`;
+
+    try {
+        const mailResult = await sendResetEmail(user.email, resetUrl);
+        
+        // In local/development, we return the reset url directly for testing convenience
+        const isLocal = windowLocationLocal(req) || process.env.NODE_ENV !== 'production';
+
+        res.status(200).json({
+            message: mailResult.simulated 
+                ? 'Password reset link generated! (Mock Mode)' 
+                : 'Password reset link sent to your email.',
+            resetUrl: isLocal ? resetUrl : undefined
+        });
+    } catch (err) {
+        // Clear token on failure
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
+        await user.save();
+
+        console.error('Failed to send reset email:', err);
+        res.status(500);
+        throw new Error('Failed to send reset email. Please try again later.');
+    }
+});
+
+// Helper to check if running local
+const windowLocationLocal = (req) => {
+    const host = req.headers.host || '';
+    return host.includes('localhost') || host.includes('127.0.0.1');
+};
+
+// @desc    Reset password using token
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = asyncHandler(async (req, res) => {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+        res.status(400);
+        throw new Error('Please provide token and new password');
+    }
+
+    const user = await User.findOne({
+        resetPasswordToken: token,
+        resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+        res.status(400);
+        throw new Error('Invalid or expired password reset token');
+    }
+
+    // Set new password (which will be hashed automatically by userSchema's pre-save hook)
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful. You can now log in.' });
+});
+
 module.exports = {
     registerUser,
     loginUser,
     logoutUser,
     googleAuth,
-    googleCallback
+    googleCallback,
+    forgotPassword,
+    resetPassword
 };

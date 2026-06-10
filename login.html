@@ -1332,13 +1332,33 @@
 
     <!-- Recovery Modal overlay -->
     <div class="modal-overlay" id="forgot-modal">
-        <div class="modal-box">
+        <div class="modal-box" style="max-width: 440px;">
             <h3>🔑 Forgot Password?</h3>
-            <p>Since this is a local application, your password is stored securely in your database. Here's how to recover access:</p>
-            <div class="info-box">
-                Your credentials are saved in <strong>server/db.json</strong>. Ask your developer to reset your password directly in the file.
-            </div>
-            <button class="modal-close" id="modal-close">Got it, thanks!</button>
+            <p>Enter your email address and we'll send you a password reset link.</p>
+            
+            <div id="forgot-error-box" style="display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.4;"></div>
+            <div id="forgot-success-box" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #34d399; border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.4; word-break: break-all;"></div>
+            
+            <form id="forgot-form" style="margin-bottom: 1.25rem;">
+                <!-- Email field -->
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" for="forgot-email">Email Address</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon"><i data-lucide="mail"></i></span>
+                        <input type="email" id="forgot-email" placeholder="you@gmail.com" required>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="forgot-submit-btn" style="width: 100%;">
+                    <div class="btn-left">
+                        <i data-lucide="mail" class="btn-lock-icon"></i>
+                        <span>Send Recovery Link</span>
+                    </div>
+                    <i data-lucide="arrow-right" class="btn-arrow-icon"></i>
+                </button>
+            </form>
+            <button class="modal-close" id="modal-close">Back to Login</button>
         </div>
     </div>
 
@@ -1495,6 +1515,60 @@
 
         document.getElementById('forgot-modal').addEventListener('click', (e) => {
             if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+        });
+
+        // Forgot password form submission
+        document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            const btn = document.getElementById('forgot-submit-btn');
+            const errBox = document.getElementById('forgot-error-box');
+            const succBox = document.getElementById('forgot-success-box');
+            
+            const origHTML = btn.innerHTML;
+            btn.innerHTML = `
+                <div class="btn-left">
+                    <i data-lucide="loader-2" style="animation:spin 1s linear infinite; stroke-width: 2.5px;"></i>
+                    <span>Sending...</span>
+                </div>
+                <div style="width: 26px;"></div>
+            `;
+            btn.disabled = true;
+            errBox.style.display = 'none';
+            succBox.style.display = 'none';
+            lucide.createIcons();
+
+            try {
+                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-counter-production.up.railway.app/api';
+                const response = await fetch(`${apiBase}/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    let msg = data.message;
+                    if (data.resetUrl) {
+                        msg += `<br><br><strong>Testing Reset Link (Local/Dev):</strong><br><a href="${data.resetUrl}" style="color: #34d399; font-weight: bold; text-decoration: underline;">Click here to Reset Password</a>`;
+                    }
+                    succBox.innerHTML = msg;
+                    succBox.style.display = 'block';
+                    document.getElementById('forgot-email').value = '';
+                } else {
+                    errBox.textContent = data.message || 'Failed to request reset link.';
+                    errBox.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                errBox.textContent = 'Cannot reach server. Is the backend running?';
+                errBox.style.display = 'block';
+            } finally {
+                btn.innerHTML = origHTML;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
         });
 
         // Spinner styling
