@@ -55,4 +55,71 @@ const sendResetEmail = async (email, resetUrl) => {
     return { success: true, simulated: false };
 };
 
-module.exports = { sendResetEmail };
+const sendLoginNotification = async (email, userName, ipAddress = 'Unknown IP', userAgent = 'Unknown Device') => {
+    const hasSmtp = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
+    const timeString = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
+
+    if (!hasSmtp) {
+        console.log('\n==================================================');
+        console.log(`🔔 LOGIN NOTIFICATION`);
+        console.log(`To: ${email}`);
+        console.log(`User: ${userName}`);
+        console.log(`Time: ${timeString}`);
+        console.log(`IP: ${ipAddress}`);
+        console.log(`Device: ${userAgent}`);
+        console.log('==================================================\n');
+        return {
+            success: true,
+            simulated: true
+        };
+    }
+
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true' || parseInt(process.env.SMTP_PORT) === 465,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: process.env.FROM_EMAIL || '"Naija CGPA Pro" <noreply@cgpa-counter.com>',
+        to: email,
+        subject: 'Naija CGPA Pro - New Login Detected',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <h2 style="color: #10b981; text-align: center;">Naija CGPA Pro</h2>
+                <h3 style="color: #1e293b; text-align: center;">New Login Alert</h3>
+                <p>Hello ${userName},</p>
+                <p>We detected a new sign-in to your Naija CGPA Pro account.</p>
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin: 20px 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b; font-weight: bold; width: 100px;">Date/Time:</td>
+                            <td style="padding: 4px 0; color: #1e293b;">${timeString}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b; font-weight: bold;">IP Address:</td>
+                            <td style="padding: 4px 0; color: #1e293b;">${ipAddress}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 4px 0; color: #64748b; font-weight: bold;">Device:</td>
+                            <td style="padding: 4px 0; color: #1e293b;">${userAgent}</td>
+                        </tr>
+                    </table>
+                </div>
+                <p>If this was you, you can safely ignore this email.</p>
+                <p style="color: #ef4444; font-weight: bold;">If you did not log in, please reset your password immediately to secure your account.</p>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                <p style="color: #94a3b8; font-size: 0.75rem; text-align: center;">Naija CGPA Pro — Your Premium Academic Companion</p>
+            </div>
+        `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return { success: true, simulated: false };
+};
+
+module.exports = { sendResetEmail, sendLoginNotification };

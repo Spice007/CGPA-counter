@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const crypto = require('crypto');
-const { sendResetEmail } = require('../utils/emailService');
+const { sendResetEmail, sendLoginNotification } = require('../utils/emailService');
 const { asyncHandler } = require('../middleware/errorMiddleware');
 
 // ─── Google OAuth Strategy ────────────────────────────────────────────────────
@@ -129,6 +129,12 @@ const loginUser = asyncHandler(async (req, res) => {
             user.lastLogin = new Date();
             await user.save();
 
+            // Send login notification email asynchronously
+            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
+            const userAgent = req.headers['user-agent'] || 'Unknown Device';
+            sendLoginNotification(user.email, user.fullName, ip, userAgent)
+                .catch(err => console.error('Error sending login notification email:', err));
+
             res.json({
                 _id: user.id || user._id,
                 fullName: user.fullName,
@@ -191,6 +197,13 @@ const googleCallback = (req, res, next) => {
         }
         
         const token = generateToken(user._id);
+
+        // Send login notification email asynchronously
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
+        const userAgent = req.headers['user-agent'] || 'Unknown Device';
+        sendLoginNotification(user.email, user.fullName, ip, userAgent)
+            .catch(err => console.error('Error sending Google login notification email:', err));
+
         const userObj = {
             _id:          user._id,
             fullName:     user.fullName,
