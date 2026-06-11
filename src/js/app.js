@@ -861,16 +861,19 @@ async function saveCourse() {
         return;
     }
 
-    const scoreVal = document.getElementById('modal-course-score').value.trim();
-    if (scoreVal === '') {
-        alert('Please enter your score (0-100).');
-        return;
-    }
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+        const scoreVal = document.getElementById('modal-course-score').value.trim();
+        if (scoreVal === '') {
+            alert('Please enter your score (0-100).');
+            return;
+        }
 
-    const score = parseInt(scoreVal);
-    if (isNaN(score) || score < 0 || score > 100) {
-        alert('Please enter a valid score between 0 and 100.');
-        return;
+        const score = parseInt(scoreVal);
+        if (isNaN(score) || score < 0 || score > 100) {
+            alert('Please enter a valid score between 0 and 100.');
+            return;
+        }
     }
 
     const gradeVal = document.getElementById('modal-course-grade').value; // numeric value: "5", "4", etc.

@@ -16,6 +16,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="src/js/auth.js"></script>
     <script>checkAuth();</script>
+    <style>
+        @media (min-width: 768px) {
+            #desktop-grade-group { display: block !important; }
+            #mobile-score-group { display: none !important; }
+            #mobile-calculated-grade-group { display: none !important; }
+        }
+        @media (max-width: 767px) {
+            #desktop-grade-group { display: none !important; }
+            #mobile-score-group { display: block !important; }
+            #mobile-calculated-grade-group { display: block !important; }
+        }
+    </style>
 </head>
 <body>
     <!-- Mobile Sticky Top Header -->
@@ -954,26 +966,34 @@
                 <label class="input-label">Credit Units</label>
                 <input type="number" id="modal-course-units" min="1" max="10" value="3">
             </div>
-            <div class="input-group" style="margin-bottom: 0;">
+            
+            <!-- Desktop Grade Dropdown (Shown on desktop, hidden on mobile) -->
+            <div id="desktop-grade-group" class="input-group" style="margin-bottom: 0;">
+                <label class="input-label">Grade</label>
+                <select id="modal-course-grade">
+                    <option value="5">A (5.0)</option>
+                    <option value="4">B (4.0)</option>
+                    <option value="3">C (3.0)</option>
+                    <option value="2">D (2.0)</option>
+                    <option value="1">E (1.0)</option>
+                    <option value="0">F (0.0)</option>
+                </select>
+            </div>
+
+            <!-- Mobile Score Input (Hidden on desktop, shown on mobile) -->
+            <div id="mobile-score-group" class="input-group" style="margin-bottom: 0; display: none;">
                 <label class="input-label">Score (0-100)</label>
                 <input type="number" id="modal-course-score" min="0" max="100" placeholder="e.g. 75">
             </div>
         </div>
-        <div class="input-group">
+
+        <!-- Mobile Calculated Grade Display (Hidden on desktop, shown on mobile) -->
+        <div id="mobile-calculated-grade-group" class="input-group" style="display: none;">
             <label class="input-label">Calculated Grade</label>
             <div id="modal-calculated-grade" style="padding: 0.75rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.5rem; font-weight: 700; font-size: 1.1rem; color: #94a3b8; display: flex; align-items: center; gap: 0.5rem; transition: color 0.2s;">
                 <i data-lucide="award" style="width: 18px; height: 18px;"></i>
                 <span id="grade-calc-text">--</span>
             </div>
-            <!-- Keep hidden for app.js backwards compatibility -->
-            <select id="modal-course-grade" style="display: none;">
-                <option value="5">A (5.0)</option>
-                <option value="4">B (4.0)</option>
-                <option value="3">C (3.0)</option>
-                <option value="2">D (2.0)</option>
-                <option value="1">E (1.0)</option>
-                <option value="0">F (0.0)</option>
-            </select>
         </div>
         <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
             <button id="modal-cancel" class="btn glass-card" style="flex: 1; color: var(--danger);">Cancel</button>
