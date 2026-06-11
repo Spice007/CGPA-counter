@@ -251,6 +251,7 @@ function setupEventListeners() {
     // Modal Controls
     document.getElementById('modal-cancel').addEventListener('click', closeModal);
     document.getElementById('modal-save').addEventListener('click', saveCourse);
+    document.getElementById('modal-course-score').addEventListener('input', updateGradeFromScore);
 
     // Theme Toggle
     document.getElementById('theme-toggle').addEventListener('click', () => {
@@ -779,23 +780,100 @@ function openCourseModal(semId) {
     courseModal.style.display = 'block';
     modalOverlay.style.display = 'block';
     document.getElementById('modal-course-title').focus();
+    
+    const scoreInput = document.getElementById('modal-course-score');
+    if (scoreInput) scoreInput.value = '';
+    const calcText = document.getElementById('grade-calc-text');
+    if (calcText) {
+        calcText.textContent = '--';
+        calcText.parentElement.style.color = '#94a3b8';
+    }
 }
 
 function closeModal() {
     courseModal.style.display = 'none';
     modalOverlay.style.display = 'none';
     document.getElementById('modal-course-title').value = '';
+    const scoreInput = document.getElementById('modal-course-score');
+    if (scoreInput) scoreInput.value = '';
+}
+
+function updateGradeFromScore() {
+    const scoreInput = document.getElementById('modal-course-score');
+    const gradeSelect = document.getElementById('modal-course-grade');
+    const calcText = document.getElementById('grade-calc-text');
+    if (!scoreInput || !gradeSelect || !calcText) return;
+
+    const scoreVal = scoreInput.value.trim();
+    if (scoreVal === '') {
+        calcText.textContent = '--';
+        calcText.parentElement.style.color = '#94a3b8';
+        gradeSelect.value = '0';
+        return;
+    }
+
+    const score = parseInt(scoreVal);
+    if (isNaN(score) || score < 0 || score > 100) {
+        calcText.textContent = 'Invalid';
+        calcText.parentElement.style.color = '#ef4444';
+        gradeSelect.value = '0';
+        return;
+    }
+
+    let gradeLetter = 'F';
+    let gradePoints = '0';
+
+    if (gradingScale === 5) {
+        if (score >= 70) { gradeLetter = 'A'; gradePoints = '5'; }
+        else if (score >= 60) { gradeLetter = 'B'; gradePoints = '4'; }
+        else if (score >= 50) { gradeLetter = 'C'; gradePoints = '3'; }
+        else if (score >= 45) { gradeLetter = 'D'; gradePoints = '2'; }
+        else if (score >= 40) { gradeLetter = 'E'; gradePoints = '1'; }
+        else { gradeLetter = 'F'; gradePoints = '0'; }
+    } else { // 4.0 Scale
+        if (score >= 70) { gradeLetter = 'A'; gradePoints = '4'; }
+        else if (score >= 60) { gradeLetter = 'B'; gradePoints = '3'; }
+        else if (score >= 50) { gradeLetter = 'C'; gradePoints = '2'; }
+        else if (score >= 45) { gradeLetter = 'D'; gradePoints = '1'; }
+        else { gradeLetter = 'F'; gradePoints = '0'; }
+    }
+
+    const colors = {
+        'A': '#10b981', // green
+        'B': '#3b82f6', // blue
+        'C': '#f59e0b', // gold/yellow
+        'D': '#8b5cf6', // purple
+        'E': '#f43f5e', // pink/red
+        'F': '#ef4444'  // red
+    };
+
+    gradeSelect.value = gradePoints;
+    calcText.textContent = `${gradeLetter} (${parseFloat(gradePoints).toFixed(1)} GP)`;
+    calcText.parentElement.style.color = colors[gradeLetter] || '#94a3b8';
 }
 
 async function saveCourse() {
     const title = document.getElementById('modal-course-title').value.trim();
     const units = document.getElementById('modal-course-units').value;
-    const gradeVal = document.getElementById('modal-course-grade').value; // numeric value: "5", "4", etc.
     
     if (!title) {
         alert('Please enter a course title/code.');
         return;
     }
+
+    const scoreVal = document.getElementById('modal-course-score').value.trim();
+    if (scoreVal === '') {
+        alert('Please enter your score (0-100).');
+        return;
+    }
+
+    const score = parseInt(scoreVal);
+    if (isNaN(score) || score < 0 || score > 100) {
+        alert('Please enter a valid score between 0 and 100.');
+        return;
+    }
+
+    const gradeVal = document.getElementById('modal-course-grade').value; // numeric value: "5", "4", etc.
     
     const sem = semesters.find(s => s.id === activeSemesterId);
     if (!sem) return;
