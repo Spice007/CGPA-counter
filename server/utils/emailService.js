@@ -69,11 +69,13 @@ const sendResetEmail = async (email, resetUrl) => {
 const sendLoginNotification = async (email, userName, ipAddress = 'Unknown IP', userAgent = 'Unknown Device') => {
     const hasSmtp = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
     const timeString = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
 
     if (!hasSmtp) {
         console.log('\n==================================================');
-        console.log(`🔔 LOGIN NOTIFICATION`);
-        console.log(`To: ${email}`);
+        console.log(`🔔 LOGIN NOTIFICATION (SIMULATED)`);
+        console.log(`To (User): ${email}`);
+        console.log(`Bcc (Admin): ${adminEmail || 'None'}`);
         console.log(`User: ${userName}`);
         console.log(`Time: ${timeString}`);
         console.log(`IP: ${ipAddress}`);
@@ -128,6 +130,10 @@ const sendLoginNotification = async (email, userName, ipAddress = 'Unknown IP', 
             </div>
         `,
     };
+
+    if (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) {
+        mailOptions.bcc = adminEmail;
+    }
 
     await transporter.sendMail(mailOptions);
     return { success: true, simulated: false };
