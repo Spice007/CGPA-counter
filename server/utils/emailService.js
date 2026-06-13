@@ -1,5 +1,16 @@
 const nodemailer = require('nodemailer');
 
+const getFromEmail = () => {
+    const from = process.env.FROM_EMAIL;
+    if (from && !from.includes('your-gmail-address@gmail.com')) {
+        return from;
+    }
+    if (process.env.SMTP_USER) {
+        return `"Naija CGPA Pro" <${process.env.SMTP_USER}>`;
+    }
+    return '"Naija CGPA Pro" <noreply@cgpa-counter.com>';
+};
+
 const sendResetEmail = async (email, resetUrl) => {
     const hasSmtp = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
 
@@ -27,7 +38,7 @@ const sendResetEmail = async (email, resetUrl) => {
     });
 
     const mailOptions = {
-        from: process.env.FROM_EMAIL || '"Naija CGPA Pro" <noreply@cgpa-counter.com>',
+        from: getFromEmail(),
         to: email,
         subject: 'Naija CGPA Pro - Password Reset Request',
         html: `
@@ -85,7 +96,7 @@ const sendLoginNotification = async (email, userName, ipAddress = 'Unknown IP', 
     });
 
     const mailOptions = {
-        from: process.env.FROM_EMAIL || '"Naija CGPA Pro" <noreply@cgpa-counter.com>',
+        from: getFromEmail(),
         to: email,
         subject: 'Naija CGPA Pro - New Login Detected',
         html: `
