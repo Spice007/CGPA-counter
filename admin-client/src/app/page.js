@@ -62,7 +62,7 @@ const getAPIBase = () => {
   if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
     return "http://localhost:5000/api";
   }
-  return "https://cgpa-counter-production.up.railway.app/api";
+  return "https://cgpa-calculator-backend-a9kj.onrender.com/api";
 };
 
 export default function Dashboard() {

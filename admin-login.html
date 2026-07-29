@@ -87,7 +87,7 @@
             errorMsg.style.display = 'none';
 
             try {
-                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-counter-production.up.railway.app/api';
+                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
                 const res = await fetch(`${apiBase}/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

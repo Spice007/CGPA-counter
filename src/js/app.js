@@ -2,7 +2,7 @@ const getApiBase = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
         return 'http://localhost:5000/api';
     }
-    return 'https://cgpa-counter-production.up.railway.app/api';
+    return 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
 };
 const API_BASE = getApiBase();
 
