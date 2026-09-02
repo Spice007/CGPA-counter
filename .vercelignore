@@ -1,28 +1,30 @@
-# Exclude backend, database, and dev servers
+# Exclude server code (handled by Render)
 server/
+
+# Exclude Next.js admin client (separate deployment)
 client/
 admin-client/
+
+# Exclude local dev data and secrets
 mongodb_data/
 node_modules/
 .git/
 .agents/
+brain/
+scratch/
 
-# Exclude backend helper scripts and bat files
+# Exclude backend utility scripts
+check-users.js
+clear-atlas-db.js
+clear-db-all.js
 create-admin.js
 create-admin-direct.js
 create-superadmin.js
 ensure-admin-user.js
+reset-admin-password.js
+seed-my-account.js
 test-db.js
+test-last-login.js
+serve.js
+migrate.js
 *.bat
-
-# Allow Vercel configs and frontend assets
-!vercel.json
-!index.html
-!login.html
-!signup.html
-!help.html
-!reset-password.html
-!auth-callback.html
-!admin-analytics.html
-!admin-login.html
-!src/
