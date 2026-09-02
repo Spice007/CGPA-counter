@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & User Guide | SpiceCGPA Pro</title>
+    <meta name="description" content="Learn how to use SpiceCGPA Pro — the smart academic tracker built for Nigerian university students.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="src/css/style.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #020617;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* ── Top Nav ── */
+        .help-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .help-nav .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #fff;
+            text-decoration: none;
+        }
+        .help-nav .logo span { color: #10b981; }
+
+        .help-nav .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.2);
+            color: #10b981;
+            padding: 0.5rem 1.1rem;
+            border-radius: 0.6rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .help-nav .back-btn:hover {
+            background: rgba(16,185,129,0.15);
+            transform: translateX(-2px);
+        }
+        .help-nav .back-btn svg { width: 16px; height: 16px; }
+
+        /* ── Hero ── */
+        .help-hero {
+            text-align: center;
+            padding: 5rem 2rem 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .help-hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%);
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .help-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16,185,129,0.06);
+            border: 1px solid rgba(16,185,129,0.18);
+            color: #34d399;
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        .help-badge svg { width: 14px; height: 14px; }
+
+        .help-hero h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+        .help-hero h1 span {
+            background: linear-gradient(135deg, #10b981, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .help-hero p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            max-width: 550px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        /* ── Search ── */
+        .search-wrap {
+            max-width: 480px;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+        .search-wrap input {
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 3rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0.85rem;
+            color: #f8fafc;
+            font-size: 0.95rem;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .search-wrap input::placeholder { color: #475569; }
+        .search-wrap input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+        .search-wrap .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #475569;
+        }
+        .search-wrap .search-icon svg { width: 18px; height: 18px; }
+
+        /* ── Quick Nav Pills ── */
+        .quick-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            padding: 0 2rem 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .quick-nav a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #94a3b8;
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .quick-nav a:hover {
+            background: rgba(16,185,129,0.08);
+            border-color: rgba(16,185,129,0.25);
+            color: #10b981;
+        }
+        .quick-nav a svg { width: 13px; height: 13px; }
+
+        /* ── Main Layout ── */
+        .help-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 2.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 2rem 6rem;
+        }
+
+        /* ── Sidebar TOC ── */
+        .toc {
+            position: sticky;
+            top: 80px;
+            align-self: start;
+        }
+        .toc-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.75rem;
+        }
+        .toc ul { list-style: none; }
+        .toc ul li { margin-bottom: 0.1rem; }
+        .toc ul li a {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 500;
+            padding: 0.45rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        .toc ul li a svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .toc ul li a:hover, .toc ul li a.active {
+            color: #10b981;
+            background: rgba(16,185,129,0.08);
+        }
+
+        /* ── Content ── */
+        .help-content { min-width: 0; }
+
+        .help-section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 90px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .section-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .section-icon svg { width: 22px; height: 22px; }
+        .icon-green { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+        .icon-blue { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+        .icon-gold { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2); }
+        .icon-purple { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.2); }
+        .icon-sky { background: rgba(14,165,233,0.12); color: #38bdf8; border: 1px solid rgba(14,165,233,0.2); }
+        .icon-rose { background: rgba(244,63,94,0.12); color: #fb7185; border: 1px solid rgba(244,63,94,0.2); }
+        .icon-teal { background: rgba(20,184,166,0.12); color: #2dd4bf; border: 1px solid rgba(20,184,166,0.2); }
+
+        .section-header-text h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+        }
+        .section-header-text p {
+            color: #64748b;
+            font-size: 0.88rem;
+            margin: 0.2rem 0 0;
+        }
+
+        .help-content p, .help-content li {
+            color: #94a3b8;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .help-content p { margin-bottom: 1rem; }
+        .help-content strong { color: #e2e8f0; }
+        .help-content h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin: 1.75rem 0 0.75rem;
+        }
+        .help-content ul, .help-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .help-content ul li, .help-content ol li { margin-bottom: 0.4rem; }
+
+        /* ── Cards ── */
+        .info-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .info-card.green { border-color: rgba(16,185,129,0.15); background: rgba(16,185,129,0.04); }
+        .info-card.yellow { border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.04); }
+        .info-card.red { border-color: rgba(244,63,94,0.2); background: rgba(244,63,94,0.04); }
+
+        .info-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.6rem;
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+        .info-card-header svg { width: 16px; height: 16px; }
+        .info-card.green .info-card-header { color: #34d399; }
+        .info-card.yellow .info-card-header { color: #fbbf24; }
+        .info-card.red .info-card-header { color: #fb7185; }
+        .info-card p { margin: 0; font-size: 0.9rem; }
+
+        /* ── Table ── */
+        .help-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0 1.5rem;
+            font-size: 0.9rem;
+        }
+        .help-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: #64748b;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        .help-table td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: #94a3b8;
+            vertical-align: top;
+        }
+        .help-table tr:last-child td { border-bottom: none; }
+        .help-table tr:hover td { background: rgba(255,255,255,0.02); }
+        .help-table td strong { color: #e2e8f0; }
+
+        /* Grade badge */
+        .grade-badge {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            text-align: center;
+            line-height: 28px;
+        }
+        .grade-a { background: rgba(16,185,129,0.15); color: #10b981; }
+        .grade-b { background: rgba(99,102,241,0.15); color: #818cf8; }
+        .grade-c { background: rgba(14,165,233,0.15); color: #38bdf8; }
+        .grade-d { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .grade-e { background: rgba(251,146,60,0.15); color: #fb923c; }
+        .grade-f { background: rgba(244,63,94,0.15); color: #fb7185; }
+
+        /* Steps */
+        .steps { list-style: none; padding: 0; counter-reset: step-counter; }
+        .steps li {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+            counter-increment: step-counter;
+        }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(16,185,129,0.12);
+            border: 1px solid rgba(16,185,129,0.25);
+            color: #10b981;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .step-num::before { content: counter(step-counter); }
+        .steps li p { margin: 0; }
+
+        /* FAQ */
+        .faq-item {
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 0.85rem;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+        .faq-question {
+            width: 100%;
+            background: rgba(255,255,255,0.02);
+            border: none;
+            color: #f1f5f9;
+            padding: 1rem 1.25rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            transition: background 0.2s;
+        }
+        .faq-question:hover { background: rgba(255,255,255,0.04); }
+        .faq-question svg { width: 18px; height: 18px; color: #475569; flex-shrink: 0; transition: transform 0.3s; }
+        .faq-item.open .faq-question svg { transform: rotate(180deg); }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.2s;
+            padding: 0 1.25rem;
+            color: #94a3b8;
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+        .faq-item.open .faq-answer {
+            max-height: 300px;
+            padding: 0 1.25rem 1rem;
+        }
+
+        /* ── Standing badges ── */
+        .standing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .standing-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+        }
+        .standing-card .range {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+        .standing-card .label { font-size: 0.78rem; color: #64748b; font-weight: 500; }
+        .s1 .range { color: #10b981; }
+        .s2 .range { color: #818cf8; }
+        .s3 .range { color: #38bdf8; }
+        .s4 .range { color: #fbbf24; }
+        .s5 .range { color: #fb923c; }
+        .s6 .range { color: #fb7185; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .help-layout { grid-template-columns: 1fr; }
+            .toc { display: none; }
+            .help-hero { padding: 3rem 1.5rem 2rem; }
+            .help-layout { padding: 0 1.25rem 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Top Nav -->
+<nav class="help-nav">
+    <a href="index.html" class="logo">Spice<span>CGPA</span><span>.</span></a>
+    <a href="index.html" class="back-btn">
+        <i data-lucide="arrow-left"></i> Back to App
+    </a>
+</nav>
+
+<!-- Hero -->
+<div class="help-hero">
+    <div class="help-badge">
+        <i data-lucide="life-buoy"></i> Help Centre
+    </div>
+    <h1>How to Use <span>SpiceCGPA Pro</span></h1>
+    <p>Everything you need to know to track your academic journey like a pro. Built for Nigerian university students.</p>
+    <div class="search-wrap">
+        <span class="search-icon"><i data-lucide="search"></i></span>
+        <input type="text" id="help-search" placeholder="Search the guide… e.g. 'add course', 'export PDF'" />
+    </div>
+</div>
+
+<!-- Quick Nav -->
+<div class="quick-nav">
+    <a href="#getting-started"><i data-lucide="rocket"></i> Getting Started</a>
+    <a href="#dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+    <a href="#courses"><i data-lucide="book-open"></i> Courses</a>
+    <a href="#planner"><i data-lucide="calendar"></i> Planner</a>
+    <a href="#resources"><i data-lucide="folder-kanban"></i> Resources</a>
+    <a href="#archives"><i data-lucide="archive"></i> Archives</a>
+    <a href="#profile"><i data-lucide="user"></i> Profile</a>
+    <a href="#settings"><i data-lucide="settings"></i> Settings</a>
+    <a href="#mobile"><i data-lucide="smartphone"></i> Mobile</a>
+    <a href="#faq"><i data-lucide="help-circle"></i> FAQ</a>
+</div>
+
+<!-- Main Layout -->
+<div class="help-layout">
+
+    <!-- TOC -->
+    <aside class="toc" id="toc">
+        <p class="toc-title">On This Page</p>
+        <ul>
+            <li><a href="#getting-started"><i data-lucide="rocket"></i> Getting Started</a></li>
+            <li><a href="#dashboard"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+            <li><a href="#courses"><i data-lucide="book-open"></i> Courses</a></li>
+            <li><a href="#planner"><i data-lucide="calendar"></i> Academic Planner</a></li>
+            <li><a href="#resources"><i data-lucide="folder-kanban"></i> Course Resources</a></li>
+            <li><a href="#archives"><i data-lucide="archive"></i> Semester Archives</a></li>
+            <li><a href="#profile"><i data-lucide="user"></i> Profile</a></li>
+            <li><a href="#settings"><i data-lucide="settings"></i> Advanced Settings</a></li>
+            <li><a href="#mobile"><i data-lucide="smartphone"></i> Mobile Usage</a></li>
+            <li><a href="#faq"><i data-lucide="help-circle"></i> FAQ</a></li>
+        </ul>
+    </aside>
+
+    <!-- Content -->
+    <div class="help-content" id="help-content">
+
+        <!-- Getting Started -->
+        <section class="help-section" id="getting-started">
+            <div class="section-header">
+                <div class="section-icon icon-green"><i data-lucide="rocket"></i></div>
+                <div class="section-header-text">
+                    <h2>Getting Started</h2>
+                    <p>Create your account and log in</p>
+                </div>
+            </div>
+
+            <h3>Sign Up</h3>
+            <p>Visit the <a href="signup.html" style="color:#10b981">Sign Up page</a> and fill in the required details:</p>
+            <table class="help-table">
+                <thead><tr><th>Field</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Full Name</strong></td><td>Your name as it appears on school records</td></tr>
+                    <tr><td><strong>Email Address</strong></td><td>A valid email you have access to</td></tr>
+                    <tr><td><strong>Matric Number</strong></td><td>Your university matriculation number</td></tr>
+                    <tr><td><strong>Faculty</strong></td><td>E.g. Engineering, Sciences, Arts</td></tr>
+                    <tr><td><strong>Department</strong></td><td>E.g. Computer Science, Accounting</td></tr>
+                    <tr><td><strong>Password</strong></td><td>A strong, secure password</td></tr>
+                </tbody>
+            </table>
+            <div class="info-card green">
+                <div class="info-card-header"><i data-lucide="zap"></i> Quick tip</div>
+                <p>Sign up instantly with your <strong>Google account</strong> — just click <strong>"Continue with Google"</strong> and no password is required.</p>
+            </div>
+
+            <h3>Log In</h3>
+            <p>Visit the <a href="login.html" style="color:#10b981">Login page</a>, enter your email and password, then click <strong>"Sign in to your account"</strong>.</p>
+            <ul>
+                <li>Tick <strong>"Remember me"</strong> to stay logged in across sessions.</li>
+                <li>Forgot your password? Click <strong>"Forgot password?"</strong> — a reset link will be sent to your email.</li>
+                <li>You can also log in with <strong>Google</strong> via the Google button.</li>
+            </ul>
+        </section>
+
+        <!-- Dashboard -->
+        <section class="help-section" id="dashboard">
+            <div class="section-header">
+                <div class="section-icon icon-blue"><i data-lucide="layout-dashboard"></i></div>
+                <div class="section-header-text">
+                    <h2>Dashboard</h2>
+                    <p>Your academic headquarters at a glance</p>
+                </div>
+            </div>
+            <p>After logging in, the <strong>Dashboard</strong> is the first screen you see. It gives you an overview of your entire academic performance.</p>
+
+            <h3>Stats Overview</h3>
+            <table class="help-table">
+                <thead><tr><th>Card</th><th>What it shows</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Current CGPA</strong></td><td>Your cumulative GPA across all semesters</td></tr>
+                    <tr><td><strong>Total Units</strong></td><td>Total credit units registered across all semesters</td></tr>
+                    <tr><td><strong>Grade Points</strong></td><td>Total weighted grade points earned</td></tr>
+                    <tr><td><strong>Academic Standing</strong></td><td>Your classification: First Class, Second Class Upper, etc.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Academic Standing Reference</h3>
+            <div class="standing-grid">
+                <div class="standing-card s1"><div class="range">4.50 – 5.00</div><div class="label">First Class</div></div>
+                <div class="standing-card s2"><div class="range">3.50 – 4.49</div><div class="label">Second Class Upper</div></div>
+                <div class="standing-card s3"><div class="range">2.40 – 3.49</div><div class="label">Second Class Lower</div></div>
+                <div class="standing-card s4"><div class="range">1.50 – 2.39</div><div class="label">Third Class</div></div>
+                <div class="standing-card s5"><div class="range">1.00 – 1.49</div><div class="label">Pass</div></div>
+                <div class="standing-card s6"><div class="range">0.00 – 0.99</div><div class="label">Fail / Probation</div></div>
+            </div>
+
+            <h3>Dashboard Actions</h3>
+            <ul>
+                <li><strong>Save PDF</strong> — Export your full academic transcript as a downloadable PDF.</li>
+                <li><strong>Save Image</strong> — Download a screenshot of your dashboard.</li>
+                <li><strong>Toggle Theme</strong> — Switch between dark and light mode.</li>
+                <li><strong>+ New Semester</strong> — Add a new academic semester.</li>
+            </ul>
+        </section>
+
+        <!-- Courses -->
+        <section class="help-section" id="courses">
+            <div class="section-header">
+                <div class="section-icon icon-gold"><i data-lucide="book-open"></i></div>
+                <div class="section-header-text">
+                    <h2>Courses</h2>
+                    <p>Add, edit and manage all your courses</p>
+                </div>
+            </div>
+            <p>The <strong>Courses</strong> section gives you a full list of every course you've registered. All changes sync to the cloud instantly.</p>
+
+            <h3>How to Add a Course</h3>
+            <ol class="steps">
+                <li><div class="step-num"></div><p>Click <strong>"Courses"</strong> in the sidebar (or bottom nav on mobile).</p></li>
+                <li><div class="step-num"></div><p>Click the <strong>"+ Add Course"</strong> button.</p></li>
+                <li><div class="step-num"></div><p>Fill in the <strong>Course Title</strong>, <strong>Course Code</strong>, <strong>Credit Units</strong>, and your <strong>Grade</strong>.</p></li>
+                <li><div class="step-num"></div><p>Select which <strong>Semester</strong> the course belongs to.</p></li>
+                <li><div class="step-num"></div><p>Click <strong>Save</strong>.</p></li>
+            </ol>
+
+            <h3>Nigerian 5-Point Grading Scale</h3>
+            <table class="help-table">
+                <thead><tr><th>Grade</th><th>Points</th><th>Score Range</th><th>Remark</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="grade-badge grade-a">A</span></td><td>5</td><td>70 – 100</td><td>Excellent</td></tr>
+                    <tr><td><span class="grade-badge grade-b">B</span></td><td>4</td><td>60 – 69</td><td>Very Good</td></tr>
+                    <tr><td><span class="grade-badge grade-c">C</span></td><td>3</td><td>50 – 59</td><td>Good</td></tr>
+                    <tr><td><span class="grade-badge grade-d">D</span></td><td>2</td><td>45 – 49</td><td>Fair</td></tr>
+                    <tr><td><span class="grade-badge grade-e">E</span></td><td>1</td><td>40 – 44</td><td>Pass</td></tr>
+                    <tr><td><span class="grade-badge grade-f">F</span></td><td>0</td><td>0 – 39</td><td>Fail</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-card green">
+                <div class="info-card-header"><i data-lucide="smartphone"></i> Mobile tip</div>
+                <p>On mobile, enter your <strong>raw score</strong> (e.g. 75) and the app will automatically calculate and assign the correct letter grade for you.</p>
+            </div>
+        </section>
+
+        <!-- Planner -->
+        <section class="help-section" id="planner">
+            <div class="section-header">
+                <div class="section-icon icon-purple"><i data-lucide="calendar"></i></div>
+                <div class="section-header-text">
+                    <h2>Academic Planner</h2>
+                    <p>Your personal task manager for school activities</p>
+                </div>
+            </div>
+            <p>The <strong>Academic Planner</strong> lets you track assignments, exam dates, and project deadlines in one place.</p>
+            <h3>How to use it</h3>
+            <ul>
+                <li>Click <strong>"+ Add Task"</strong> to create a new task.</li>
+                <li>Enter a <strong>task name</strong>, <strong>due date</strong>, and <strong>priority level</strong> (Low, Medium, or High).</li>
+                <li>Check the checkbox next to a task to mark it as completed.</li>
+                <li>Click the trash icon to delete tasks you no longer need.</li>
+            </ul>
+        </section>
+
+        <!-- Resources -->
+        <section class="help-section" id="resources">
+            <div class="section-header">
+                <div class="section-icon icon-sky"><i data-lucide="folder-kanban"></i></div>
+                <div class="section-header-text">
+                    <h2>Course Resources</h2>
+                    <p>Save links and materials for each course</p>
+                </div>
+            </div>
+            <p>The <strong>Course Resources</strong> section lets you bookmark and organise study materials — textbook PDFs, YouTube videos, past questions, and more.</p>
+            <h3>How to add a resource</h3>
+            <ol class="steps">
+                <li><div class="step-num"></div><p>Click <strong>"+ Add Resource"</strong>.</p></li>
+                <li><div class="step-num"></div><p>Enter a <strong>resource name</strong> (e.g. "MTH 101 Textbook PDF").</p></li>
+                <li><div class="step-num"></div><p>Paste the <strong>URL</strong> — link to the document, video, or website.</p></li>
+                <li><div class="step-num"></div><p>Assign it to a <strong>course</strong>.</p></li>
+                <li><div class="step-num"></div><p>Click <strong>Save</strong>. You can click any resource to open it directly.</p></li>
+            </ol>
+        </section>
+
+        <!-- Archives -->
+        <section class="help-section" id="archives">
+            <div class="section-header">
+                <div class="section-icon icon-teal"><i data-lucide="archive"></i></div>
+                <div class="section-header-text">
+                    <h2>Semester Archives</h2>
+                    <p>Review your historical semester performance</p>
+                </div>
+            </div>
+            <p>The <strong>Semester Archives</strong> is a read-only historical view of all your past semesters.</p>
+            <ul>
+                <li>Each semester card shows its <strong>GPA</strong> and number of courses.</li>
+                <li>A <strong>bar chart</strong> visually compares your GPA across all semesters.</li>
+                <li>Expand each semester card to see all individual courses and their grades.</li>
+            </ul>
+            <div class="info-card yellow">
+                <div class="info-card-header"><i data-lucide="info"></i> Note</div>
+                <p>Archives is a read-only view. To edit courses or grades, go to the <strong>Courses</strong> section.</p>
+            </div>
+        </section>
+
+        <!-- Profile -->
+        <section class="help-section" id="profile">
+            <div class="section-header">
+                <div class="section-icon icon-blue"><i data-lucide="user"></i></div>
+                <div class="section-header-text">
+                    <h2>Profile</h2>
+                    <p>Manage your personal and academic information</p>
+                </div>
+            </div>
+            <table class="help-table">
+                <thead><tr><th>Field</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Full Name</strong></td><td>Your display name across the app</td></tr>
+                    <tr><td><strong>University</strong></td><td>Your university name</td></tr>
+                    <tr><td><strong>Faculty</strong></td><td>Your faculty or college</td></tr>
+                    <tr><td><strong>Department</strong></td><td>Your department</td></tr>
+                    <tr><td><strong>Academic Session</strong></td><td>The current academic year (e.g. 2024/2025)</td></tr>
+                    <tr><td><strong>Matric Number</strong></td><td>Your matriculation number</td></tr>
+                    <tr><td><strong>Profile Picture</strong></td><td>Upload a photo or use your Google profile picture</td></tr>
+                </tbody>
+            </table>
+            <p>Click <strong>"Save Profile"</strong> after making any changes.</p>
+        </section>
+
+        <!-- Settings -->
+        <section class="help-section" id="settings">
+            <div class="section-header">
+                <div class="section-icon icon-purple"><i data-lucide="settings"></i></div>
+                <div class="section-header-text">
+                    <h2>Advanced Settings</h2>
+                    <p>Customise how the app works for you</p>
+                </div>
+            </div>
+            <table class="help-table">
+                <thead><tr><th>Setting</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Grading Scale</strong></td><td>Switch between the Nigerian 5-point and 4-point grading scales</td></tr>
+                    <tr><td><strong>Theme</strong></td><td>Toggle between Dark Mode and Light Mode</td></tr>
+                    <tr><td><strong>Clear All Data</strong></td><td>⚠️ Permanently remove all semesters and courses</td></tr>
+                </tbody>
+            </table>
+            <div class="info-card red">
+                <div class="info-card-header"><i data-lucide="alert-triangle"></i> Warning</div>
+                <p><strong>"Clear All Data"</strong> cannot be undone. Only use it if you want to start completely fresh.</p>
+            </div>
+        </section>
+
+        <!-- Mobile -->
+        <section class="help-section" id="mobile">
+            <div class="section-header">
+                <div class="section-icon icon-sky"><i data-lucide="smartphone"></i></div>
+                <div class="section-header-text">
+                    <h2>Using on Mobile</h2>
+                    <p>SpiceCGPA Pro is fully optimised for phones</p>
+                </div>
+            </div>
+            <ul>
+                <li>Use the <strong>bottom navigation bar</strong> to switch between Dashboard, Courses, Analytics, and Settings.</li>
+                <li>Tap the <strong>☰ menu icon</strong> (top left) to open the full navigation drawer.</li>
+                <li>Tap the <strong>green ➕ floating button</strong> to quickly add a new course from anywhere.</li>
+                <li>Enter your <strong>raw score</strong> (e.g. 75) and the app automatically assigns the correct letter grade.</li>
+                <li>Tap <strong>your profile icon</strong> (top right) to quickly access your profile settings.</li>
+            </ul>
+        </section>
+
+        <!-- FAQ -->
+        <section class="help-section" id="faq">
+            <div class="section-header">
+                <div class="section-icon icon-gold"><i data-lucide="help-circle"></i></div>
+                <div class="section-header-text">
+                    <h2>Frequently Asked Questions</h2>
+                    <p>Quick answers to common questions</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">Is SpiceCGPA Pro free to use? <i data-lucide="chevron-down"></i></button>
+                <div class="faq-answer">Yes! SpiceCGPA Pro is completely free for all Nigerian students.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">Will my data be lost if I log out? <i data-lucide="chevron-down"></i></button>
+                <div class="faq-answer">No. All your courses and grades are saved to a secure cloud database. They'll be there whenever you log back in, on any device.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">Can I use it on my phone? <i data-lucide="chevron-down"></i></button>
+                <div class="faq-answer">Yes! The app is fully responsive and works on all modern smartphones and tablets.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">What if I entered a wrong grade? <i data-lucide="chevron-down"></i></button>
+                <div class="faq-answer">Go to the Courses section, find the course, and click the edit (✏️) icon to correct the grade or any other details.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">Does it support the 4-point grading scale? <i data-lucide="chevron-down"></i></button>
+                <div class="faq-answer">Yes! Go to Advanced Settings and switch from the default 5-point scale to the 4-point scale.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">How do I export my results as PDF? <i data-lucide="chevron-down"></i></button>
+                <div class="faq-answer">From the Dashboard, click the "Save PDF" button in the top-right corner. This will generate and download a full academic transcript as a PDF file.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">Can multiple semesters be tracked? <i data-lucide="chevron-down"></i></button>
+                <div class="faq-answer">Yes! You can add as many semesters as you need. Each semester has its own GPA, and the app calculates your cumulative CGPA across all of them automatically.</div>
+            </div>
+
+        </section>
+
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    // FAQ toggle
+    document.querySelectorAll('.faq-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.parentElement;
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+            if (!isOpen) item.classList.add('open');
+        });
+    });
+
+    // TOC active state on scroll
+    const sections = document.querySelectorAll('.help-section');
+    const tocLinks = document.querySelectorAll('.toc a');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                tocLinks.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+                });
+            }
+        });
+    }, { rootMargin: '-80px 0px -60% 0px' });
+    sections.forEach(s => observer.observe(s));
+
+    // Search filter
+    const searchInput = document.getElementById('help-search');
+    searchInput.addEventListener('input', () => {
+        const q = searchInput.value.toLowerCase().trim();
+        document.querySelectorAll('.help-section').forEach(sec => {
+            sec.style.display = (!q || sec.textContent.toLowerCase().includes(q)) ? '' : 'none';
+        });
+    });
+</script>
+</body>
+</html>
