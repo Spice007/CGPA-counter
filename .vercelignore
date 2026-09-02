@@ -20,6 +20,9 @@ test-db.js
 !index.html
 !login.html
 !signup.html
+!help.html
+!reset-password.html
+!auth-callback.html
 !admin-analytics.html
 !admin-login.html
 !src/
