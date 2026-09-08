@@ -1,11 +1,11 @@
-# Exclude server code (handled by Render)
+# Exclude server code (runs on Render, not Vercel)
 server/
 
-# Exclude Next.js admin client (separate deployment)
+# Exclude Next.js admin client (separate Vercel project)
 client/
 admin-client/
 
-# Exclude local dev data and secrets
+# Exclude local data, secrets, and git internals
 mongodb_data/
 node_modules/
 .git/
@@ -27,4 +27,10 @@ test-db.js
 test-last-login.js
 serve.js
 migrate.js
+render.yaml
 *.bat
+
+# Explicitly allow all frontend assets
+!vercel.json
+!*.html
+!src/
