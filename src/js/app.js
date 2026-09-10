@@ -49,6 +49,9 @@ async function loadData() {
         'Content-Type': 'application/json'
     };
 
+    // Show loading overlay while server wakes up
+    showLoadingOverlay('Connecting to server…');
+
     try {
         // 1. Fetch User Profile
         const profileRes = await fetch(`${API_BASE}/users/profile`, { headers });
@@ -135,12 +138,43 @@ async function loadData() {
         const mobNavItemAdmin = document.getElementById('mobnav-admin');
         if (mobNavItemAdmin) mobNavItemAdmin.style.display = isAdmin ? 'block' : 'none';
         
+        hideLoadingOverlay();
         renderAll();
         loadProfile();
     } catch (err) {
         console.error('Error synchronizing with the database server:', err);
+        showLoadingOverlay('Server is waking up… Please wait a moment.', true);
+        // Auto-retry after 8 seconds
+        setTimeout(() => loadData(), 8000);
     }
 }
+
+function showLoadingOverlay(message, isRetry = false) {
+    let overlay = document.getElementById('loading-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'loading-overlay';
+        overlay.style.cssText = `
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(2,6,23,0.92); backdrop-filter: blur(8px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem;
+        `;
+        document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = `
+        <div style="width:52px;height:52px;border-radius:50%;border:3px solid rgba(16,185,129,0.15);border-top-color:#10b981;animation:spin 0.9s linear infinite;"></div>
+        <p style="color:#94a3b8;font-family:'Inter',sans-serif;font-size:0.95rem;text-align:center;max-width:280px;line-height:1.6;">${message}</p>
+        ${isRetry ? '<p style="color:#475569;font-size:0.8rem;font-family:Inter,sans-serif;">Retrying automatically…</p>' : ''}
+        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    `;
+    overlay.style.display = 'flex';
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
 
 function setupNavigation() {
     const navLinks = document.querySelectorAll('.nav-link');
