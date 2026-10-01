@@ -274,6 +274,10 @@ function setupEventListeners() {
         };
         semesters.push(newSemester);
         renderAll();
+
+        if (typeof window.showMobileToast === 'function') {
+            window.showMobileToast(`${newSemester.name} has been added.`, 'Semester Added! 🎓');
+        }
     });
 
     // Modal Controls

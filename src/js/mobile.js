@@ -689,3 +689,52 @@ function updateMobileChart() {
         }
     });
 }
+
+/* 12. Mobile Toast Notification System */
+window.showMobileToast = window.showToast = function(message, title = 'Notification', type = 'success') {
+    let container = document.getElementById('mobile-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'mobile-toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'mobile-toast';
+
+    const iconSvg = type === 'success' 
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+
+    toast.innerHTML = `
+        <div class="mobile-toast-icon">
+            ${iconSvg}
+        </div>
+        <div class="mobile-toast-content">
+            <h4 class="mobile-toast-title">${title}</h4>
+            <p class="mobile-toast-message">${message}</p>
+        </div>
+        <button class="mobile-toast-close" onclick="this.parentElement.remove()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 350);
+    }, 3500);
+};
+

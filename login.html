@@ -1427,6 +1427,13 @@
             box.classList.add('show');
         };
 
+        // Pre-warm backend on page load so it is ready before submit
+        (function prewarmBackend() {
+            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+            const healthUrl = isLocal ? 'http://localhost:5000/health' : 'https://cgpa-calculator-backend-a9kj.onrender.com/health';
+            fetch(healthUrl).catch(() => {});
+        })();
+
         // Form submission listener
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1436,12 +1443,18 @@
             btn.innerHTML = `
                 <div class="btn-left">
                     <i data-lucide="loader-2" style="animation:spin 1s linear infinite; stroke-width: 2.5px;"></i>
-                    <span>Signing in...</span>
+                    <span id="login-status-text">Signing in...</span>
                 </div>
                 <div style="width: 26px;"></div>
             `;
             btn.disabled = true;
             lucide.createIcons();
+
+            // Dynamic wake-up indicator if server is sleeping on Render
+            const wakeupTimer = setTimeout(() => {
+                const statusSpan = document.getElementById('login-status-text');
+                if (statusSpan) statusSpan.textContent = 'Waking server up...';
+            }, 3000);
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -1455,7 +1468,7 @@
                     body: JSON.stringify({ email, password })
                 });
 
-
+                clearTimeout(wakeupTimer);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1473,6 +1486,7 @@
                     lucide.createIcons();
                 }
             } catch (err) {
+                clearTimeout(wakeupTimer);
                 showLoginError('Cannot reach server. Is the backend running?');
                 btn.innerHTML = origHTML;
                 btn.disabled = false;

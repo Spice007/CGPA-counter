@@ -1198,6 +1198,13 @@
             lucide.createIcons();
         });
 
+        // Pre-warm backend on page load so it is ready before submit
+        (function prewarmBackend() {
+            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+            const healthUrl = isLocal ? 'http://localhost:5000/health' : 'https://cgpa-calculator-backend-a9kj.onrender.com/health';
+            fetch(healthUrl).catch(() => {});
+        })();
+
         // Signup submit logic
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1208,9 +1215,14 @@
             if (pw.length < 6) { showErr('Password must be at least 6 characters.'); return; }
 
             const btn = document.getElementById('signup-btn');
-            btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i></span> <span>Creating account...</span>';
+            btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i></span> <span id="signup-status-text">Creating account...</span>';
             btn.disabled = true;
             lucide.createIcons();
+
+            const wakeupTimer = setTimeout(() => {
+                const statusSpan = document.getElementById('signup-status-text');
+                if (statusSpan) statusSpan.textContent = 'Waking server up...';
+            }, 3000);
 
             const userData = {
                 fullName:     document.getElementById('fullName').value,
@@ -1228,6 +1240,7 @@
                     body: JSON.stringify(userData)
                 });
 
+                clearTimeout(wakeupTimer);
                 const data = await res.json();
                 if (res.ok) {
                     localStorage.setItem('user', JSON.stringify(data));
@@ -1239,6 +1252,7 @@
                     lucide.createIcons();
                 }
             } catch {
+                clearTimeout(wakeupTimer);
                 showErr('Cannot reach server. Is the backend running?');
                 btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="user-check"></i></span> <span>Create My Account</span>';
                 btn.disabled = false;

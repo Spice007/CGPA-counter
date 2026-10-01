@@ -1170,3 +1170,122 @@ body.exporting .main-content {
 body.exporting .app-container {
     display: block !important;
 }
+
+/* Mobile Toast Notifications */
+#mobile-toast-container {
+    position: fixed;
+    top: 74px;
+    left: 16px;
+    right: 16px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.mobile-toast {
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(16, 185, 129, 0.15);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="light"] .mobile-toast {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 0 15px rgba(16, 185, 129, 0.1);
+}
+
+.mobile-toast.show {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.mobile-toast.hide {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+}
+
+.mobile-toast-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.mobile-toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mobile-toast-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #ffffff;
+    margin: 0 0 2px 0;
+    line-height: 1.2;
+}
+
+[data-theme="light"] .mobile-toast-title {
+    color: #0f172a;
+}
+
+.mobile-toast-message {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+[data-theme="light"] .mobile-toast-message {
+    color: #475569;
+}
+
+.mobile-toast-close {
+    background: none;
+    border: none;
+    color: #64748b;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.mobile-toast-close:hover {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 768px) {
+    #mobile-toast-container {
+        top: 24px;
+        right: 24px;
+        left: auto;
+        width: 380px;
+    }
+}
+
+
