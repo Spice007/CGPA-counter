@@ -1327,7 +1327,7 @@ function calculateGradeFromScore(score) {
 }
 
 // PDF Export Logic
-// Professional Off-Screen Academic Transcript PDF Exporter
+// Professional Academic Transcript PDF Exporter
 function exportToPDF() {
     const btn = document.getElementById('export-pdf');
     const mobBtn = document.getElementById('mobile-action-export-pdf');
@@ -1353,21 +1353,46 @@ function exportToPDF() {
 
     const todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    // Create off-screen clean white transcript container
+    // Create Modal Overlay Container to display during compilation
+    const overlay = document.createElement('div');
+    overlay.id = 'pdf-transcript-modal-overlay';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
+    overlay.style.background = 'rgba(15, 23, 42, 0.94)';
+    overlay.style.backdropFilter = 'blur(12px)';
+    overlay.style.zIndex = '999999';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'flex-start';
+    overlay.style.overflowY = 'auto';
+    overlay.style.padding = '40px 20px';
+
+    const modalTitle = document.createElement('div');
+    modalTitle.style.marginBottom = '20px';
+    modalTitle.style.textAlign = 'center';
+    modalTitle.style.color = '#ffffff';
+    modalTitle.innerHTML = `
+        <div style="font-size: 1.25rem; font-weight: 700; font-family: 'Outfit', sans-serif; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            Generating Academic Transcript PDF...
+        </div>
+        <div style="font-size: 0.85rem; color: #94a3b8;">Compiling your grades and progress report</div>
+    `;
+
     const container = document.createElement('div');
     container.id = 'pdf-transcript-temp-container';
-    container.style.position = 'fixed';
-    container.style.left = '0';
-    container.style.top = '0';
-    container.style.width = '790px';
+    container.style.width = '780px';
     container.style.background = '#ffffff';
     container.style.color = '#0f172a';
     container.style.fontFamily = "'Outfit', -apple-system, BlinkMacSystemFont, Arial, sans-serif";
     container.style.padding = '40px';
     container.style.boxSizing = 'border-box';
-    container.style.zIndex = '-999999';
-    container.style.opacity = '0.01';
-    container.style.pointerEvents = 'none';
+    container.style.borderRadius = '12px';
+    container.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
 
     container.innerHTML = `
         <!-- Header -->
@@ -1480,7 +1505,9 @@ function exportToPDF() {
         </div>
     `;
 
-    document.body.appendChild(container);
+    overlay.appendChild(modalTitle);
+    overlay.appendChild(container);
+    document.body.appendChild(overlay);
 
     const opt = {
         margin: [8, 8, 8, 8],
@@ -1491,44 +1518,26 @@ function exportToPDF() {
             useCORS: true,
             logging: false,
             letterRendering: true,
-            scrollX: 0,
-            scrollY: 0,
-            windowWidth: 800,
-            backgroundColor: '#ffffff',
-            onclone: (clonedDoc) => {
-                const target = clonedDoc.getElementById('pdf-transcript-temp-container');
-                if (target) {
-                    target.style.position = 'static';
-                    target.style.left = '0';
-                    target.style.top = '0';
-                    target.style.zIndex = '999999';
-                    target.style.opacity = '1';
-                    target.style.visibility = 'visible';
-
-                    clonedDoc.body.innerHTML = '';
-                    clonedDoc.body.style.background = '#ffffff';
-                    clonedDoc.body.style.margin = '0';
-                    clonedDoc.body.style.padding = '0';
-                    clonedDoc.body.appendChild(target);
-                }
-            }
+            backgroundColor: '#ffffff'
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    html2pdf().set(opt).from(container).save().then(() => {
-        if (container.parentElement) container.remove();
-        if (btn) btn.innerHTML = origBtnHTML;
-        if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
-        if (window.lucide) lucide.createIcons();
-    }).catch(err => {
-        console.error('PDF export failed:', err);
-        if (container.parentElement) container.remove();
-        alert('Failed to export PDF. Please try again.');
-        if (btn) btn.innerHTML = origBtnHTML;
-        if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
-        if (window.lucide) lucide.createIcons();
-    });
+    setTimeout(() => {
+        html2pdf().set(opt).from(container).save().then(() => {
+            if (overlay.parentElement) overlay.remove();
+            if (btn) btn.innerHTML = origBtnHTML;
+            if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
+            if (window.lucide) lucide.createIcons();
+        }).catch(err => {
+            console.error('PDF export failed:', err);
+            if (overlay.parentElement) overlay.remove();
+            alert('Failed to export PDF. Please try again.');
+            if (btn) btn.innerHTML = origBtnHTML;
+            if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
+            if (window.lucide) lucide.createIcons();
+        });
+    }, 200);
 }
 
 // Academic Planner Logic
