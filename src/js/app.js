@@ -1519,9 +1519,6 @@ function exportToPDF() {
             useCORS: true,
             logging: false,
             letterRendering: true,
-            windowWidth: 700,
-            scrollX: 0,
-            scrollY: 0,
             backgroundColor: '#ffffff'
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
