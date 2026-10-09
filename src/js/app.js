@@ -1385,11 +1385,12 @@ function exportToPDF() {
 
     const container = document.createElement('div');
     container.id = 'pdf-transcript-temp-container';
-    container.style.width = '780px';
+    container.style.width = '700px';
+    container.style.margin = '0 auto';
     container.style.background = '#ffffff';
     container.style.color = '#0f172a';
     container.style.fontFamily = "'Outfit', -apple-system, BlinkMacSystemFont, Arial, sans-serif";
-    container.style.padding = '40px';
+    container.style.padding = '36px';
     container.style.boxSizing = 'border-box';
     container.style.borderRadius = '12px';
     container.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.5)';
@@ -1510,7 +1511,7 @@ function exportToPDF() {
     document.body.appendChild(overlay);
 
     const opt = {
-        margin: [8, 8, 8, 8],
+        margin: [10, 10, 10, 10],
         filename: `${name.replace(/\s+/g, '_')}_Academic_Transcript.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
@@ -1518,6 +1519,9 @@ function exportToPDF() {
             useCORS: true,
             logging: false,
             letterRendering: true,
+            windowWidth: 700,
+            scrollX: 0,
+            scrollY: 0,
             backgroundColor: '#ffffff'
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
