@@ -40,6 +40,10 @@ app.get('/', (req, res) => {
     res.send('CGPA Calculator API is running (MongoDB Mode)...');
 });
 
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'UP',
@@ -56,10 +60,35 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 const HOST = '0.0.0.0';
 
+// Self-Ping Keep-Alive to prevent Render Free-Tier Spin Down
+const https = require('https');
+const http = require('http');
+
+const startKeepAlive = () => {
+    const backendUrl = process.env.RENDER_EXTERNAL_URL || 'https://cgpa-calculator-backend-a9kj.onrender.com';
+    const intervalMs = 14 * 60 * 1000; // Ping every 14 minutes (Render sleeps after 15 mins)
+
+    console.log(`🌐 Render Keep-Alive active targeting: ${backendUrl}/ping`);
+
+    setInterval(() => {
+        try {
+            const client = backendUrl.startsWith('https') ? https : http;
+            client.get(`${backendUrl}/ping`, (res) => {
+                console.log(`⚡ [Keep-Alive] Self ping success (${res.statusCode})`);
+            }).on('error', (err) => {
+                console.warn(`⚠️ [Keep-Alive] Ping issue: ${err.message}`);
+            });
+        } catch (err) {
+            console.warn(`⚠️ [Keep-Alive] Ping error: ${err.message}`);
+        }
+    }, intervalMs);
+};
+
 console.log(`Attempting to start server on ${HOST}:${PORT}...`);
 try {
     const server = app.listen(PORT, HOST, () => {
         console.log(`✅ Server successfully running on ${HOST}:${PORT} (MongoDB Mode)`);
+        startKeepAlive();
     });
     
     server.on('error', (error) => {
