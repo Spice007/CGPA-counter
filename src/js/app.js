@@ -1327,59 +1327,186 @@ function calculateGradeFromScore(score) {
 }
 
 // PDF Export Logic
+// Professional Off-Screen Academic Transcript PDF Exporter
 function exportToPDF() {
-    const element = document.querySelector('.main-content');
-    const isMobile = window.innerWidth < 768;
-    const scaleVal = isMobile ? 1.2 : 2;
+    const btn = document.getElementById('export-pdf');
+    const mobBtn = document.getElementById('mobile-action-export-pdf');
+    const origBtnHTML = btn ? btn.innerHTML : '';
+    const origMobHTML = mobBtn ? mobBtn.innerHTML : '';
+
+    if (btn) {
+        btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin" style="width: 16px;"></i> <span>Generating PDF...</span>`;
+        if (window.lucide) lucide.createIcons();
+    }
+    if (mobBtn) mobBtn.innerHTML = 'Generating...';
+
+    const name = (studentProfile && studentProfile.name) || 'Student';
+    const uni = (studentProfile && studentProfile.uni) || 'University';
+    const dept = (studentProfile && studentProfile.department) || 'Academic Record';
+    const session = (studentProfile && studentProfile.session) || '2025/2026';
+    const scaleText = (typeof gradingScale !== 'undefined' ? gradingScale : 5) + '.0 Grading Scale';
+
+    const cgpaVal = document.getElementById('cgpa-display')?.textContent || '0.00';
+    const totalUnitsVal = document.getElementById('total-units-display')?.textContent || '0';
+    const totalPointsVal = parseFloat(document.getElementById('total-points-display')?.textContent || '0').toFixed(1);
+    const standingVal = document.getElementById('standing-display')?.textContent || 'Good Standing';
+
+    const todayStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Create off-screen clean white transcript container
+    const container = document.createElement('div');
+    container.id = 'pdf-transcript-temp-container';
+    container.style.position = 'fixed';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '790px';
+    container.style.background = '#ffffff';
+    container.style.color = '#0f172a';
+    container.style.fontFamily = "'Outfit', -apple-system, BlinkMacSystemFont, Arial, sans-serif";
+    container.style.padding = '40px';
+    container.style.boxSizing = 'border-box';
+    container.style.zIndex = '-9999';
+
+    container.innerHTML = `
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 24px;">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; letter-spacing: -0.02em; font-family: 'Outfit', sans-serif;">OFFICIAL ACADEMIC TRANSCRIPT</h1>
+                <p style="font-size: 13px; color: #64748b; margin: 0; font-weight: 500;">SpiceCGPA Pro • Academic Performance Report</p>
+            </div>
+            <div style="text-align: right;">
+                <span style="display: inline-block; background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; border: 1px solid #a7f3d0; text-transform: uppercase; letter-spacing: 0.05em;">Verified Report</span>
+                <p style="font-size: 11px; color: #94a3b8; margin: 6px 0 0 0;">Date: ${todayStr}</p>
+            </div>
+        </div>
+
+        <!-- Student & Academic Metadata -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px;">
+            <div>
+                <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Student Name</span>
+                <span style="font-size: 16px; font-weight: 800; color: #0f172a;">${name}</span>
+            </div>
+            <div>
+                <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Institution</span>
+                <span style="font-size: 16px; font-weight: 800; color: #0f172a;">${uni}</span>
+            </div>
+            <div>
+                <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Department</span>
+                <span style="font-size: 14px; font-weight: 600; color: #334155;">${dept}</span>
+            </div>
+            <div>
+                <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">Session & Scale</span>
+                <span style="font-size: 14px; font-weight: 600; color: #334155;">${session} • ${scaleText}</span>
+            </div>
+        </div>
+
+        <!-- CGPA & Summary Metrics -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px;">
+            <div style="background: #0f172a; color: #ffffff; padding: 16px; border-radius: 12px; text-align: center;">
+                <div style="font-size: 10px; text-transform: uppercase; opacity: 0.8; font-weight: 700; letter-spacing: 0.05em;">Cumulative CGPA</div>
+                <div style="font-size: 24px; font-weight: 800; color: #34d399; margin-top: 2px;">${cgpaVal}</div>
+            </div>
+            <div style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; text-align: center;">
+                <div style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Academic Standing</div>
+                <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${standingVal}</div>
+            </div>
+            <div style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; text-align: center;">
+                <div style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Total Units</div>
+                <div style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 2px;">${totalUnitsVal} <span style="font-size: 12px; font-weight: 600;">Units</span></div>
+            </div>
+            <div style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; text-align: center;">
+                <div style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Total Points</div>
+                <div style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 2px;">${totalPointsVal} <span style="font-size: 12px; font-weight: 600;">Pts</span></div>
+            </div>
+        </div>
+
+        <!-- Semesters & Courses Breakdown Table -->
+        ${(typeof semesters === 'undefined' || semesters.length === 0) ? `
+            <div style="padding: 40px; text-align: center; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; color: #64748b; font-size: 14px;">
+                No academic semesters recorded.
+            </div>
+        ` : semesters.map(sem => {
+            const semGPA = calculateGPA(sem.courses);
+            const semUnits = sem.courses.reduce((sum, c) => sum + parseInt(c.units || 0), 0);
+            return `
+                <div style="margin-bottom: 24px; page-break-inside: avoid;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: #ffffff; padding: 10px 16px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+                        <span style="font-size: 14px; font-weight: 700; font-family: 'Outfit', sans-serif;">${sem.name}</span>
+                        <div style="font-size: 12px; font-weight: 600; color: #cbd5e1;">
+                            <span style="margin-right: 12px;">Units: <strong style="color: #ffffff;">${semUnits}</strong></span>
+                            GPA: <strong style="color: #34d399; font-size: 13px;">${semGPA}</strong>
+                        </div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-top: none; font-size: 12px;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #475569; text-align: left; font-size: 11px; text-transform: uppercase;">
+                                <th style="padding: 10px 14px; font-weight: 700; width: 20%;">Course Code</th>
+                                <th style="padding: 10px 14px; font-weight: 700;">Course Title</th>
+                                <th style="padding: 10px 14px; font-weight: 700; text-align: center; width: 14%;">Units</th>
+                                <th style="padding: 10px 14px; font-weight: 700; text-align: center; width: 16%;">Grade</th>
+                                <th style="padding: 10px 14px; font-weight: 700; text-align: right; width: 16%;">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sem.courses.length === 0 ? `
+                                <tr>
+                                    <td colspan="5" style="padding: 14px; text-align: center; color: #94a3b8; font-style: italic;">No courses added for this semester.</td>
+                                </tr>
+                            ` : sem.courses.map(course => {
+                                const pts = (parseFloat(course.units || 0) * parseFloat(course.grade || 0)).toFixed(1);
+                                return `
+                                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 10px 14px; font-weight: 700; color: #0f172a; font-family: monospace; font-size: 13px;">${course.code}</td>
+                                        <td style="padding: 10px 14px; color: #334155; font-weight: 500;">${course.title}</td>
+                                        <td style="padding: 10px 14px; text-align: center; color: #475569; font-weight: 600;">${course.units} U</td>
+                                        <td style="padding: 10px 14px; text-align: center; font-weight: 700; color: #059669;">${getGradeLetter(course.grade)} (${course.grade})</td>
+                                        <td style="padding: 10px 14px; text-align: right; font-weight: 700; color: #0f172a;">${pts}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }).join('')}
+
+        <!-- Footer -->
+        <div style="margin-top: 36px; border-top: 1px solid #e2e8f0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #94a3b8;">
+            <div>Generated via SpiceCGPA Pro • Official Student Transcript Sheet</div>
+            <div>Confidential Academic Record</div>
+        </div>
+    `;
+
+    document.body.appendChild(container);
 
     const opt = {
-        margin: [10, 10, 10, 10],
-        filename: 'SpiceCGPA_Report.pdf',
+        margin: [8, 8, 8, 8],
+        filename: `${name.replace(/\s+/g, '_')}_Academic_Transcript.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
-            scale: scaleVal,
+            scale: 2,
             useCORS: true,
             logging: false,
             letterRendering: true,
-            windowWidth: 1200,
-            backgroundColor: getComputedStyle(document.body).backgroundColor,
-            onclone: (clonedDoc) => {
-                // Add exporting class to cloned body so print overrides apply to clone ONLY
-                clonedDoc.body.classList.add('exporting');
-
-                // Ensure hidden sections don't take layout space in the clone
-                const sections = clonedDoc.querySelectorAll('.app-section');
-                sections.forEach(sec => {
-                    if (sec.style.display === 'none') {
-                        sec.style.visibility = 'hidden';
-                        sec.style.height = '0';
-                        sec.style.overflow = 'hidden';
-                    }
-                });
-
-                // Explicitly hide mobile navigation elements in clone
-                const mobHeader = clonedDoc.querySelector('.mobile-top-header');
-                const mobNav = clonedDoc.querySelector('.mobile-bottom-nav');
-                const mobFab = clonedDoc.querySelector('.mobile-fab');
-                if (mobHeader) mobHeader.style.display = 'none';
-                if (mobNav) mobNav.style.display = 'none';
-                if (mobFab) mobFab.style.display = 'none';
-            }
+            windowWidth: 800,
+            backgroundColor: '#ffffff'
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // Show visual loading feedback on mobile button if triggered
-    const mobBtn = document.getElementById('mobile-action-export-pdf');
-    const originalMobContent = mobBtn ? mobBtn.innerHTML : '';
-    if (mobBtn) mobBtn.innerHTML = 'Exporting...';
-
-    html2pdf().set(opt).from(element).save().then(() => {
+    html2pdf().set(opt).from(container).save().then(() => {
+        if (container.parentElement) container.remove();
+        if (btn) btn.innerHTML = origBtnHTML;
         if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
+        if (window.lucide) lucide.createIcons();
     }).catch(err => {
         console.error('PDF export failed:', err);
+        if (container.parentElement) container.remove();
         alert('Failed to export PDF. Please try again.');
+        if (btn) btn.innerHTML = origBtnHTML;
         if (mobBtn) mobBtn.innerHTML = `<div class="action-icon gold"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></div><span>Export PDF</span>`;
+        if (window.lucide) lucide.createIcons();
     });
 }
 
