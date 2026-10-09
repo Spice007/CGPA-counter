@@ -822,70 +822,71 @@
                 <!-- Desktop and Tablet view (Hidden on Mobile) -->
                 <div class="desktop-tablet-settings">
                     <div style="margin-bottom: 2rem;">
-                    <h1 class="font-heading" style="font-size: 2.5rem;">Advanced Settings</h1>
-                    <p style="color: var(--text-secondary);">Customize your SpiceCGPA experience.</p>
-                </div>
-                <div class="glass card" style="max-width: 800px;">
-                    <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                        <!-- University Settings Card -->
-                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--primary); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
-                            <div>
-                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                    <i data-lucide="school" style="width: 32px; height: 32px;"></i>
+                        <h1 class="font-heading" style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.35rem;">Advanced Settings</h1>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem;">Customize and configure your SpiceCGPA experience.</p>
+                    </div>
+                    
+                    <div class="settings-container">
+                        <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+                            <!-- University Settings Card -->
+                            <div class="settings-card">
+                                <div>
+                                    <div class="settings-icon-wrapper">
+                                        <i data-lucide="school" style="width: 26px; height: 26px;"></i>
+                                    </div>
+                                    <h3 class="settings-card-title">University & Session</h3>
+                                    <p class="settings-card-desc">Configure university name, department, and active academic session.</p>
                                 </div>
-                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">University & Session</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Configure university name and current session</p>
+                                <button id="settings-uni-btn" class="btn btn-primary settings-action-btn">
+                                    <i data-lucide="edit-3" style="width: 16px;"></i> Edit Settings
+                                </button>
                             </div>
-                            <button id="settings-uni-btn" class="btn btn-primary" style="width: 100%; border: none;">
-                                <i data-lucide="edit-3" style="width: 18px;"></i> Edit Settings
-                            </button>
-                        </div>
 
-                        <!-- Appearance Card -->
-                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--warning); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
-                            <div>
-                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(245, 158, 11, 0.1); color: var(--warning); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                    <i data-lucide="sun" style="width: 32px; height: 32px;"></i>
+                            <!-- Appearance Card -->
+                            <div class="settings-card theme-card">
+                                <div>
+                                    <div class="settings-icon-wrapper">
+                                        <i data-lucide="sun" style="width: 26px; height: 26px;"></i>
+                                    </div>
+                                    <h3 class="settings-card-title">Appearance</h3>
+                                    <p class="settings-card-desc">Personalize UI interface by switching between light and dark themes.</p>
                                 </div>
-                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">Appearance</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Switch between light and dark themes</p>
+                                <button id="settings-theme-toggle" class="btn btn-outline settings-action-btn">
+                                    <i data-lucide="repeat" style="width: 16px;"></i> Toggle Theme
+                                </button>
                             </div>
-                            <button id="settings-theme-toggle" class="btn btn-primary" style="width: 100%; background: var(--warning); border: none;">
-                                <i data-lucide="repeat" style="width: 18px;"></i> Toggle Theme
-                            </button>
-                        </div>
 
-                        <!-- Data Export Card -->
-                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--info); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
-                            <div>
-                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(14, 165, 233, 0.1); color: var(--info); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                    <i data-lucide="database" style="width: 32px; height: 32px;"></i>
+                            <!-- Data Export Card -->
+                            <div class="settings-card export-card">
+                                <div>
+                                    <div class="settings-icon-wrapper">
+                                        <i data-lucide="database" style="width: 26px; height: 26px;"></i>
+                                    </div>
+                                    <h3 class="settings-card-title">Data Export</h3>
+                                    <p class="settings-card-desc">Export your complete academic performance and course records as a CSV file.</p>
                                 </div>
-                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">Data Export</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Download your entire record as CSV</p>
+                                <button id="settings-export-btn" class="btn btn-outline settings-action-btn">
+                                    <i data-lucide="download" style="width: 16px;"></i> Export Data
+                                </button>
                             </div>
-                            <button id="settings-export-btn" class="btn btn-primary" style="width: 100%; background: var(--info); border: none;">
-                                <i data-lucide="download" style="width: 18px;"></i> Export Data
-                            </button>
-                        </div>
 
-                        <!-- Grading Scale Card -->
-                        <div class="glass-card" style="padding: 1.5rem; text-align: center; border: 2px solid var(--accent); display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
-                            <div>
-                                <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(139, 92, 246, 0.1); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                                    <i data-lucide="award" style="width: 32px; height: 32px;"></i>
+                            <!-- Grading Scale Card -->
+                            <div class="settings-card scale-card">
+                                <div>
+                                    <div class="settings-icon-wrapper">
+                                        <i data-lucide="award" style="width: 26px; height: 26px;"></i>
+                                    </div>
+                                    <h3 class="settings-card-title">Grading Scale</h3>
+                                    <p class="settings-card-desc">Choose between Nigerian 5.0 scale or international 4.0 scale calculation system.</p>
                                 </div>
-                                <h3 class="font-heading" style="margin-bottom: 0.5rem; font-size: 1.15rem;">Grading Scale</h3>
-                                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Choose between 4.0 or 5.0 systems</p>
+                                <select id="settings-scale-select" class="settings-select">
+                                    <option value="5">Nigeria Standard (5.0 Scale)</option>
+                                    <option value="4">International Standard (4.0 Scale)</option>
+                                </select>
                             </div>
-                            <select id="settings-scale-select" class="glass-card" style="width: 100%; padding: 0.75rem; border: none; margin-bottom: 0.5rem;">
-                                <option value="5">Nigeria Standard (5.0 Scale)</option>
-                                <option value="4">International Standard (4.0 Scale)</option>
-                            </select>
                         </div>
                     </div>
-                </div>
-            </div> <!-- End of desktop-tablet-settings -->
+                </div> <!-- End of desktop-tablet-settings -->
 
             <!-- Mobile View (Hidden on Desktop/Tablet) -->
             <div class="mobile-settings">
