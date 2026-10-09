@@ -350,8 +350,10 @@ function setupEventListeners() {
     });
 
     // Exports
-    document.getElementById('export-pdf').addEventListener('click', exportToPDF);
-    document.getElementById('export-image').addEventListener('click', exportToImage);
+    const exportPdfBtn = document.getElementById('export-pdf');
+    if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportToPDF);
+    const exportImageBtn = document.getElementById('export-image');
+    if (exportImageBtn) exportImageBtn.addEventListener('click', exportToImage);
 
     // Settings
     document.getElementById('settings-scale-select').value = gradingScale;

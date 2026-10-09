@@ -322,10 +322,17 @@ function setupQuickActions() {
         if (btn) btn.click();
     });
     
-    document.getElementById('mobile-action-save-image').addEventListener('click', () => {
-        const btn = document.getElementById('export-image');
-        if (btn) btn.click();
-    });
+    const mobSaveImage = document.getElementById('mobile-action-save-image');
+    if (mobSaveImage) {
+        mobSaveImage.addEventListener('click', () => {
+            const btn = document.getElementById('export-image');
+            if (btn) {
+                btn.click();
+            } else if (typeof exportToImage === 'function') {
+                exportToImage();
+            }
+        });
+    }
 }
 
 function handleAddSemesterAction() {

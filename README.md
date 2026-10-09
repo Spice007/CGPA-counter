@@ -61,7 +61,6 @@ A comprehensive full-stack CGPA Calculator application specifically designed for
 
 ### 5. Exporting Results
 - Click **"Save PDF"** on the Dashboard to download a full academic transcript.
-- Click **"Save Image"** to capture and save your dashboard as an image.
 
 > 📖 **Full User Guide** available at [/help.html](https://cgpa-counter-itkv.vercel.app/help.html)
 
