@@ -43,20 +43,52 @@ async function loadData() {
         window.location.href = 'login.html';
         return;
     }
+
+    // 0. Instant Cache-First Load from LocalStorage
+    const cachedProfile = localStorage.getItem('cgpa_profile');
+    if (cachedProfile) {
+        try {
+            studentProfile = { ...studentProfile, ...JSON.parse(cachedProfile) };
+        } catch (e) {}
+    }
+
+    const cachedSemesters = localStorage.getItem('cgpa_semesters');
+    let hasLocalSemesters = false;
+    if (cachedSemesters) {
+        try {
+            const parsed = JSON.parse(cachedSemesters);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                semesters = parsed;
+                hasLocalSemesters = true;
+            }
+        } catch (e) {}
+    }
+
+    // Render local data immediately so user isn't blocked (0ms delay)
+    renderAll();
+    loadProfile();
+
+    // Only show full-screen overlay if NO cached data exists
+    if (!hasLocalSemesters && (!semesters || semesters.length === 0)) {
+        showLoadingOverlay('Connecting to server... (Waking cloud backend, ~15s)');
+    }
+
     const token = user.token;
     const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
     };
 
-    // Show loading overlay while server wakes up
-    showLoadingOverlay('Connecting to server…');
+    // Controller with 10-second timeout to prevent infinite stuck spinner
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     try {
         // 1. Fetch User Profile
-        const profileRes = await fetch(`${API_BASE}/users/profile`, { headers });
+        const profileRes = await fetch(`${API_BASE}/users/profile`, { headers, signal: controller.signal });
         
         if (profileRes.status === 401) {
+            clearTimeout(timeoutId);
             localStorage.removeItem('user');
             window.location.href = 'login.html';
             return;
@@ -64,28 +96,25 @@ async function loadData() {
 
         if (profileRes.ok) {
             const profileData = await profileRes.json();
-            const localProfile = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
-
             studentProfile = {
-                name: profileData.fullName || '',
-                uni: profileData.university || '',
-                session: profileData.academicSession || localProfile.session || '2023/2024',
-                matric: profileData.matricNumber || '',
-                faculty: profileData.faculty || '',
-                department: profileData.department || '',
-                profilePicture: profileData.profilePicture || ''
+                name: profileData.fullName || studentProfile.name || '',
+                uni: profileData.university || studentProfile.uni || '',
+                session: profileData.academicSession || studentProfile.session || '2023/2024',
+                matric: profileData.matricNumber || studentProfile.matric || '',
+                faculty: profileData.faculty || studentProfile.faculty || '',
+                department: profileData.department || studentProfile.department || '',
+                profilePicture: profileData.profilePicture || studentProfile.profilePicture || ''
             };
-            
-            // Persist the synced configuration
             localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
         }
 
         // 2. Fetch Saved Courses from Database
-        const coursesRes = await fetch(`${API_BASE}/courses`, { headers });
+        const coursesRes = await fetch(`${API_BASE}/courses`, { headers, signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (coursesRes.ok) {
             const coursesData = await coursesRes.json();
             
-            // Reconstruct semesters array from backend courses grouped by session and semester
             const grouped = {};
             coursesData.forEach(c => {
                 const key = `${c.session} - ${c.semester}`;
@@ -97,7 +126,6 @@ async function loadData() {
                     };
                 }
                 
-                // Map letter grade back to numeric grade point for local calculations
                 const gradePointMap = { 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0 };
                 const numericGrade = c.gradePoint !== undefined ? c.gradePoint : (gradePointMap[c.grade.toUpperCase()] || 0);
 
@@ -109,28 +137,22 @@ async function loadData() {
                     grade: numericGrade
                 });
             });
-            // Preserve local empty semesters that haven't been saved to DB yet
-            const emptyLocalSemesters = semesters.filter(s => s.courses.length === 0 && s.id.toString().startsWith('temp_'));
-            
-            semesters = Object.values(grouped);
-            
-            emptyLocalSemesters.forEach(emptySem => {
-                if (!semesters.find(s => s.name === emptySem.name)) {
-                    semesters.push(emptySem);
-                }
-            });
-            
-            semesters.sort((a, b) => {
-                const yearA = parseInt(a.name.split('/')[0]) || 0;
-                const yearB = parseInt(b.name.split('/')[0]) || 0;
-                if (yearA !== yearB) return yearA - yearB;
-                const isFirstA = a.name.includes('First') || a.name.includes('1st') ? 0 : 1;
-                const isFirstB = b.name.includes('First') || b.name.includes('1st') ? 0 : 1;
-                return isFirstA - isFirstB;
-            });
+
+            if (Object.keys(grouped).length > 0) {
+                semesters = Object.values(grouped);
+                semesters.sort((a, b) => {
+                    const yearA = parseInt(a.name.split('/')[0]) || 0;
+                    const yearB = parseInt(b.name.split('/')[0]) || 0;
+                    if (yearA !== yearB) return yearA - yearB;
+                    const isFirstA = a.name.includes('First') || a.name.includes('1st') ? 0 : 1;
+                    const isFirstB = b.name.includes('First') || b.name.includes('1st') ? 0 : 1;
+                    return isFirstA - isFirstB;
+                });
+                localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+            }
         }
         
-        // 3. Check if user is a known admin by email
+        // 3. Admin check
         const ADMIN_EMAILS = ['gideonlastgids@gmail.com'];
         const isAdmin = user && ADMIN_EMAILS.includes(user.email);
         const navItemAdmin = document.getElementById('nav-item-admin');
@@ -142,10 +164,11 @@ async function loadData() {
         renderAll();
         loadProfile();
     } catch (err) {
-        console.error('Error synchronizing with the database server:', err);
-        showLoadingOverlay('Server is waking up… Please wait a moment.', true);
-        // Auto-retry after 8 seconds
-        setTimeout(() => loadData(), 8000);
+        clearTimeout(timeoutId);
+        console.error('Error or timeout synchronizing with database server:', err);
+        hideLoadingOverlay();
+        renderAll();
+        loadProfile();
     }
 }
 
