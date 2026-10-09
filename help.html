@@ -819,6 +819,9 @@
 <script>
     lucide.createIcons();
 
+    // Smooth scroll
+    document.documentElement.style.scrollBehavior = 'smooth';
+
     // FAQ toggle
     document.querySelectorAll('.faq-question').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -832,16 +835,30 @@
     // TOC active state on scroll
     const sections = document.querySelectorAll('.help-section');
     const tocLinks = document.querySelectorAll('.toc a');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                tocLinks.forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
-                });
+    
+    window.addEventListener('scroll', () => {
+        let current = '';
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            if (pageYOffset >= (sectionTop - 150)) {
+                current = section.getAttribute('id');
             }
         });
-    }, { rootMargin: '-80px 0px -60% 0px' });
-    sections.forEach(s => observer.observe(s));
+        
+        // If at bottom of page, force the last section to be active
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+            current = sections[sections.length - 1].getAttribute('id');
+        }
+
+        tocLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + current) {
+                link.classList.add('active');
+            }
+        });
+    });
 
     // Search filter
     const searchInput = document.getElementById('help-search');
