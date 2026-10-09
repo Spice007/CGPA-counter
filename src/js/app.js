@@ -1,16 +1,19 @@
 const API_BASE = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
 
 
-let semesters = [];
+const savedUser = JSON.parse(localStorage.getItem('user')) || {};
 let studentProfile = JSON.parse(localStorage.getItem('cgpa_profile')) || { 
-    name: '', 
-    uni: '',
+    name: savedUser.fullName || savedUser.name || '', 
+    uni: savedUser.university || '',
     session: '2023/2024',
     matric: '',
     faculty: '',
     department: '',
     profilePicture: ''
 };
+if (!studentProfile.name && (savedUser.fullName || savedUser.name)) {
+    studentProfile.name = savedUser.fullName || savedUser.name;
+}
 let activeSemesterId = null;
 let cgpaChart = null;
 let archiveChart = null;
@@ -1119,8 +1122,9 @@ function loadProfile() {
     const dashWelcome = document.getElementById('dashboard-welcome');
     const dashUni = document.getElementById('dashboard-uni-info');
     if (dashWelcome) {
-        const firstName = (studentProfile.name || '').split(' ')[0] || 'Student';
-        dashWelcome.innerHTML = `Welcome back, ${firstName} 👋`;
+        const rawName = studentProfile.name || savedUser.fullName || savedUser.name || '';
+        const firstName = rawName.split(' ')[0];
+        dashWelcome.innerHTML = firstName ? `Welcome back, ${firstName} 👋` : `Welcome back 👋`;
     }
     if (dashUni) {
         const uniPart = studentProfile.uni ? studentProfile.uni : 'Set your university';

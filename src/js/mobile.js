@@ -84,15 +84,16 @@ function updateWelcomeCard() {
     
     if (greetingEl) greetingEl.textContent = greet;
     
-    const profileName = studentProfile.name || 'Student';
+    const mobSavedUser = JSON.parse(localStorage.getItem('user')) || {};
+    const profileName = studentProfile.name || mobSavedUser.fullName || mobSavedUser.name || 'Student';
     if (nameEl) nameEl.textContent = profileName;
     if (drawerName) drawerName.textContent = profileName;
     
     const profileUni = studentProfile.uni || 'Your University';
     if (drawerUni) drawerUni.textContent = profileUni;
     
-    if (deptEl) deptEl.textContent = studentProfile.department || 'Computer Science';
-    if (sessionEl) sessionEl.textContent = (studentProfile.session || '2023/2024') + ' Session';
+    if (deptEl) deptEl.textContent = studentProfile.department || 'Department';
+    if (sessionEl) sessionEl.textContent = (studentProfile.session || 'Academic') + ' Session';
     
     const initials = profileName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'S';
     
