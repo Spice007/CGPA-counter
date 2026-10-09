@@ -2,18 +2,24 @@ const API_BASE = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
 
 
 const savedUser = JSON.parse(localStorage.getItem('user')) || {};
-let studentProfile = JSON.parse(localStorage.getItem('cgpa_profile')) || { 
-    name: savedUser.fullName || savedUser.name || '', 
-    uni: savedUser.university || '',
-    session: '2023/2024',
-    matric: '',
-    faculty: '',
-    department: '',
-    profilePicture: ''
+let cachedProfileData = {};
+try {
+    cachedProfileData = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
+} catch(e) {}
+
+let studentProfile = {
+    name: cachedProfileData.name || savedUser.fullName || savedUser.name || '',
+    uni: cachedProfileData.uni || savedUser.university || '',
+    session: cachedProfileData.session || '2023/2024',
+    matric: cachedProfileData.matric || savedUser.matricNumber || '',
+    faculty: cachedProfileData.faculty || savedUser.faculty || '',
+    department: cachedProfileData.department || savedUser.department || '',
+    profilePicture: cachedProfileData.profilePicture || ''
 };
 if (!studentProfile.name && (savedUser.fullName || savedUser.name)) {
     studentProfile.name = savedUser.fullName || savedUser.name;
 }
+
 let activeSemesterId = null;
 let cgpaChart = null;
 let archiveChart = null;
@@ -51,7 +57,11 @@ async function loadData() {
     const cachedProfile = localStorage.getItem('cgpa_profile');
     if (cachedProfile) {
         try {
-            studentProfile = { ...studentProfile, ...JSON.parse(cachedProfile) };
+            const parsed = JSON.parse(cachedProfile);
+            studentProfile = { ...studentProfile, ...parsed };
+            if (!studentProfile.name && (user.fullName || user.name)) {
+                studentProfile.name = user.fullName || user.name;
+            }
         } catch (e) {}
     }
 
@@ -1122,8 +1132,9 @@ function loadProfile() {
     const dashWelcome = document.getElementById('dashboard-welcome');
     const dashUni = document.getElementById('dashboard-uni-info');
     if (dashWelcome) {
-        const rawName = studentProfile.name || savedUser.fullName || savedUser.name || '';
-        const firstName = rawName.split(' ')[0];
+        const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+        const rawName = studentProfile.name || currentUser.fullName || currentUser.name || (currentUser.email ? currentUser.email.split('@')[0] : '');
+        const firstName = rawName.trim().split(' ')[0];
         dashWelcome.innerHTML = firstName ? `Welcome back, ${firstName} 👋` : `Welcome back 👋`;
     }
     if (dashUni) {
