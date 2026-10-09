@@ -1219,11 +1219,6 @@
             btn.disabled = true;
             lucide.createIcons();
 
-            const wakeupTimer = setTimeout(() => {
-                const statusSpan = document.getElementById('signup-status-text');
-                if (statusSpan) statusSpan.textContent = 'Waking server up...';
-            }, 3000);
-
             const userData = {
                 fullName:     document.getElementById('fullName').value,
                 email:        document.getElementById('email').value,

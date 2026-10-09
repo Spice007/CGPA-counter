@@ -1450,12 +1450,6 @@
             btn.disabled = true;
             lucide.createIcons();
 
-            // Dynamic wake-up indicator if server is sleeping on Render
-            const wakeupTimer = setTimeout(() => {
-                const statusSpan = document.getElementById('login-status-text');
-                if (statusSpan) statusSpan.textContent = 'Waking server up...';
-            }, 3000);
-
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const remember = document.getElementById('remember-me').checked;

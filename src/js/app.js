@@ -68,11 +68,6 @@ async function loadData() {
     renderAll();
     loadProfile();
 
-    // Only show full-screen overlay if NO cached data exists
-    if (!hasLocalSemesters && (!semesters || semesters.length === 0)) {
-        showLoadingOverlay('Connecting to server... (Waking cloud backend, ~15s)');
-    }
-
     const token = user.token;
     const headers = {
         'Authorization': `Bearer ${token}`,
