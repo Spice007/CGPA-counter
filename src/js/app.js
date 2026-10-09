@@ -1357,7 +1357,7 @@ function exportToPDF() {
     const container = document.createElement('div');
     container.id = 'pdf-transcript-temp-container';
     container.style.position = 'fixed';
-    container.style.left = '-9999px';
+    container.style.left = '0';
     container.style.top = '0';
     container.style.width = '790px';
     container.style.background = '#ffffff';
@@ -1365,7 +1365,9 @@ function exportToPDF() {
     container.style.fontFamily = "'Outfit', -apple-system, BlinkMacSystemFont, Arial, sans-serif";
     container.style.padding = '40px';
     container.style.boxSizing = 'border-box';
-    container.style.zIndex = '-9999';
+    container.style.zIndex = '-999999';
+    container.style.opacity = '0.01';
+    container.style.pointerEvents = 'none';
 
     container.innerHTML = `
         <!-- Header -->
@@ -1415,7 +1417,7 @@ function exportToPDF() {
                 <div style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 2px;">${totalUnitsVal} <span style="font-size: 12px; font-weight: 600;">Units</span></div>
             </div>
             <div style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 16px; border-radius: 12px; text-align: center;">
-                <div style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Total Points</div>
+                <div style="font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em;">Total Grade Points</div>
                 <div style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 2px;">${totalPointsVal} <span style="font-size: 12px; font-weight: 600;">Pts</span></div>
             </div>
         </div>
@@ -1489,8 +1491,27 @@ function exportToPDF() {
             useCORS: true,
             logging: false,
             letterRendering: true,
+            scrollX: 0,
+            scrollY: 0,
             windowWidth: 800,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            onclone: (clonedDoc) => {
+                const target = clonedDoc.getElementById('pdf-transcript-temp-container');
+                if (target) {
+                    target.style.position = 'static';
+                    target.style.left = '0';
+                    target.style.top = '0';
+                    target.style.zIndex = '999999';
+                    target.style.opacity = '1';
+                    target.style.visibility = 'visible';
+
+                    clonedDoc.body.innerHTML = '';
+                    clonedDoc.body.style.background = '#ffffff';
+                    clonedDoc.body.style.margin = '0';
+                    clonedDoc.body.style.padding = '0';
+                    clonedDoc.body.appendChild(target);
+                }
+            }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
