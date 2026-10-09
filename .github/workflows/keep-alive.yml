@@ -1,0 +1,16 @@
+name: Render Keep-Alive Service
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # Pings every 10 minutes to prevent Render 15-minute sleep
+  workflow_dispatch:
+
+jobs:
+  ping-backend:
+    name: Ping Render Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP Ping to Render Backend
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://cgpa-calculator-backend-a9kj.onrender.com/ping)
+          echo "Render server ping returned status: $response"
