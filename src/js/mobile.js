@@ -364,6 +364,11 @@ function setupDrawer() {
     
     document.querySelectorAll('.drawer-link').forEach(link => {
         link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href && href !== '#' && !href.startsWith('javascript:')) {
+                closeDrawer();
+                return; // Allow standard page navigation (e.g. help.html)
+            }
             e.preventDefault();
             closeDrawer();
             

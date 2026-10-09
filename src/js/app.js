@@ -240,9 +240,15 @@ function setupNavigation() {
     // Attach listeners to sidebar links
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href && href !== '#' && !href.startsWith('javascript:')) {
+                return; // Allow standard page navigation (e.g., help.html)
+            }
             e.preventDefault();
-            const targetId = link.id.replace('nav-', 'section-');
-            switchSection(targetId);
+            if (link.id) {
+                const targetId = link.id.replace('nav-', 'section-');
+                switchSection(targetId);
+            }
         });
     });
 

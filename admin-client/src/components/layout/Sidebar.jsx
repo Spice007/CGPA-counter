@@ -3,7 +3,7 @@ import {
   LayoutDashboard, TableProperties, Users, FileSignature,
   BookOpen, Calendar, LineChart, Trophy, FileText,
   Settings, LogOut, ChevronRight, ArrowDownUp, Shield,
-  HardDrive, CheckCircle2, GraduationCap, School,
+  HardDrive, CheckCircle2, GraduationCap, School, HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -19,6 +19,7 @@ const navItems = [
   { label: "Rankings", icon: Trophy, href: "/rankings" },
   { label: "Reports", icon: FileText, href: "/reports" },
   { label: "Import/Export", icon: ArrowDownUp, href: "/import-export", expandable: true },
+  { label: "Help & Guide", icon: HelpCircle, href: "/help.html" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
