@@ -85,7 +85,8 @@ function updateWelcomeCard() {
     if (greetingEl) greetingEl.textContent = greet;
     
     const mobSavedUser = JSON.parse(localStorage.getItem('user')) || {};
-    const profileName = studentProfile.name || mobSavedUser.fullName || mobSavedUser.name || 'Student';
+    const rawMobName = studentProfile.name || mobSavedUser.fullName || mobSavedUser.name || (mobSavedUser.email ? mobSavedUser.email.split('@')[0] : 'Student');
+    const profileName = rawMobName.charAt(0).toUpperCase() + rawMobName.slice(1);
     if (nameEl) nameEl.textContent = profileName;
     if (drawerName) drawerName.textContent = profileName;
     

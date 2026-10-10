@@ -105,7 +105,7 @@ async function loadData() {
         if (profileRes.ok) {
             const profileData = await profileRes.json();
             studentProfile = {
-                name: profileData.fullName || studentProfile.name || '',
+                name: profileData.fullName || profileData.name || studentProfile.name || '',
                 uni: profileData.university || studentProfile.uni || '',
                 session: profileData.academicSession || studentProfile.session || '2023/2024',
                 matric: profileData.matricNumber || studentProfile.matric || '',
@@ -114,6 +114,7 @@ async function loadData() {
                 profilePicture: profileData.profilePicture || studentProfile.profilePicture || ''
             };
             localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
+            loadProfile(); // Update header greeting immediately with fetched server profile name
         }
 
         // 2. Fetch Saved Courses from Database
@@ -1134,8 +1135,13 @@ function loadProfile() {
     if (dashWelcome) {
         const currentUser = JSON.parse(localStorage.getItem('user')) || {};
         const rawName = studentProfile.name || currentUser.fullName || currentUser.name || (currentUser.email ? currentUser.email.split('@')[0] : '');
-        const firstName = rawName.trim().split(' ')[0];
-        dashWelcome.innerHTML = firstName ? `Welcome back, ${firstName} 👋` : `Welcome back 👋`;
+        let firstName = rawName ? rawName.trim().split(' ')[0] : '';
+        if (firstName) {
+            firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+            dashWelcome.innerHTML = `Welcome back, ${firstName} 👋`;
+        } else {
+            dashWelcome.innerHTML = `Welcome back 👋`;
+        }
     }
     if (dashUni) {
         const uniPart = studentProfile.uni ? studentProfile.uni : 'Set your university';
