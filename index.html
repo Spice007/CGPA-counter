@@ -189,6 +189,28 @@
                     <h1 id="dashboard-welcome" class="font-heading animate-fade-in" style="font-size: 2.2rem; margin-bottom: 0.25rem; font-weight: 800; letter-spacing: -0.02em;">Welcome back 👋</h1>
                     <p id="dashboard-uni-info" style="color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;">Academic Session</p>
                 </div>
+                <script>
+                    (function() {
+                        try {
+                            var u = JSON.parse(localStorage.getItem('user')) || {};
+                            var p = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
+                            var name = p.name || u.fullName || u.name || (u.email ? u.email.split('@')[0] : '');
+                            if (name) {
+                                var f = name.trim().split(' ')[0];
+                                f = f.charAt(0).toUpperCase() + f.slice(1);
+                                var el = document.getElementById('dashboard-welcome');
+                                if (el) el.innerHTML = 'Welcome back, ' + f + ' 👋';
+                            }
+                            var uni = p.uni || u.university || '';
+                            var sess = p.session || '2023/2024';
+                            var uniEl = document.getElementById('dashboard-uni-info');
+                            if (uniEl) {
+                                var uniStr = uni ? uni : 'Set your university';
+                                uniEl.innerHTML = '<span style="color: #10b981; font-weight: 600;">' + uniStr + '</span><span style="color: #64748b;"> · ' + sess + ' Session</span>';
+                            }
+                        } catch(e) {}
+                    })();
+                </script>
                 
                 <div style="display: flex; gap: 0.75rem; align-items: center; margin-left: auto;">
                     <button id="theme-toggle" class="btn btn-outline" style="border-radius: 0.75rem;">
@@ -409,6 +431,24 @@
                         <div class="mobile-welcome-session" id="mobile-student-session">Academic Session</div>
                     </div>
                 </div>
+                <script>
+                    (function() {
+                        try {
+                            var u = JSON.parse(localStorage.getItem('user')) || {};
+                            var p = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
+                            var rawName = p.name || u.fullName || u.name || (u.email ? u.email.split('@')[0] : 'Student');
+                            var full = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+                            var nameEl = document.getElementById('mobile-student-name');
+                            if (nameEl) nameEl.textContent = full;
+                            var avEl = document.getElementById('mobile-welcome-avatar');
+                            if (avEl) avEl.textContent = full.charAt(0).toUpperCase();
+                            var deptEl = document.getElementById('mobile-student-dept');
+                            if (deptEl) deptEl.textContent = p.department || u.department || 'Department';
+                            var sessEl = document.getElementById('mobile-student-session');
+                            if (sessEl) sessEl.textContent = (p.session || '2023/2024') + ' Session';
+                        } catch(e) {}
+                    })();
+                </script>
 
                 <!-- KPI Cards Carousel -->
                 <div class="mobile-carousel-container">
