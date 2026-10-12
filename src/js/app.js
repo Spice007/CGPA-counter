@@ -1,4 +1,53 @@
-const API_BASE = localStorage.getItem('apiBase') || 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+const CLOUD_API_BASE = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+const LOCAL_API_BASE = 'http://localhost:5000/api';
+
+function resolveApiBase() {
+    if (window.location.protocol === 'https:') {
+        return CLOUD_API_BASE;
+    }
+    const saved = localStorage.getItem('apiBase');
+    if (saved && typeof saved === 'string' && saved.startsWith('http')) {
+        return saved;
+    }
+    // Default to cloud so local file:// or static server loads real courses and data immediately
+    return CLOUD_API_BASE;
+}
+let API_BASE = resolveApiBase();
+
+// Resilient API Fetch Helper with automatic cloud fallback
+async function apiFetch(endpoint, options = {}) {
+    const url = `${API_BASE}${endpoint}`;
+    try {
+        const res = await fetch(url, options);
+        return res;
+    } catch (err) {
+        if (API_BASE !== CLOUD_API_BASE) {
+            console.warn(`[API] Local backend unreachable (${API_BASE}). Falling back to Cloud API: ${CLOUD_API_BASE}`);
+            API_BASE = CLOUD_API_BASE;
+            localStorage.setItem('apiBase', CLOUD_API_BASE);
+            return await fetch(`${CLOUD_API_BASE}${endpoint}`, options);
+        }
+        throw err;
+    }
+}
+
+// Background probe for local development server
+(async function probeLocalBackend() {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
+        try {
+            const ctrl = new AbortController();
+            const tm = setTimeout(() => ctrl.abort(), 1200);
+            const res = await fetch('http://localhost:5000/health', { signal: ctrl.signal });
+            clearTimeout(tm);
+            if (res.ok) {
+                API_BASE = LOCAL_API_BASE;
+                localStorage.setItem('apiBase', LOCAL_API_BASE);
+            }
+        } catch (e) {
+            // Local server not running; API_BASE stays on CLOUD_API_BASE
+        }
+    }
+})();
 
 
 const savedUser = JSON.parse(localStorage.getItem('user')) || {};
@@ -93,7 +142,7 @@ async function loadData() {
 
     try {
         // 1. Fetch User Profile
-        const profileRes = await fetch(`${API_BASE}/users/profile`, { headers, signal: controller.signal });
+        const profileRes = await apiFetch(`/users/profile`, { headers, signal: controller.signal });
         
         if (profileRes.status === 401) {
             clearTimeout(timeoutId);
@@ -118,7 +167,7 @@ async function loadData() {
         }
 
         // 2. Fetch Saved Courses from Database
-        const coursesRes = await fetch(`${API_BASE}/courses`, { headers, signal: controller.signal });
+        const coursesRes = await apiFetch(`/courses`, { headers, signal: controller.signal });
         clearTimeout(timeoutId);
 
         if (coursesRes.ok) {
@@ -966,11 +1015,11 @@ async function saveCourse() {
     const saveBtn = document.getElementById('modal-save');
     const originalText = saveBtn ? saveBtn.innerText : 'Save Course';
     if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.innerText = 'Saving...';
+        saveBtn.disabled = false;
+        saveBtn.innerText = originalText;
     }
 
-    // Close the modal immediately so it "leaves"
+    // Close the modal immediately
     closeModal();
 
     let session = studentProfile.session || '2023/2024';
@@ -990,85 +1039,97 @@ async function saveCourse() {
     const gradeMap = { "5": "A", "4": "B", "3": "C", "2": "D", "1": "E", "0": "F" };
     const gradeLetter = gradeMap[gradeVal] || "A";
 
+    // 1. Instant Optimistic UI Update (0ms delay - Blazing fast)
+    const tempCourseId = `temp_${Date.now()}`;
+    const newCourseObj = {
+        id: tempCourseId,
+        title: title,
+        code: title.toUpperCase(),
+        units: Number(units),
+        grade: Number(gradeVal)
+    };
+
+    sem.courses.push(newCourseObj);
+    localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+    renderAll();
+    calculateStats();
+
+    if (typeof window.showMobileToast === 'function') {
+        window.showMobileToast(`${title.toUpperCase()} added!`, 'Course Saved 🎓');
+    }
+
+    // 2. Background Server Sync (Non-blocking)
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user ? user.token : '';
-    
-    try {
-        const response = await fetch(`${API_BASE}/courses`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                title: title,
-                code: title.toUpperCase(),
-                unit: Number(units),
-                grade: gradeLetter,
-                semester: semester,
-                session: session
-            })
-        });
 
-        if (response.ok) {
-            // Trigger calculation snapshot
-            await fetch(`${API_BASE}/results/calculate`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ session, semester })
-            });
+    if (token) {
+        (async () => {
+            try {
+                const response = await apiFetch(`/courses`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        code: title.toUpperCase(),
+                        unit: Number(units),
+                        grade: gradeLetter,
+                        semester: semester,
+                        session: session
+                    })
+                });
 
-            await loadData(); // Sync backend state
-        } else {
-            const errData = await response.json();
-            alert('Failed to save course: ' + (errData.message || 'Unknown error'));
-        }
-    } catch (err) {
-        console.error('Error saving course to MongoDB:', err);
-        alert('Server error saving course.');
-    } finally {
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.innerText = originalText;
-        }
+                if (response.ok) {
+                    const serverCourse = await response.json();
+                    if (serverCourse && (serverCourse._id || serverCourse.id)) {
+                        newCourseObj.id = serverCourse._id || serverCourse.id;
+                        localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+                    }
+                    // Trigger calculation snapshot in background
+                    apiFetch(`/results/calculate`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ session, semester })
+                    }).catch(() => {});
+                }
+            } catch (err) {
+                console.warn('Course saved locally; backend sync deferred:', err.message);
+            }
+        })();
     }
 }
 
 async function deleteSemester(id) {
-    if (confirm('Delete this semester? Note: This deletes courses under it on the server.')) {
-        const sem = semesters.find(s => s.id === id);
-        if (!sem) return;
+    if (!confirm('Delete this semester? Note: This deletes courses under it.')) return;
+    const sem = semesters.find(s => s.id === id);
+    if (!sem) return;
 
-        if (sem.id.toString().startsWith('temp_') && sem.courses.length === 0) {
-            semesters = semesters.filter(s => s.id !== id);
-            renderAll();
-            return;
-        }
+    const coursesToDelete = [...sem.courses];
 
-        const user = JSON.parse(localStorage.getItem('user'));
-        const token = user ? user.token : '';
+    // 1. Instant Optimistic UI Update (0ms delay)
+    semesters = semesters.filter(s => s.id !== id);
+    localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+    renderAll();
+    calculateStats();
 
-        try {
-            // Delete all courses matching this session and semester
-            let session = studentProfile.session || '2023/2024';
-            let semester = 'First';
-            if (sem.name.includes('Semester 2') || sem.name.includes('Second')) semester = 'Second';
-            const parts = sem.name.split(' - ');
-            if (parts.length > 1 && parts[0].includes('/')) session = parts[0];
+    // 2. Background Server Sync (Non-blocking)
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = user ? user.token : '';
 
-            for (const c of sem.courses) {
-                await fetch(`${API_BASE}/courses/${c.id}`, {
+    if (token) {
+        for (const c of coursesToDelete) {
+            const courseId = c.id || c._id;
+            if (courseId && !courseId.toString().startsWith('temp_')) {
+                apiFetch(`/courses/${courseId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
-                });
+                }).catch(() => {});
             }
-
-            await loadData();
-        } catch (err) {
-            console.error('Error deleting semester:', err);
         }
     }
 }
@@ -1076,34 +1137,30 @@ async function deleteSemester(id) {
 async function deleteCourse(semId, courseId) {
     if (!confirm('Are you sure you want to delete this course?')) return;
 
+    const sem = semesters.find(s => s.id === semId);
+    if (!sem) return;
+
+    // 1. Instant Optimistic UI Update (0ms delay)
+    sem.courses = sem.courses.filter(c => c.id !== courseId && c._id !== courseId);
+    localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+    renderAll();
+    calculateStats();
+
+    // 2. Background Server Sync (Non-blocking)
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user ? user.token : '';
 
-    try {
-        const response = await fetch(`${API_BASE}/courses/${courseId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            await loadData(); // Refresh courses from backend
-        } else {
-            let errorMsg = 'Failed to delete course';
-            try {
-                const errData = await response.json();
-                errorMsg += ': ' + (errData.message || errData.error || response.statusText);
-            } catch (e) {
-                try {
-                    errorMsg += ': ' + await response.text();
-                } catch (e2) {}
-            }
-            alert(errorMsg);
+    if (token && courseId && !courseId.toString().startsWith('temp_')) {
+        try {
+            await apiFetch(`/courses/${courseId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+        } catch (err) {
+            console.warn('Course deleted locally; backend sync deferred:', err.message);
         }
-    } catch (err) {
-        console.error('Error deleting course:', err);
-        alert('Network error deleting course. Check your internet connection.');
     }
 }
 
@@ -1178,7 +1235,7 @@ async function updateProfile() {
     const token = user ? user.token : '';
 
     try {
-        const response = await fetch(`${API_BASE}/users/profile`, {
+        const response = await apiFetch(`/users/profile`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1229,7 +1286,7 @@ async function saveUniSettings() {
     const token = user ? user.token : '';
 
     try {
-        const response = await fetch(`${API_BASE}/users/profile`, {
+        const response = await apiFetch(`/users/profile`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1299,7 +1356,7 @@ async function captureImage() {
     const token = user ? user.token : '';
 
     try {
-        const response = await fetch(`${API_BASE}/users/profile`, {
+        const response = await apiFetch(`/users/profile`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1333,7 +1390,7 @@ async function handleProfileUpload(e) {
         const token = user ? user.token : '';
 
         try {
-            const response = await fetch(`${API_BASE}/users/profile`, {
+            const response = await apiFetch(`/users/profile`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -1960,7 +2017,7 @@ async function fetchAdminAnalytics() {
     if (analyticsStatus) analyticsStatus.textContent = 'Fetching live data...';
 
     try {
-        const response = await fetch(`${API_BASE}/analytics`, {
+        const response = await apiFetch(`/analytics`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${user.token}`,

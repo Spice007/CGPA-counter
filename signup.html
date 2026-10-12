@@ -1200,12 +1200,19 @@
 
         const LOCAL_API = 'http://localhost:5000/api';
         const RENDER_API = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+        let isLocalServerAvailable = false;
 
         // Pre-warm backend on page load so it is ready before submit
-        (function prewarmBackend() {
+        (async function prewarmBackend() {
             const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
             if (isLocal) {
-                fetch('http://localhost:5000/health').catch(() => {});
+                try {
+                    const ctrl = new AbortController();
+                    const tm = setTimeout(() => ctrl.abort(), 1200);
+                    const res = await fetch('http://localhost:5000/health', { signal: ctrl.signal });
+                    clearTimeout(tm);
+                    if (res.ok) isLocalServerAvailable = true;
+                } catch(e) {}
             }
             fetch('https://cgpa-calculator-backend-a9kj.onrender.com/health').catch(() => {});
         })();
@@ -1238,19 +1245,23 @@
                 department:   document.getElementById('department').value
             };
 
-            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
-            let primaryApi = isLocal ? LOCAL_API : RENDER_API;
-            let fallbackApi = isLocal ? RENDER_API : null;
+            let primaryApi = isLocalServerAvailable ? LOCAL_API : RENDER_API;
+            let fallbackApi = isLocalServerAvailable ? RENDER_API : null;
             let activeApi = primaryApi;
 
             try {
                 let res;
                 try {
+                    const ctrl = new AbortController();
+                    const timeout = isLocalServerAvailable ? 2000 : 35000;
+                    const tm = setTimeout(() => ctrl.abort(), timeout);
                     res = await fetch(`${primaryApi}/auth/register`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(userData)
+                        body: JSON.stringify(userData),
+                        signal: ctrl.signal
                     });
+                    clearTimeout(tm);
                 } catch (primaryErr) {
                     if (fallbackApi) {
                         const statusText = document.getElementById('signup-status-text');

@@ -93,13 +93,19 @@
             try {
                 let res;
                 try {
+                    const ctrl = new AbortController();
+                    const tm = setTimeout(() => ctrl.abort(), isLocal ? 2000 : 35000);
                     res = await fetch(`${primaryApi}/admin/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
+                        body: JSON.stringify({ username, password }),
+                        signal: ctrl.signal
                     });
+                    clearTimeout(tm);
                 } catch (primaryErr) {
                     if (fallbackApi) {
+                        btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Connecting to cloud...';
+                        lucide.createIcons();
                         res = await fetch(`${fallbackApi}/admin/login`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },

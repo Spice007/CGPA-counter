@@ -1403,17 +1403,33 @@
             });
         }
 
+        let isLocalServerAvailable = false;
+
+        // Pre-warm backend on page load so it is ready before submit
+        (async function prewarmBackend() {
+            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+            if (isLocal) {
+                try {
+                    const ctrl = new AbortController();
+                    const tm = setTimeout(() => ctrl.abort(), 1200);
+                    const res = await fetch('http://localhost:5000/health', { signal: ctrl.signal });
+                    clearTimeout(tm);
+                    if (res.ok) isLocalServerAvailable = true;
+                } catch(e) {}
+            }
+            fetch('https://cgpa-calculator-backend-a9kj.onrender.com/health').catch(() => {});
+        })();
+
         // Real Google OAuth login
         document.getElementById('google-login-btn').addEventListener('click', () => {
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-            const apiBase = isLocal
+            const apiBase = isLocalServerAvailable
                 ? 'http://localhost:5000/api'
                 : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
             
             // Get the current origin (fallback if on file://)
             let frontendUrl = window.location.origin;
             if (window.location.protocol === 'file:') {
-                frontendUrl = 'http://localhost:3001';
+                frontendUrl = 'https://spice-cgpa.vercel.app';
             }
             
             window.location.href = `${apiBase}/auth/google?frontend=${encodeURIComponent(frontendUrl)}`;
@@ -1429,15 +1445,6 @@
 
         const LOCAL_API = 'http://localhost:5000/api';
         const RENDER_API = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
-
-        // Pre-warm backend on page load so it is ready before submit
-        (function prewarmBackend() {
-            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
-            if (isLocal) {
-                fetch('http://localhost:5000/health').catch(() => {});
-            }
-            fetch('https://cgpa-calculator-backend-a9kj.onrender.com/health').catch(() => {});
-        })();
 
         // Form submission listener
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -1464,19 +1471,23 @@
             const password = document.getElementById('password').value;
             const remember = document.getElementById('remember-me').checked;
 
-            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
-            let primaryApi = isLocal ? LOCAL_API : RENDER_API;
-            let fallbackApi = isLocal ? RENDER_API : null;
+            let primaryApi = isLocalServerAvailable ? LOCAL_API : RENDER_API;
+            let fallbackApi = isLocalServerAvailable ? RENDER_API : null;
             let activeApi = primaryApi;
 
             try {
                 let response;
                 try {
+                    const ctrl = new AbortController();
+                    const timeout = isLocalServerAvailable ? 2000 : 35000;
+                    const tm = setTimeout(() => ctrl.abort(), timeout);
                     response = await fetch(`${primaryApi}/auth/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
+                        body: JSON.stringify({ email, password }),
+                        signal: ctrl.signal
                     });
+                    clearTimeout(tm);
                 } catch (primaryErr) {
                     if (fallbackApi) {
                         const statusText = document.getElementById('login-status-text');
