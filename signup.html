@@ -1198,11 +1198,16 @@
             lucide.createIcons();
         });
 
+        const LOCAL_API = 'http://localhost:5000/api';
+        const RENDER_API = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+
         // Pre-warm backend on page load so it is ready before submit
         (function prewarmBackend() {
             const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
-            const healthUrl = isLocal ? 'http://localhost:5000/health' : 'https://cgpa-calculator-backend-a9kj.onrender.com/health';
-            fetch(healthUrl).catch(() => {});
+            if (isLocal) {
+                fetch('http://localhost:5000/health').catch(() => {});
+            }
+            fetch('https://cgpa-calculator-backend-a9kj.onrender.com/health').catch(() => {});
         })();
 
         // Signup submit logic
@@ -1219,6 +1224,11 @@
             btn.disabled = true;
             lucide.createIcons();
 
+            let wakeupTimer = setTimeout(() => {
+                const statusText = document.getElementById('signup-status-text');
+                if (statusText) statusText.textContent = 'Connecting to server (waking up cloud server)...';
+            }, 3000);
+
             const userData = {
                 fullName:     document.getElementById('fullName').value,
                 email:        document.getElementById('email').value,
@@ -1228,17 +1238,39 @@
                 department:   document.getElementById('department').value
             };
 
-            try {
-                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
-                const res  = await fetch(`${apiBase}/auth/register`, {
-                    method:'POST', headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify(userData)
-                });
+            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+            let primaryApi = isLocal ? LOCAL_API : RENDER_API;
+            let fallbackApi = isLocal ? RENDER_API : null;
+            let activeApi = primaryApi;
 
-                clearTimeout(wakeupTimer);
+            try {
+                let res;
+                try {
+                    res = await fetch(`${primaryApi}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(userData)
+                    });
+                } catch (primaryErr) {
+                    if (fallbackApi) {
+                        const statusText = document.getElementById('signup-status-text');
+                        if (statusText) statusText.textContent = 'Local server unavailable, connecting to cloud...';
+                        activeApi = fallbackApi;
+                        res = await fetch(`${fallbackApi}/auth/register`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(userData)
+                        });
+                    } else {
+                        throw primaryErr;
+                    }
+                }
+
+                if (wakeupTimer) clearTimeout(wakeupTimer);
                 const data = await res.json();
                 if (res.ok) {
                     localStorage.setItem('user', JSON.stringify(data));
+                    localStorage.setItem('apiBase', activeApi);
                     window.location.href = 'index.html';
                 } else {
                     showErr(data.message || 'Registration failed. Please try again.');
@@ -1246,9 +1278,9 @@
                     btn.disabled = false;
                     lucide.createIcons();
                 }
-            } catch {
-                clearTimeout(wakeupTimer);
-                showErr('Cannot reach server. Is the backend running?');
+            } catch (err) {
+                if (wakeupTimer) clearTimeout(wakeupTimer);
+                showErr('Cannot reach server. Please ensure internet access or start the local server with StartServer.bat.');
                 btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="user-check"></i></span> <span>Create My Account</span>';
                 btn.disabled = false;
                 lucide.createIcons();

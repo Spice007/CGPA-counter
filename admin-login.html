@@ -86,13 +86,29 @@
             lucide.createIcons();
             errorMsg.style.display = 'none';
 
+            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+            const primaryApi = isLocal ? 'http://localhost:5000/api' : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+            const fallbackApi = isLocal ? 'https://cgpa-calculator-backend-a9kj.onrender.com/api' : null;
+
             try {
-                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
-                const res = await fetch(`${apiBase}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
+                let res;
+                try {
+                    res = await fetch(`${primaryApi}/admin/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                } catch (primaryErr) {
+                    if (fallbackApi) {
+                        res = await fetch(`${fallbackApi}/admin/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password })
+                        });
+                    } else {
+                        throw primaryErr;
+                    }
+                }
                 
                 const data = await res.json();
                 

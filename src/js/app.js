@@ -1,4 +1,4 @@
-const API_BASE = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+const API_BASE = localStorage.getItem('apiBase') || 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
 
 
 const savedUser = JSON.parse(localStorage.getItem('user')) || {};

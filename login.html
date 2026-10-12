@@ -1427,11 +1427,16 @@
             box.classList.add('show');
         };
 
+        const LOCAL_API = 'http://localhost:5000/api';
+        const RENDER_API = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+
         // Pre-warm backend on page load so it is ready before submit
         (function prewarmBackend() {
             const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
-            const healthUrl = isLocal ? 'http://localhost:5000/health' : 'https://cgpa-calculator-backend-a9kj.onrender.com/health';
-            fetch(healthUrl).catch(() => {});
+            if (isLocal) {
+                fetch('http://localhost:5000/health').catch(() => {});
+            }
+            fetch('https://cgpa-calculator-backend-a9kj.onrender.com/health').catch(() => {});
         })();
 
         // Form submission listener
@@ -1450,23 +1455,49 @@
             btn.disabled = true;
             lucide.createIcons();
 
+            let wakeupTimer = setTimeout(() => {
+                const statusText = document.getElementById('login-status-text');
+                if (statusText) statusText.textContent = 'Connecting to server (waking up cloud server)...';
+            }, 3000);
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const remember = document.getElementById('remember-me').checked;
 
-            try {
-                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
-                const response = await fetch(`${apiBase}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
+            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+            let primaryApi = isLocal ? LOCAL_API : RENDER_API;
+            let fallbackApi = isLocal ? RENDER_API : null;
+            let activeApi = primaryApi;
 
-                clearTimeout(wakeupTimer);
+            try {
+                let response;
+                try {
+                    response = await fetch(`${primaryApi}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                } catch (primaryErr) {
+                    if (fallbackApi) {
+                        const statusText = document.getElementById('login-status-text');
+                        if (statusText) statusText.textContent = 'Local server unavailable, connecting to cloud...';
+                        activeApi = fallbackApi;
+                        response = await fetch(`${fallbackApi}/auth/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, password })
+                        });
+                    } else {
+                        throw primaryErr;
+                    }
+                }
+
+                if (wakeupTimer) clearTimeout(wakeupTimer);
                 const data = await response.json();
 
                 if (response.ok) {
                     localStorage.setItem('user', JSON.stringify(data));
+                    localStorage.setItem('apiBase', activeApi);
                     if (remember) {
                         localStorage.setItem('rememberedEmail', email);
                     } else {
@@ -1480,8 +1511,8 @@
                     lucide.createIcons();
                 }
             } catch (err) {
-                clearTimeout(wakeupTimer);
-                showLoginError('Cannot reach server. Is the backend running?');
+                if (wakeupTimer) clearTimeout(wakeupTimer);
+                showLoginError('Cannot reach server. Please ensure internet access or start the local server with StartServer.bat.');
                 btn.innerHTML = origHTML;
                 btn.disabled = false;
                 lucide.createIcons();
@@ -1546,13 +1577,29 @@
             succBox.style.display = 'none';
             lucide.createIcons();
 
+            const isLocal = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+            let primaryApi = isLocal ? LOCAL_API : RENDER_API;
+            let fallbackApi = isLocal ? RENDER_API : null;
+
             try {
-                const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') ? 'http://localhost:5000/api' : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
-                const response = await fetch(`${apiBase}/auth/forgot-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                });
+                let response;
+                try {
+                    response = await fetch(`${primaryApi}/auth/forgot-password`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                } catch (primaryErr) {
+                    if (fallbackApi) {
+                        response = await fetch(`${fallbackApi}/auth/forgot-password`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email })
+                        });
+                    } else {
+                        throw primaryErr;
+                    }
+                }
 
                 const data = await response.json();
 
@@ -1570,7 +1617,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                errBox.textContent = 'Cannot reach server. Is the backend running?';
+                errBox.textContent = 'Cannot reach server. Please ensure internet access or start the local server with StartServer.bat.';
                 errBox.style.display = 'block';
             } finally {
                 btn.innerHTML = origHTML;

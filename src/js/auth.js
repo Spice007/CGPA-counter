@@ -1,4 +1,4 @@
-const AUTH_API_BASE = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+const AUTH_API_BASE = localStorage.getItem('apiBase') || 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
 const API_URL = `${AUTH_API_BASE}/auth`;
 
 
