@@ -1429,7 +1429,7 @@
             // Get the current origin (fallback if on file://)
             let frontendUrl = window.location.origin;
             if (window.location.protocol === 'file:') {
-                frontendUrl = 'https://spice-cgpa.vercel.app';
+                frontendUrl = 'https://cgpa-counter-itkv.vercel.app';
             }
             
             window.location.href = `${apiBase}/auth/google?frontend=${encodeURIComponent(frontendUrl)}`;
