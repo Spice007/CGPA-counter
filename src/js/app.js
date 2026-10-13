@@ -83,8 +83,8 @@ function formatSemesterName(name) {
     return name;
 }
 
-function getNextAcademicSession(sessionStr, yearsToAdd = 1) {
-    if (!sessionStr) sessionStr = (studentProfile && studentProfile.session) || '2023/2024';
+function formatToAcademicSession(sessionStr) {
+    if (!sessionStr) sessionStr = (studentProfile && studentProfile.session) || '2024/2025';
     sessionStr = String(sessionStr).trim();
 
     // Standard YYYY/YYYY (e.g. "2024/2025")
@@ -93,7 +93,7 @@ function getNextAcademicSession(sessionStr, yearsToAdd = 1) {
         const start = parseInt(slashParts[0]);
         const end = parseInt(slashParts[1]);
         if (!isNaN(start) && !isNaN(end)) {
-            return `${start + yearsToAdd}/${end + yearsToAdd}`;
+            return `${start}/${end}`;
         }
     }
 
@@ -102,15 +102,29 @@ function getNextAcademicSession(sessionStr, yearsToAdd = 1) {
     if (dashParts.length === 2 && !isNaN(parseInt(dashParts[0])) && !isNaN(parseInt(dashParts[1]))) {
         const start = parseInt(dashParts[0]);
         const end = parseInt(dashParts[1]);
-        return `${start + yearsToAdd}/${end + yearsToAdd}`;
+        return `${start}/${end}`;
     }
 
-    // Single 4-digit year (e.g. "2025")
-    const singleYear = parseInt(sessionStr);
-    if (!isNaN(singleYear) && singleYear >= 1900 && singleYear <= 2100) {
-        return `${singleYear + yearsToAdd}`;
+    // Single 4-digit year (e.g. "2025") -> "2024/2025"
+    const yearMatch = sessionStr.match(/\b(19\d\d|20\d\d)\b/);
+    if (yearMatch) {
+        const y = parseInt(yearMatch[1]);
+        return `${y - 1}/${y}`;
     }
 
+    return sessionStr;
+}
+
+function getNextAcademicSession(sessionStr, yearsToAdd = 1) {
+    sessionStr = formatToAcademicSession(sessionStr);
+    const slashParts = sessionStr.split('/');
+    if (slashParts.length === 2) {
+        const start = parseInt(slashParts[0]);
+        const end = parseInt(slashParts[1]);
+        if (!isNaN(start) && !isNaN(end)) {
+            return `${start + yearsToAdd}/${end + yearsToAdd}`;
+        }
+    }
     return sessionStr;
 }
 
@@ -125,7 +139,7 @@ function getSemesterLevel(sem, index, allSemesters) {
 
     const list = Array.isArray(allSemesters) ? allSemesters : semesters;
     const firstSemYear = (list && list.length > 0) ? extractYear(list[0].name) : null;
-    const baseYear = extractYear((studentProfile && studentProfile.session)) || firstSemYear;
+    const baseYear = firstSemYear || extractYear((studentProfile && studentProfile.session));
     const semYear = extractYear(sem.name);
 
     if (semYear && baseYear) {
@@ -145,17 +159,31 @@ function getSemesterLevel(sem, index, allSemesters) {
 function normalizeSemesters(semList) {
     if (!Array.isArray(semList) || semList.length === 0) return [];
 
+    let list = [...semList];
+
+    // Check if 100L First Semester is missing (i.e. first existing semester is a Second Semester)
+    if (list.length > 0 && /Second|2nd/i.test(list[0].name)) {
+        const rawFirstSession = list[0].name.split(' - ')[0] || (studentProfile && studentProfile.session) || '2024/2025';
+        const properFirstSession = formatToAcademicSession(rawFirstSession);
+        // Insert the missing First Semester at index 0
+        list.unshift({
+            id: `sem_first_${Date.now()}`,
+            name: `${properFirstSession} - First Semester`,
+            courses: []
+        });
+    }
+
     let currentSession = null;
     let prevWasSecond = false;
 
-    return semList.map((sem, idx) => {
+    return list.map((sem, idx) => {
         let name = formatSemesterName(sem.name);
         const parts = name.split(' - ');
-        let semSession = parts.length > 1 ? parts[0].trim() : null;
+        let semSession = parts.length > 1 ? formatToAcademicSession(parts[0].trim()) : null;
         const semType = /Second|2nd/i.test(name) ? 'Second Semester' : 'First Semester';
 
         if (idx === 0) {
-            currentSession = semSession || (studentProfile && studentProfile.session) || '2023/2024';
+            currentSession = semSession || formatToAcademicSession(studentProfile && studentProfile.session) || '2024/2025';
         } else {
             if (prevWasSecond && semType === 'First Semester') {
                 if (!semSession || semSession === currentSession) {
@@ -180,6 +208,7 @@ function normalizeSemesters(semList) {
 
 // Expose globally for mobile.js and external callers
 window.formatSemesterName = formatSemesterName;
+window.formatToAcademicSession = formatToAcademicSession;
 window.getNextAcademicSession = getNextAcademicSession;
 window.getSemesterLevel = getSemesterLevel;
 window.normalizeSemesters = normalizeSemesters;
@@ -527,6 +556,12 @@ function setupEventListeners() {
     document.getElementById('uni-modal-cancel').addEventListener('click', closeUniModal);
     document.getElementById('uni-modal-save').addEventListener('click', saveUniSettings);
 
+    // Edit Semester Modal Controls
+    const editSemCancel = document.getElementById('edit-semester-cancel');
+    if (editSemCancel) editSemCancel.addEventListener('click', closeEditSemesterModal);
+    const editSemSave = document.getElementById('edit-semester-save');
+    if (editSemSave) editSemSave.addEventListener('click', saveEditedSemester);
+
     // Profile Update Button (Personal Details)
     document.getElementById('profile-update-btn').addEventListener('click', updateProfile);
 
@@ -730,10 +765,13 @@ function renderSemesters() {
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <span class="gpa-pill">GPA: ${semGPA}</span>
-                    <button onclick="openCourseModal('${sem.id}')" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
+                    <button onclick="openCourseModal('${sem.id}')" title="Add Course" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
                         <i data-lucide="plus-circle" style="width: 18px;"></i>
                     </button>
-                    <button onclick="deleteSemester('${sem.id}')" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--warning);">
+                    <button onclick="openEditSemesterModal('${sem.id}')" title="Edit Semester Details" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
+                        <i data-lucide="edit-3" style="width: 18px;"></i>
+                    </button>
+                    <button onclick="deleteSemester('${sem.id}')" title="Delete Semester" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--warning);">
                         <i data-lucide="trash-2" style="width: 18px;"></i>
                     </button>
                 </div>
@@ -1334,8 +1372,8 @@ async function deleteCourse(semId, courseId) {
 function loadProfile() {
     const sessEl = document.getElementById('student-session');
     if (sessEl) {
-        const sess = studentProfile.session || '2023/2024';
-        sessEl.innerText = sess.includes('Session') ? sess : `${sess} Session`;
+        const sess = formatToAcademicSession(studentProfile.session || '2024/2025');
+        sessEl.innerText = `${sess} Session`;
     }
     const uniEl = document.getElementById('student-uni');
     if (uniEl) {
@@ -1369,8 +1407,8 @@ function loadProfile() {
     }
     if (dashUni) {
         const uniPart = studentProfile.uni ? studentProfile.uni : 'Set your university';
-        const sessionPart = studentProfile.session ? `${studentProfile.session} Session` : 'Set your session';
-        dashUni.innerHTML = `<span style="color: #10b981; font-weight: 600;">${uniPart}</span><span style="color: #64748b;"> · ${sessionPart}</span>`;
+        const properSess = formatToAcademicSession(studentProfile.session || '2024/2025');
+        dashUni.innerHTML = `<span style="color: #10b981; font-weight: 600;">${uniPart}</span><span style="color: #64748b;"> · ${properSess} Session</span>`;
     }
 }
 
@@ -1427,10 +1465,64 @@ async function updateProfile() {
     }
 }
 
+// Edit Semester Modal Logic
+function openEditSemesterModal(semId) {
+    const sem = semesters.find(s => s.id === semId);
+    if (!sem) return;
+
+    const modal = document.getElementById('edit-semester-modal');
+    if (!modal) return;
+
+    document.getElementById('edit-semester-id').value = sem.id;
+    const parts = (sem.name || '').split(' - ');
+    const rawSession = parts.length > 1 ? parts[0].trim() : ((studentProfile && studentProfile.session) || '2024/2025');
+    const properSession = formatToAcademicSession(rawSession);
+    const semType = /Second|2nd/i.test(sem.name) ? 'Second Semester' : 'First Semester';
+
+    document.getElementById('edit-semester-session').value = properSession;
+    document.getElementById('edit-semester-type').value = semType;
+
+    modal.style.display = 'block';
+    modalOverlay.style.display = 'block';
+}
+
+function closeEditSemesterModal() {
+    const modal = document.getElementById('edit-semester-modal');
+    if (modal) modal.style.display = 'none';
+    modalOverlay.style.display = 'none';
+}
+
+function saveEditedSemester() {
+    const semId = document.getElementById('edit-semester-id').value;
+    const sessionVal = document.getElementById('edit-semester-session').value.trim();
+    const semType = document.getElementById('edit-semester-type').value;
+
+    if (!sessionVal) {
+        alert('Please enter an academic session (e.g. 2024/2025).');
+        return;
+    }
+
+    const formattedSession = formatToAcademicSession(sessionVal);
+    const sem = semesters.find(s => s.id === semId);
+    if (sem) {
+        sem.name = `${formattedSession} - ${semType}`;
+        localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+        renderAll();
+        if (typeof window.showMobileToast === 'function') {
+            window.showMobileToast(`${sem.name} updated.`, 'Semester Updated! ✏️');
+        }
+    }
+    closeEditSemesterModal();
+}
+
+window.openEditSemesterModal = openEditSemesterModal;
+window.closeEditSemesterModal = closeEditSemesterModal;
+window.saveEditedSemester = saveEditedSemester;
+
 // University Modal Logic
 function openUniModal() {
     document.getElementById('modal-uni-name').value = studentProfile.uni || '';
-    document.getElementById('modal-session').value = studentProfile.session || '';
+    document.getElementById('modal-session').value = formatToAcademicSession(studentProfile.session || '2024/2025');
     document.getElementById('uni-modal').style.display = 'block';
     modalOverlay.style.display = 'block';
 }
@@ -1448,6 +1540,10 @@ async function saveUniSettings() {
         alert('Please fill in both the University and Session fields.');
         return;
     }
+
+    const properSession = formatToAcademicSession(session);
+    studentProfile.session = properSession;
+    localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
     
     const user = JSON.parse(localStorage.getItem('user'));
     const token = user ? user.token : '';
@@ -1461,7 +1557,7 @@ async function saveUniSettings() {
             },
             body: JSON.stringify({
                 university: uni,
-                academicSession: session
+                academicSession: properSession
             })
         });
 

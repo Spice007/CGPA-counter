@@ -57,16 +57,19 @@ function calculateStudentGPAs(student, columnsList) {
   };
 }
 
-// API_BASE is computed at runtime inside the component to guarantee client-side window access
-const getAPIBase = () => {
-  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
-    return "http://localhost:5000/api";
+const CLOUD_API = "https://cgpa-calculator-backend-a9kj.onrender.com/api";
+const LOCAL_API = "http://localhost:5000/api";
+
+const getInitialAPIBase = () => {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("admin_api_base");
+    if (saved) return saved;
   }
-  return "https://cgpa-calculator-backend-a9kj.onrender.com/api";
+  return CLOUD_API;
 };
 
 export default function Dashboard() {
-  const API_BASE = getAPIBase();
+  const [apiBase, setApiBase] = useState(() => getInitialAPIBase());
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -76,6 +79,27 @@ export default function Dashboard() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState("all-saved"); // "all-saved", "saving", "error"
   const [lastSaved, setLastSaved] = useState(null);
+
+  // Background probe for local development server if running on localhost
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+      const probe = async () => {
+        try {
+          const ctrl = new AbortController();
+          const tm = setTimeout(() => ctrl.abort(), 1200);
+          const res = await fetch("http://localhost:5000/health", { signal: ctrl.signal });
+          clearTimeout(tm);
+          if (res.ok) {
+            setApiBase(LOCAL_API);
+            localStorage.setItem("admin_api_base", LOCAL_API);
+          }
+        } catch (e) {
+          // Localhost backend offline; stay on CLOUD_API
+        }
+      };
+      probe();
+    }
+  }, []);
 
   // Check auth state on mount and determine initial active tab
   useEffect(() => {
@@ -137,10 +161,28 @@ export default function Dashboard() {
       try {
         setLoading(true);
         const token = localStorage.getItem("admin_token");
-        const res = await fetch(`${API_BASE}/admin/students`, {
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error("Failed to fetch student data");
+        let res;
+        try {
+          const ctrl = new AbortController();
+          const tm = setTimeout(() => ctrl.abort(), apiBase.includes("localhost") ? 2000 : 35000);
+          res = await fetch(`${apiBase}/admin/students`, {
+            headers: { "Authorization": `Bearer ${token}` },
+            signal: ctrl.signal
+          });
+          clearTimeout(tm);
+          if (!res.ok) throw new Error("Failed to fetch student data");
+        } catch (fetchErr) {
+          if (apiBase !== CLOUD_API) {
+            setApiBase(CLOUD_API);
+            localStorage.setItem("admin_api_base", CLOUD_API);
+            res = await fetch(`${CLOUD_API}/admin/students`, {
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error("Failed to fetch student data from cloud");
+          } else {
+            throw fetchErr;
+          }
+        }
         const rawData = await res.json();
 
         // Pivot flat course records into student rows
@@ -263,16 +305,38 @@ export default function Dashboard() {
       });
 
       const token = localStorage.getItem("admin_token");
-      const res = await fetch(`${API_BASE}/admin/results/bulk`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ updates }),
-      });
-
-      if (!res.ok) throw new Error("Saving bulk records failed");
+      let res;
+      try {
+        const ctrl = new AbortController();
+        const tm = setTimeout(() => ctrl.abort(), apiBase.includes("localhost") ? 3000 : 35000);
+        res = await fetch(`${apiBase}/admin/results/bulk`, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ updates }),
+          signal: ctrl.signal
+        });
+        clearTimeout(tm);
+        if (!res.ok) throw new Error("Saving bulk records failed");
+      } catch (saveErr) {
+        if (apiBase !== CLOUD_API) {
+          setApiBase(CLOUD_API);
+          localStorage.setItem("admin_api_base", CLOUD_API);
+          res = await fetch(`${CLOUD_API}/admin/results/bulk`, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ updates }),
+          });
+          if (!res.ok) throw new Error("Saving bulk records failed");
+        } else {
+          throw saveErr;
+        }
+      }
       
       const data = await res.json();
       setSaveStatus("all-saved");
@@ -281,7 +345,9 @@ export default function Dashboard() {
       // Refresh local studentId mappings if new student users were generated
       // (This prevents creating duplicates next time we save)
       if (currentStudents.some(s => !s.studentId)) {
-        const refreshRes = await fetch(`${API_BASE}/admin/students`);
+        const refreshRes = await fetch(`${apiBase}/admin/students`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
         if (refreshRes.ok) {
           const freshData = await refreshRes.json();
           setStudents(prev => prev.map(s => {
@@ -423,7 +489,16 @@ export default function Dashboard() {
   }
 
   if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} apiBase={API_BASE} />;
+    return (
+      <Login
+        onLoginSuccess={() => setIsAuthenticated(true)}
+        apiBase={apiBase}
+        onApiBaseResolved={(workingBase) => {
+          setApiBase(workingBase);
+          localStorage.setItem("admin_api_base", workingBase);
+        }}
+      />
+    );
   }
 
   return (

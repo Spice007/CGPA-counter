@@ -1071,6 +1071,32 @@
         </div>
     </div>
     
+    <!-- Edit Semester Modal -->
+    <div id="edit-semester-modal" class="glass" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 2rem; z-index: 100; display: none; min-width: 400px; max-width: 90vw; border-radius: 1.25rem;">
+        <h3 class="font-heading" style="margin-bottom: 0.35rem; font-size: 1.25rem;">Edit Semester Details</h3>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem;">Update the academic session or semester type for this card.</p>
+        
+        <input type="hidden" id="edit-semester-id">
+        
+        <div class="input-group">
+            <label class="input-label">Academic Session</label>
+            <input type="text" id="edit-semester-session" placeholder="e.g. 2024/2025">
+        </div>
+        
+        <div class="input-group">
+            <label class="input-label">Semester</label>
+            <select id="edit-semester-type" style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(30,41,59,0.8); border: 1px solid var(--border); color: var(--text-primary); outline: none;">
+                <option value="First Semester">First Semester</option>
+                <option value="Second Semester">Second Semester</option>
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 1.75rem;">
+            <button id="edit-semester-cancel" class="btn glass-card" style="flex: 1; color: var(--danger);">Cancel</button>
+            <button id="edit-semester-save" class="btn btn-primary" style="flex: 1;">Save Changes</button>
+        </div>
+    </div>
+    
     <div id="modal-overlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 90; display: none;"></div>
 
     <!-- Photo Selection Modal -->

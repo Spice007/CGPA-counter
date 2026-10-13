@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { ShieldCheck, Loader2 } from "lucide-react";
 
-export default function Login({ onLoginSuccess, apiBase }) {
+export default function Login({ onLoginSuccess, apiBase, onApiBaseResolved }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,18 +13,43 @@ export default function Login({ onLoginSuccess, apiBase }) {
     setLoading(true);
     setError("");
 
+    const cloudApi = "https://cgpa-calculator-backend-a9kj.onrender.com/api";
+    const primaryApi = apiBase || cloudApi;
+
     try {
-      const res = await fetch(`${apiBase}/admin/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      let res;
+      try {
+        const ctrl = new AbortController();
+        const tm = setTimeout(() => ctrl.abort(), primaryApi.includes("localhost") ? 2000 : 35000);
+        res = await fetch(`${primaryApi}/admin/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+          signal: ctrl.signal,
+        });
+        clearTimeout(tm);
+      } catch (primaryErr) {
+        if (primaryApi !== cloudApi) {
+          // Localhost offline or timed out; fall back seamlessly to cloud API
+          res = await fetch(`${cloudApi}/admin/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          if (onApiBaseResolved) onApiBaseResolved(cloudApi);
+        } else {
+          throw primaryErr;
+        }
+      }
 
       const data = await res.json();
 
       if (res.ok) {
         localStorage.setItem("admin_token", data.token);
         localStorage.setItem("admin_user", JSON.stringify(data));
+        if (onApiBaseResolved && !primaryApi.includes("localhost")) {
+          onApiBaseResolved(primaryApi);
+        }
         onLoginSuccess();
       } else {
         throw new Error(data.message || "Invalid admin credentials");
