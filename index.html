@@ -163,7 +163,7 @@
             
             <!-- Active Session Building Card -->
             <div class="sidebar-uni-card" id="profile-trigger">
-                <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-shrink: 0;">
+                <div id="sidebar-avatar" style="width: 38px; height: 38px; border-radius: 8px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-shrink: 0; overflow: hidden;">
                     <i data-lucide="school" style="width: 18px; height: 18px;"></i>
                 </div>
                 <div style="flex: 1; overflow: hidden;">
@@ -172,6 +172,20 @@
                 </div>
                 <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: #64748b; margin-left: auto;"></i>
             </div>
+            <script>
+                (function() {
+                    try {
+                        var u = JSON.parse(localStorage.getItem('user')) || {};
+                        var p = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
+                        var sess = p.session || u.academicSession || '2023/2024';
+                        var uni = p.uni || u.university || 'Set your university';
+                        var sessEl = document.getElementById('student-session');
+                        if (sessEl) sessEl.textContent = sess + ' Session';
+                        var uniEl = document.getElementById('student-uni');
+                        if (uniEl) uniEl.textContent = uni;
+                    } catch(e) {}
+                })();
+            </script>
 
             <!-- Logout Link -->
             <div class="logout-btn-wrap">

@@ -1,29 +1,34 @@
-const CLOUD_API_BASE = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
-const LOCAL_API_BASE = 'http://localhost:5000/api';
+window.CLOUD_API_BASE = window.CLOUD_API_BASE || 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+window.LOCAL_API_BASE = window.LOCAL_API_BASE || 'http://localhost:5000/api';
+var CLOUD_API_BASE = window.CLOUD_API_BASE;
+var LOCAL_API_BASE = window.LOCAL_API_BASE;
 
-function resolveApiBase() {
+window.resolveApiBase = window.resolveApiBase || function resolveApiBase() {
     if (window.location.protocol === 'https:') {
-        return CLOUD_API_BASE;
+        return window.CLOUD_API_BASE;
     }
     const saved = localStorage.getItem('apiBase');
     if (saved && typeof saved === 'string' && saved.startsWith('http')) {
         return saved;
     }
     // Default to cloud so local file:// or static server loads real courses and data immediately
-    return CLOUD_API_BASE;
-}
-let API_BASE = resolveApiBase();
+    return window.CLOUD_API_BASE;
+};
+var resolveApiBase = window.resolveApiBase;
+window.API_BASE = window.API_BASE || window.resolveApiBase();
+var API_BASE = window.API_BASE;
 
 // Resilient API Fetch Helper with automatic cloud fallback
 async function apiFetch(endpoint, options = {}) {
-    const url = `${API_BASE}${endpoint}`;
+    var url = `${window.API_BASE || API_BASE}${endpoint}`;
     try {
-        const res = await fetch(url, options);
+        var res = await fetch(url, options);
         return res;
     } catch (err) {
-        if (API_BASE !== CLOUD_API_BASE) {
-            console.warn(`[API] Local backend unreachable (${API_BASE}). Falling back to Cloud API: ${CLOUD_API_BASE}`);
+        if ((window.API_BASE || API_BASE) !== CLOUD_API_BASE) {
+            console.warn(`[API] Local backend unreachable. Falling back to Cloud API: ${CLOUD_API_BASE}`);
             API_BASE = CLOUD_API_BASE;
+            window.API_BASE = CLOUD_API_BASE;
             localStorage.setItem('apiBase', CLOUD_API_BASE);
             return await fetch(`${CLOUD_API_BASE}${endpoint}`, options);
         }
@@ -69,6 +74,12 @@ if (!studentProfile.name && (savedUser.fullName || savedUser.name)) {
     studentProfile.name = savedUser.fullName || savedUser.name;
 }
 
+let semesters = [];
+try {
+    const cachedSem = JSON.parse(localStorage.getItem('cgpa_semesters'));
+    if (Array.isArray(cachedSem)) semesters = cachedSem;
+} catch (e) {}
+
 let activeSemesterId = null;
 let cgpaChart = null;
 let archiveChart = null;
@@ -87,10 +98,12 @@ const modalOverlay = document.getElementById('modal-overlay');
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
-    initChart();
-    setupEventListeners();
-    setupNavigation();
+    try { if (window.lucide) lucide.createIcons(); } catch(e) {}
+    try { setupNavigation(); } catch(e) {}
+    try { setupEventListeners(); } catch(e) {}
+    try { renderAll(); } catch(e) {}
+    try { loadProfile(); } catch(e) {}
+    try { initChart(); } catch(e) {}
     loadData(); // Synchronize state with backend
 });
 
@@ -559,7 +572,29 @@ function renderLevelStats() {
 }
 
 function renderSemesters() {
+    if (!semestersContainer) return;
     semestersContainer.innerHTML = '';
+
+    if (!Array.isArray(semesters) || semesters.length === 0) {
+        semestersContainer.innerHTML = `
+            <div class="glass card animate-fade-in" style="text-align: center; padding: 3rem 1.5rem; border: 1px dashed rgba(255,255,255,0.12); border-radius: 1rem; margin-bottom: 1.5rem;">
+                <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.12); color: #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem; border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <i data-lucide="book-open" style="width: 26px; height: 26px;"></i>
+                </div>
+                <h3 class="font-heading" style="font-weight: 700; font-size: 1.15rem; color: #ffffff; margin-bottom: 0.35rem;">No Semesters Added Yet</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem; max-width: 380px; margin: 0 auto 1.5rem; line-height: 1.5;">
+                    Add your current or past academic semesters to track your GPAs and cumulative CGPA across your university levels.
+                </p>
+                <button onclick="document.getElementById('add-semester-btn').click()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; margin: 0 auto; padding: 0.65rem 1.25rem;">
+                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                    <span>Add Your First Semester</span>
+                </button>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
+
     semesters.forEach((sem, index) => {
         const semGPA = calculateGPA(sem.courses);
         const card = document.createElement('div');
@@ -726,124 +761,141 @@ function calculateStats() {
 function initChart() {
     const canvas = document.getElementById('cgpaChart');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    if (cgpaChart) {
-        cgpaChart.destroy();
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not loaded yet; skipping chart init');
+        return;
     }
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    // Create a beautiful glowing green gradient under the curve
-    const gradient = ctx.createLinearGradient(0, 0, 0, 220);
-    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
-    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-
-    const chartData = semesters.map(s => calculateGPA(s.courses));
-    const chartLabels = semesters.map(s => {
-        const courseYear = parseInt(s.name.split('/')[0]);
-        const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
-        let level = 100;
-        if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
-            level = (courseYear - baseYear + 1) * 100;
+    try {
+        if (cgpaChart) {
+            cgpaChart.destroy();
+            cgpaChart = null;
         }
-        const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
-        return `${level}L - ${sem} Sem`;
-    });
 
-    cgpaChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: chartLabels.length > 0 ? chartLabels : ['100L - 1st Sem'],
-            datasets: [{
-                label: 'GPA Trend',
-                data: chartData.length > 0 ? chartData : [0.0],
-                borderColor: '#10b981',
-                borderWidth: 3.5,
-                tension: 0.4,
-                fill: true,
-                backgroundColor: gradient,
-                pointRadius: 5,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: '#090d16',
-                pointBorderWidth: 2,
-                pointHoverRadius: 7,
-                pointHoverBackgroundColor: '#10b981',
-                pointHoverBorderColor: '#ffffff',
-                pointHoverBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { 
-                    min: 0, 
-                    max: gradingScale,
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.04)',
-                        drawBorder: false
+        // Create a beautiful glowing green gradient under the curve
+        const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+        const safeSemesters = Array.isArray(semesters) ? semesters : [];
+        const chartData = safeSemesters.map(s => calculateGPA(s.courses));
+        const chartLabels = safeSemesters.map(s => {
+            const courseYear = parseInt(s.name.split('/')[0]);
+            const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
+            let level = 100;
+            if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
+                level = (courseYear - baseYear + 1) * 100;
+            }
+            const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
+            return `${level}L - ${sem} Sem`;
+        });
+
+        cgpaChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels.length > 0 ? chartLabels : ['100L - 1st Sem'],
+                datasets: [{
+                    label: 'GPA Trend',
+                    data: chartData.length > 0 ? chartData : [0.0],
+                    borderColor: '#10b981',
+                    borderWidth: 3.5,
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: gradient,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#090d16',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#10b981',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        min: 0, 
+                        max: gradingScale,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.04)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: {
+                                family: "'Outfit', sans-serif",
+                                weight: 600,
+                                size: 11
+                            }
+                        }
                     },
-                    ticks: {
-                        color: '#64748b',
-                        font: {
-                            family: "'Outfit', sans-serif",
-                            weight: 600,
-                            size: 11
+                    x: { 
+                        grid: { 
+                            display: false 
+                        },
+                        ticks: {
+                            color: '#64748b',
+                            font: {
+                                family: "'Outfit', sans-serif",
+                                weight: 600,
+                                size: 11
+                            }
                         }
                     }
                 },
-                x: { 
-                    grid: { 
-                        display: false 
-                    },
-                    ticks: {
-                        color: '#64748b',
-                        font: {
-                            family: "'Outfit', sans-serif",
-                            weight: 600,
-                            size: 11
-                        }
-                    }
+                plugins: {
+                    legend: { display: false }
                 }
-            },
-            plugins: {
-                legend: { display: false }
             }
-        }
-    });
+        });
+    } catch (err) {
+        console.warn('Could not initialize cgpaChart:', err);
+    }
 }
 
 function updateChart() {
+    if (typeof Chart === 'undefined') return;
     if (!cgpaChart) {
         initChart();
         return;
     }
     
-    const canvas = document.getElementById('cgpaChart');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 220);
-        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
-        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-        cgpaChart.data.datasets[0].backgroundColor = gradient;
-    }
-
-    const chartLabels = semesters.map(s => {
-        const courseYear = parseInt(s.name.split('/')[0]);
-        const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
-        let level = 100;
-        if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
-            level = (courseYear - baseYear + 1) * 100;
+    try {
+        const canvas = document.getElementById('cgpaChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+            cgpaChart.data.datasets[0].backgroundColor = gradient;
         }
-        const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
-        return `${level}L - ${sem} Sem`;
-    });
 
-    const chartData = semesters.map(s => calculateGPA(s.courses));
-    
-    cgpaChart.data.labels = chartLabels.length > 0 ? chartLabels : ['100L - 1st Sem'];
-    cgpaChart.data.datasets[0].data = chartData.length > 0 ? chartData : [0.0];
-    cgpaChart.options.scales.y.max = gradingScale;
-    cgpaChart.update();
+        const safeSemesters = Array.isArray(semesters) ? semesters : [];
+        const chartLabels = safeSemesters.map(s => {
+            const courseYear = parseInt(s.name.split('/')[0]);
+            const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
+            let level = 100;
+            if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
+                level = (courseYear - baseYear + 1) * 100;
+            }
+            const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
+            return `${level}L - ${sem} Sem`;
+        });
+
+        const chartData = safeSemesters.map(s => calculateGPA(s.courses));
+        
+        cgpaChart.data.labels = chartLabels.length > 0 ? chartLabels : ['100L - 1st Sem'];
+        cgpaChart.data.datasets[0].data = chartData.length > 0 ? chartData : [0.0];
+        cgpaChart.options.scales.y.max = gradingScale;
+        cgpaChart.update();
+    } catch (err) {
+        console.warn('Could not update cgpaChart:', err);
+    }
 }
 
 function renderGradingGuide() {
@@ -1166,23 +1218,24 @@ async function deleteCourse(semId, courseId) {
 
 // Profile Logic
 function loadProfile() {
-    if (document.getElementById('student-session')) {
-        document.getElementById('student-session').innerText = studentProfile.session || '2023/2024';
+    const sessEl = document.getElementById('student-session');
+    if (sessEl) {
+        const sess = studentProfile.session || '2023/2024';
+        sessEl.innerText = sess.includes('Session') ? sess : `${sess} Session`;
     }
-    if (document.getElementById('student-uni')) {
-        document.getElementById('student-uni').innerText = studentProfile.uni || 'Your University';
+    const uniEl = document.getElementById('student-uni');
+    if (uniEl) {
+        uniEl.innerText = studentProfile.uni || 'Set your university';
     }
     
     // Update sidebar avatar
     const sidebarAvatar = document.getElementById('sidebar-avatar');
     if (sidebarAvatar) {
-        if (sidebarAvatar.id === 'sidebar-avatar') { // Double-check element
-            if (studentProfile.profilePicture) {
-                sidebarAvatar.innerHTML = `<img src="${studentProfile.profilePicture}" style="width:100%;height:100%;object-fit:cover;" alt="Profile">`;
-            } else {
-                sidebarAvatar.innerHTML = '<i data-lucide="user"></i>';
-                lucide.createIcons();
-            }
+        if (studentProfile.profilePicture) {
+            sidebarAvatar.innerHTML = `<img src="${studentProfile.profilePicture}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Profile">`;
+        } else {
+            sidebarAvatar.innerHTML = '<i data-lucide="school" style="width:18px;height:18px;"></i>';
+            if (window.lucide) lucide.createIcons();
         }
     }
 
