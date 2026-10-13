@@ -213,7 +213,7 @@ function updateAccordionSemesters() {
             <div class="mobile-accordion-item glass ${activeClass}" data-sem-id="${sem.id}">
                 <div class="mobile-accordion-header" onclick="toggleAccordion('${sem.id}')">
                     <div class="mobile-accordion-title-wrap">
-                        <h3>${sem.name}</h3>
+                        <h3>${(typeof formatSemesterName === 'function') ? formatSemesterName(sem.name) : (sem.name && !sem.name.toLowerCase().includes('semester') ? `${sem.name} Semester` : sem.name)}</h3>
                         <div class="mobile-accordion-meta">
                             <span>${sem.courses.length} Courses</span>
                             <span>•</span>
@@ -282,7 +282,8 @@ function updateAnalyticsSection() {
         const semGPA = parseFloat(calculateGPA(sem.courses));
         if (semGPA > highestGPA) {
             highestGPA = semGPA;
-            bestSemName = sem.name.split(' - ')[1] || sem.name;
+            const formatted = (typeof formatSemesterName === 'function') ? formatSemesterName(sem.name) : sem.name;
+            bestSemName = formatted.split(' - ')[1] || formatted;
         }
         totalCoursesCount += sem.courses.length;
     });

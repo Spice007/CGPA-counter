@@ -74,10 +74,25 @@ if (!studentProfile.name && (savedUser.fullName || savedUser.name)) {
     studentProfile.name = savedUser.fullName || savedUser.name;
 }
 
+function formatSemesterName(name) {
+    if (!name) return 'Semester';
+    // If it ends with " - First" or " - Second" (or has First/Second) without the word "Semester"
+    if (/\b(First|Second|1st|2nd)\b/i.test(name) && !/Semester/i.test(name)) {
+        return `${name} Semester`;
+    }
+    return name;
+}
+
 let semesters = [];
 try {
     const cachedSem = JSON.parse(localStorage.getItem('cgpa_semesters'));
-    if (Array.isArray(cachedSem)) semesters = cachedSem;
+    if (Array.isArray(cachedSem)) {
+        semesters = cachedSem.map(s => ({
+            ...s,
+            name: formatSemesterName(s.name)
+        }));
+        localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+    }
 } catch (e) {}
 
 let activeSemesterId = null;
@@ -133,8 +148,12 @@ async function loadData() {
         try {
             const parsed = JSON.parse(cachedSemesters);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                semesters = parsed;
+                semesters = parsed.map(s => ({
+                    ...s,
+                    name: formatSemesterName(s.name)
+                }));
                 hasLocalSemesters = true;
+                localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
             }
         } catch (e) {}
     }
@@ -369,7 +388,7 @@ function setupEventListeners() {
         
         const newSemester = {
             id: `temp_${Date.now()}`,
-            name: `${currentSession} - ${semInLevel === 1 ? 'First' : 'Second'}`,
+            name: `${currentSession} - ${semInLevel === 1 ? 'First Semester' : 'Second Semester'}`,
             courses: []
         };
         semesters.push(newSemester);
@@ -603,7 +622,7 @@ function renderSemesters() {
         
         card.innerHTML = `
             <div class="semester-card-header">
-                <h3 class="font-heading">${sem.name}</h3>
+                <h3 class="font-heading">${formatSemesterName(sem.name)}</h3>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <span class="gpa-pill">GPA: ${semGPA}</span>
                     <button onclick="openCourseModal('${sem.id}')" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
@@ -1610,7 +1629,7 @@ function exportToPDF() {
             return `
                 <div style="margin-bottom: 24px; page-break-inside: avoid;">
                     <div style="display: flex; justify-content: space-between; align-items: center; background: #0f172a; color: #ffffff; padding: 10px 16px; border-top-left-radius: 10px; border-top-right-radius: 10px;">
-                        <span style="font-size: 14px; font-weight: 700; font-family: 'Outfit', sans-serif;">${sem.name}</span>
+                        <span style="font-size: 14px; font-weight: 700; font-family: 'Outfit', sans-serif;">${formatSemesterName(sem.name)}</span>
                         <div style="font-size: 12px; font-weight: 600; color: #cbd5e1;">
                             <span style="margin-right: 12px;">Units: <strong style="color: #ffffff;">${semUnits}</strong></span>
                             GPA: <strong style="color: #34d399; font-size: 13px;">${semGPA}</strong>
