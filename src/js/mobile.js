@@ -205,6 +205,8 @@ function updateAccordionSemesters() {
     container.innerHTML = semesters.map((sem, idx) => {
         const semGPA = calculateGPA(sem.courses);
         const totalUnits = sem.courses.reduce((sum, c) => sum + parseInt(c.units || 0), 0);
+        const semLevel = (typeof getSemesterLevel === 'function') ? getSemesterLevel(sem, idx, semesters) : 100;
+        const formattedTitle = (typeof formatSemesterName === 'function') ? formatSemesterName(sem.name) : (sem.name && !sem.name.toLowerCase().includes('semester') ? `${sem.name} Semester` : sem.name);
         
         const isExpanded = activeAccordions.includes(sem.id) || (activeAccordions.length === 0 && idx === semesters.length - 1);
         const activeClass = isExpanded ? 'active' : '';
@@ -213,7 +215,10 @@ function updateAccordionSemesters() {
             <div class="mobile-accordion-item glass ${activeClass}" data-sem-id="${sem.id}">
                 <div class="mobile-accordion-header" onclick="toggleAccordion('${sem.id}')">
                     <div class="mobile-accordion-title-wrap">
-                        <h3>${(typeof formatSemesterName === 'function') ? formatSemesterName(sem.name) : (sem.name && !sem.name.toLowerCase().includes('semester') ? `${sem.name} Semester` : sem.name)}</h3>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                            <span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25);">${semLevel}L</span>
+                            <h3 style="margin: 0;">${formattedTitle}</h3>
+                        </div>
                         <div class="mobile-accordion-meta">
                             <span>${sem.courses.length} Courses</span>
                             <span>•</span>
@@ -593,14 +598,10 @@ function updateMobileChart() {
         return;
     }
 
-    // Prepare chart labels
-    const chartLabels = semesters.map(s => {
-        const courseYear = parseInt(s.name.split('/')[0]);
-        const baseYear = parseInt(((studentProfile && studentProfile.session) || '2023/2024').split('/')[0]);
-        let level = 100;
-        if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
-            level = (courseYear - baseYear + 1) * 100;
-        }
+    const chartLabels = semesters.map((s, idx) => {
+        const level = (typeof getSemesterLevel === 'function') 
+            ? getSemesterLevel(s, idx, semesters) 
+            : 100;
         const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
         return `${level}L - ${sem}`;
     });

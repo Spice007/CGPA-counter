@@ -83,14 +83,112 @@ function formatSemesterName(name) {
     return name;
 }
 
+function getNextAcademicSession(sessionStr, yearsToAdd = 1) {
+    if (!sessionStr) sessionStr = (studentProfile && studentProfile.session) || '2023/2024';
+    sessionStr = String(sessionStr).trim();
+
+    // Standard YYYY/YYYY (e.g. "2024/2025")
+    const slashParts = sessionStr.split('/');
+    if (slashParts.length === 2) {
+        const start = parseInt(slashParts[0]);
+        const end = parseInt(slashParts[1]);
+        if (!isNaN(start) && !isNaN(end)) {
+            return `${start + yearsToAdd}/${end + yearsToAdd}`;
+        }
+    }
+
+    // Hyphenated YYYY-YYYY (e.g. "2024-2025")
+    const dashParts = sessionStr.split('-');
+    if (dashParts.length === 2 && !isNaN(parseInt(dashParts[0])) && !isNaN(parseInt(dashParts[1]))) {
+        const start = parseInt(dashParts[0]);
+        const end = parseInt(dashParts[1]);
+        return `${start + yearsToAdd}/${end + yearsToAdd}`;
+    }
+
+    // Single 4-digit year (e.g. "2025")
+    const singleYear = parseInt(sessionStr);
+    if (!isNaN(singleYear) && singleYear >= 1900 && singleYear <= 2100) {
+        return `${singleYear + yearsToAdd}`;
+    }
+
+    return sessionStr;
+}
+
+function getSemesterLevel(sem, index, allSemesters) {
+    if (!sem) return 100;
+
+    const extractYear = (str) => {
+        if (!str) return null;
+        const m = str.match(/\b(19\d\d|20\d\d)\b/);
+        return m ? parseInt(m[1]) : null;
+    };
+
+    const list = Array.isArray(allSemesters) ? allSemesters : semesters;
+    const firstSemYear = (list && list.length > 0) ? extractYear(list[0].name) : null;
+    const baseYear = extractYear((studentProfile && studentProfile.session)) || firstSemYear;
+    const semYear = extractYear(sem.name);
+
+    if (semYear && baseYear) {
+        const diff = semYear - baseYear;
+        if (diff >= 0) {
+            return (diff + 1) * 100;
+        }
+    }
+
+    if (typeof index === 'number' && index >= 0) {
+        return (Math.floor(index / 2) + 1) * 100;
+    }
+
+    return 100;
+}
+
+function normalizeSemesters(semList) {
+    if (!Array.isArray(semList) || semList.length === 0) return [];
+
+    let currentSession = null;
+    let prevWasSecond = false;
+
+    return semList.map((sem, idx) => {
+        let name = formatSemesterName(sem.name);
+        const parts = name.split(' - ');
+        let semSession = parts.length > 1 ? parts[0].trim() : null;
+        const semType = /Second|2nd/i.test(name) ? 'Second Semester' : 'First Semester';
+
+        if (idx === 0) {
+            currentSession = semSession || (studentProfile && studentProfile.session) || '2023/2024';
+        } else {
+            if (prevWasSecond && semType === 'First Semester') {
+                if (!semSession || semSession === currentSession) {
+                    currentSession = getNextAcademicSession(currentSession, 1);
+                } else {
+                    currentSession = semSession;
+                }
+            } else if (semSession) {
+                currentSession = semSession;
+            }
+        }
+
+        prevWasSecond = (semType === 'Second Semester');
+        const formattedName = `${currentSession} - ${semType}`;
+
+        return {
+            ...sem,
+            name: formattedName
+        };
+    });
+}
+
+// Expose globally for mobile.js and external callers
+window.formatSemesterName = formatSemesterName;
+window.getNextAcademicSession = getNextAcademicSession;
+window.getSemesterLevel = getSemesterLevel;
+window.normalizeSemesters = normalizeSemesters;
+
 let semesters = [];
 try {
     const cachedSem = JSON.parse(localStorage.getItem('cgpa_semesters'));
     if (Array.isArray(cachedSem)) {
-        semesters = cachedSem.map(s => ({
-            ...s,
-            name: formatSemesterName(s.name)
-        }));
+        semesters = normalizeSemesters(cachedSem);
         localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
     }
 } catch (e) {}
@@ -148,10 +246,7 @@ async function loadData() {
         try {
             const parsed = JSON.parse(cachedSemesters);
             if (Array.isArray(parsed) && parsed.length > 0) {
-                semesters = parsed.map(s => ({
-                    ...s,
-                    name: formatSemesterName(s.name)
-                }));
+                semesters = normalizeSemesters(parsed);
                 hasLocalSemesters = true;
                 localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
             }
@@ -229,7 +324,7 @@ async function loadData() {
             });
 
             if (Object.keys(grouped).length > 0) {
-                semesters = Object.values(grouped);
+                semesters = normalizeSemesters(Object.values(grouped));
                 semesters.sort((a, b) => {
                     const yearA = parseInt(a.name.split('/')[0]) || 0;
                     const yearB = parseInt(b.name.split('/')[0]) || 0;
@@ -374,24 +469,33 @@ function setupNavigation() {
 
 function setupEventListeners() {
     document.getElementById('add-semester-btn').addEventListener('click', () => {
-        const semesterCount = semesters.length;
-        const semInLevel = (semesterCount % 2) + 1;
-        
-        const yearsToAdd = Math.floor(semesterCount / 2);
-        let currentSession = studentProfile.session || '2023/2024';
-        const parts = currentSession.split('/');
-        if (parts.length === 2) {
-            const start = parseInt(parts[0]) + yearsToAdd;
-            const end = parseInt(parts[1]) + yearsToAdd;
-            if (!isNaN(start) && !isNaN(end)) currentSession = `${start}/${end}`;
+        let newSession = (studentProfile && studentProfile.session) || '2023/2024';
+        let newSemType = 'First Semester';
+
+        if (semesters.length > 0) {
+            const lastSem = semesters[semesters.length - 1];
+            const parts = (lastSem.name || '').split(' - ');
+            const lastSession = parts.length > 1 ? parts[0].trim() : ((studentProfile && studentProfile.session) || '2023/2024');
+            const isLastSecond = /Second|2nd/i.test(lastSem.name);
+
+            if (isLastSecond) {
+                // Previous semester was Second Semester -> start First Semester of NEXT session/level
+                newSession = getNextAcademicSession(lastSession, 1);
+                newSemType = 'First Semester';
+            } else {
+                // Previous semester was First Semester -> start Second Semester of SAME session/level
+                newSession = lastSession;
+                newSemType = 'Second Semester';
+            }
         }
-        
+
         const newSemester = {
             id: `temp_${Date.now()}`,
-            name: `${currentSession} - ${semInLevel === 1 ? 'First Semester' : 'Second Semester'}`,
+            name: `${newSession} - ${newSemType}`,
             courses: []
         };
         semesters.push(newSemester);
+        localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
         renderAll();
 
         if (typeof window.showMobileToast === 'function') {
@@ -537,28 +641,25 @@ function renderLevelStats() {
     if (!container) return;
     
     const levelsMap = {};
-    semesters.forEach(sem => {
-        const courseYear = parseInt(sem.name.split('/')[0]);
-        const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
-        let level = 100;
-        if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
-            level = (courseYear - baseYear + 1) * 100;
-        }
+    semesters.forEach((sem, idx) => {
+        const level = getSemesterLevel(sem, idx, semesters);
         
         if (!levelsMap[level]) {
-            levelsMap[level] = { name: `${level} Level`, totalUnits: 0, totalPoints: 0 };
+            levelsMap[level] = { level, name: `${level} Level`, totalUnits: 0, totalPoints: 0 };
         }
         
         sem.courses.forEach(c => {
-            levelsMap[level].totalUnits += parseInt(c.units);
-            levelsMap[level].totalPoints += parseInt(c.units) * parseFloat(c.grade);
+            levelsMap[level].totalUnits += parseInt(c.units || 0);
+            levelsMap[level].totalPoints += parseInt(c.units || 0) * parseFloat(c.grade || 0);
         });
     });
 
-    const levels = Object.values(levelsMap).map(l => {
-        const gpa = l.totalUnits > 0 ? (l.totalPoints / l.totalUnits).toFixed(2) : "0.00";
-        return { name: l.name, gpa, units: l.totalUnits };
-    });
+    const levels = Object.values(levelsMap)
+        .sort((a, b) => a.level - b.level)
+        .map(l => {
+            const gpa = l.totalUnits > 0 ? (l.totalPoints / l.totalUnits).toFixed(2) : "0.00";
+            return { name: l.name, gpa, units: l.totalUnits };
+        });
 
     if (levels.length === 0) {
         container.innerHTML = `<p style="color: var(--text-secondary); font-size: 0.875rem; text-align: center; padding: 1rem; width: 100%;">No level breakdown data available yet. Please add semesters and courses.</p>`;
@@ -616,13 +717,17 @@ function renderSemesters() {
 
     semesters.forEach((sem, index) => {
         const semGPA = calculateGPA(sem.courses);
+        const semLevel = getSemesterLevel(sem, index, semesters);
         const card = document.createElement('div');
         card.className = 'glass card animate-fade-in';
         card.style.animationDelay = `${index * 0.1}s`;
         
         card.innerHTML = `
             <div class="semester-card-header">
-                <h3 class="font-heading">${formatSemesterName(sem.name)}</h3>
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.3); letter-spacing: 0.03em;">${semLevel}L</span>
+                    <h3 class="font-heading" style="margin: 0;">${formatSemesterName(sem.name)}</h3>
+                </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <span class="gpa-pill">GPA: ${semGPA}</span>
                     <button onclick="openCourseModal('${sem.id}')" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
@@ -800,13 +905,8 @@ function initChart() {
 
         const safeSemesters = Array.isArray(semesters) ? semesters : [];
         const chartData = safeSemesters.map(s => calculateGPA(s.courses));
-        const chartLabels = safeSemesters.map(s => {
-            const courseYear = parseInt(s.name.split('/')[0]);
-            const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
-            let level = 100;
-            if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
-                level = (courseYear - baseYear + 1) * 100;
-            }
+        const chartLabels = safeSemesters.map((s, idx) => {
+            const level = getSemesterLevel(s, idx, safeSemesters);
             const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
             return `${level}L - ${sem} Sem`;
         });
@@ -895,13 +995,8 @@ function updateChart() {
         }
 
         const safeSemesters = Array.isArray(semesters) ? semesters : [];
-        const chartLabels = safeSemesters.map(s => {
-            const courseYear = parseInt(s.name.split('/')[0]);
-            const baseYear = parseInt((studentProfile.session || '2023/2024').split('/')[0]);
-            let level = 100;
-            if (!isNaN(courseYear) && !isNaN(baseYear) && courseYear >= baseYear) {
-                level = (courseYear - baseYear + 1) * 100;
-            }
+        const chartLabels = safeSemesters.map((s, idx) => {
+            const level = getSemesterLevel(s, idx, safeSemesters);
             const sem = s.name.includes('Second') || s.name.includes('2nd') ? '2nd' : '1st';
             return `${level}L - ${sem} Sem`;
         });
@@ -1102,8 +1197,8 @@ async function saveCourse() {
 
     // Extract session if present in the card title
     const parts = sem.name.split(' - ');
-    if (parts.length > 1 && parts[0].includes('/')) {
-        session = parts[0];
+    if (parts.length > 1 && parts[0].trim()) {
+        session = parts[0].trim();
     }
 
     // Convert numeric value ("5", "4", etc.) to letter grade ("A", "B", etc.)
