@@ -122,7 +122,7 @@
                     // Store token then redirect to the live admin dashboard
                     localStorage.setItem('admin_token', data.token);
                     localStorage.setItem('admin_user', JSON.stringify(data));
-                    window.location.href = 'https://admin-client-dusky.vercel.app';
+                    window.location.href = 'admin-analytics.html';
                 } else {
                     throw new Error(data.message || 'Invalid credentials');
                 }
