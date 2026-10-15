@@ -16,19 +16,42 @@ const generateToken = (id) => {
 const loginAdmin = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const admin = await Admin.findOne({ username });
+        const cleanUser = (username || '').trim();
+
+        // 1. Check in Admin collection by username or email
+        const admin = await Admin.findOne({
+            $or: [
+                { username: cleanUser },
+                { email: cleanUser.toLowerCase() }
+            ]
+        });
 
         if (admin && (await admin.matchPassword(password))) {
-            res.json({
+            return res.json({
                 _id: admin._id,
                 username: admin.username,
                 email: admin.email,
                 role: admin.role,
                 token: generateToken(admin._id),
             });
-        } else {
-            res.status(401).json({ message: 'Invalid credentials' });
         }
+
+        // 2. Check if superadmin user exists in User collection
+        const user = await User.findOne({
+            email: cleanUser.toLowerCase()
+        });
+
+        if (user && user.email === 'gideonlastgids@gmail.com' && user.password && (await user.matchPassword(password))) {
+            return res.json({
+                _id: user._id,
+                username: user.fullName || 'Super Admin',
+                email: user.email,
+                role: 'superadmin',
+                token: generateToken(user._id),
+            });
+        }
+
+        res.status(401).json({ message: 'Invalid credentials' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

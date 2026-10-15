@@ -517,7 +517,8 @@
     <script>
         lucide.createIcons();
 
-        const API = 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
+        const isLocalHost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:');
+        const API = isLocalHost ? 'http://localhost:5000/api' : 'https://cgpa-calculator-backend-a9kj.onrender.com/api';
         let allStudents = [];
         let standingChartInst = null;
         let facultyChartInst = null;
