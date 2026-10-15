@@ -161,12 +161,15 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
   const [editingStudent, setEditingStudent] = useState(null); // Structured editing modal
   const fileInputRef = useRef(null);
 
-  // Live Sync / Auto Save Trigger with Debounce
+  const isDirtyRef = useRef(false);
+
+  // Live Sync / Auto Save Trigger with Debounce (Only saves when user made actual edits)
   useEffect(() => {
-    if (!autoSave || !onSave || students.length === 0) return;
+    if (!autoSave || !onSave || students.length === 0 || !isDirtyRef.current) return;
     const delayDebounceFn = setTimeout(() => {
+      isDirtyRef.current = false;
       onSave(students, courseColumns);
-    }, 1500); // 1.5 seconds debounce
+    }, 2000); // 2.0 seconds debounce
     return () => clearTimeout(delayDebounceFn);
   }, [students, courseColumns, autoSave]);
 
@@ -210,6 +213,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
 
   // ─── Cell update handler ──────────────────────────────────────────────────
   const handleCellChange = (id, field, value) => {
+    isDirtyRef.current = true;
     setStudents((prev) =>
       prev.map((s) => {
         if (s.id === id) {
@@ -223,6 +227,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
 
   // ─── Header units update handler ──────────────────────────────────────────
   const handleUnitChange = (courseKey, newUnits) => {
+    isDirtyRef.current = true;
     const updatedColumns = courseColumns.map(c => {
       if (c.key === courseKey) {
         return { ...c, units: newUnits };
@@ -250,6 +255,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
     
     const newKey = cleanCode.toLowerCase().replace(/[^a-z0-9]/g, "");
     
+    isDirtyRef.current = true;
     const updatedColumns = [...courseColumns, { key: newKey, label: cleanCode, units }];
     setCourseColumns(updatedColumns);
     setStudents((prev) => prev.map((s) => recomputeStudent({ ...s, [newKey]: null }, updatedColumns)));
@@ -257,6 +263,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
 
   // ─── Add new student row ────────────────────────────────────────────────
   const addStudentRow = () => {
+    isDirtyRef.current = true;
     const rawStudent = {
       id: Date.now(),
       name: "",
@@ -278,6 +285,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
 
   // ─── Delete student row ─────────────────────────────────────────────────
   const deleteStudentRow = (id) => {
+    isDirtyRef.current = true;
     setStudents((prev) => prev.filter((s) => s.id !== id));
     setSelectedRows((prev) => {
       const next = new Set(prev);
@@ -293,6 +301,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
   // ─── Clear all records ──────────────────────────────────────────────────
   const clearAllRecords = () => {
     if (confirm("Are you sure you want to clear all student records?")) {
+      isDirtyRef.current = true;
       setStudents([]);
       setSelectedRows(new Set());
       setSelectAll(false);
@@ -302,6 +311,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
 
   // ─── Load mock sample data ──────────────────────────────────────────────
   const loadMockData = () => {
+    isDirtyRef.current = true;
     const defaultCols = [
       { key: "csc101", label: "CSC101", units: 3 },
       { key: "mth101", label: "MTH101", units: 3 },
@@ -329,6 +339,7 @@ export default function CGPAGrid({ students, setStudents, courseColumns, setCour
   // ─── Save structured edit modal ──────────────────────────────────────────
   const saveEditedStudent = (e) => {
     e.preventDefault();
+    isDirtyRef.current = true;
     setStudents((prev) =>
       prev.map((s) => {
         if (s.id === editingStudent.id) {

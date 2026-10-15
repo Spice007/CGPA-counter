@@ -262,7 +262,7 @@ export default function Dashboard() {
             fullName: s.name,
             matricNumber: s.matric,
             department: s.dept,
-            level: s.level.toString(),
+            level: s.level ? s.level.toString() : "200",
           });
           return;
         }
@@ -271,9 +271,17 @@ export default function Dashboard() {
           const scoreVal = s[c.key];
           const details = s._courseDetails?.[c.key] || {};
 
+          // CRITICAL SAFETY CHECK: Only send course update if the course already exists
+          // OR if an actual score was entered for this student!
+          // NEVER inject empty dummy courses into students' records!
+          const hasScore = scoreVal !== null && scoreVal !== undefined && scoreVal !== "";
+          if (!details.courseId && !hasScore) {
+            return;
+          }
+
           let grade = "F";
           let gradePoint = 0;
-          if (scoreVal !== null && scoreVal !== undefined && scoreVal !== "") {
+          if (hasScore) {
             const score = parseFloat(scoreVal);
             if (!isNaN(score)) {
               if (score >= 70) { grade = "A"; gradePoint = 5; }
@@ -290,12 +298,12 @@ export default function Dashboard() {
             fullName: s.name,
             matricNumber: s.matric,
             department: s.dept,
-            level: s.level.toString(),
+            level: s.level ? s.level.toString() : "200",
             courseId: details.courseId,
             courseCode: c.label,
             courseTitle: details.courseTitle || `${c.label} Course`,
             unit: c.units,
-            score: scoreVal !== null && scoreVal !== undefined && scoreVal !== "" ? parseFloat(scoreVal) : 0,
+            score: hasScore ? parseFloat(scoreVal) : 0,
             grade,
             gradePoint,
             session: "2023/2024",
@@ -303,6 +311,11 @@ export default function Dashboard() {
           });
         });
       });
+
+      if (updates.length === 0) {
+        setSaveStatus("all-saved");
+        return;
+      }
 
       const token = localStorage.getItem("admin_token");
       let res;
@@ -342,17 +355,37 @@ export default function Dashboard() {
       setSaveStatus("all-saved");
       setLastSaved(new Date().toLocaleTimeString());
       
-      // Refresh local studentId mappings if new student users were generated
-      // (This prevents creating duplicates next time we save)
-      if (currentStudents.some(s => !s.studentId)) {
+      // Refresh local mappings if new courses or new student users were created
+      const hadNewCourses = updates.some(u => !u.courseId && u.courseCode);
+      const hadNewStudents = currentStudents.some(s => !s.studentId);
+      if (hadNewCourses || hadNewStudents) {
         const refreshRes = await fetch(`${apiBase}/admin/students`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (refreshRes.ok) {
           const freshData = await refreshRes.json();
           setStudents(prev => prev.map(s => {
-            const match = freshData.find(f => f.matricNumber === s.matric);
-            return match ? { ...s, studentId: match.studentId } : s;
+            const studentRows = freshData.filter(f => (f.studentId && f.studentId === s.studentId) || (f.matricNumber && f.matricNumber === s.matric));
+            if (!studentRows || studentRows.length === 0) return s;
+            const updatedDetails = { ...(s._courseDetails || {}) };
+            studentRows.forEach(row => {
+              if (row.courseCode && row.courseId) {
+                const k = row.courseCode.toLowerCase().replace(/[^a-z0-9]/g, "");
+                updatedDetails[k] = {
+                  ...(updatedDetails[k] || {}),
+                  courseId: row.courseId,
+                  courseCode: row.courseCode,
+                  courseTitle: row.courseTitle,
+                  unit: row.unit
+                };
+              }
+            });
+            const first = studentRows[0];
+            return {
+              ...s,
+              studentId: s.studentId || first.studentId,
+              _courseDetails: updatedDetails
+            };
           }));
         }
       }

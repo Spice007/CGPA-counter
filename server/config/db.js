@@ -27,6 +27,7 @@ const connectDB = async () => {
             minPoolSize: 2,
         });
         console.log(`MongoDB Connected: ${conn.connection.host}`);
+        return conn;
     } catch (error) {
         console.error(`MongoDB connection error: ${error.message}`);
         console.error('Retrying in 5 seconds...');

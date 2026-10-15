@@ -63,16 +63,34 @@ const getStudentsData = async (req, res) => {
         if (!isAuthorized) {
             return res.status(403).json({ message: 'Not authorized as an admin' });
         }
-        const students = await User.find({}).select('-password');
-        const courses = await Course.find({});
-        const results = await Result.find({});
+        const [students, courses, results] = await Promise.all([
+            User.find({}).select('-password').lean(),
+            Course.find({}).lean(),
+            Result.find({}).lean()
+        ]);
 
-        // Map data together into a flat structure suitable for spreadsheet
+        // Pre-group courses and results by user ID for O(1) instant lookup
+        const coursesByUser = new Map();
+        for (const c of courses) {
+            const uid = c.user ? c.user.toString() : '';
+            if (!coursesByUser.has(uid)) coursesByUser.set(uid, []);
+            coursesByUser.get(uid).push(c);
+        }
+
+        const resultsByUser = new Map();
+        for (const r of results) {
+            const uid = r.user ? r.user.toString() : '';
+            if (!resultsByUser.has(uid)) resultsByUser.set(uid, []);
+            resultsByUser.get(uid).push(r);
+        }
+
+        const gpMap = { 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0 };
         const spreadsheetData = [];
 
         students.forEach(student => {
-            const studentCourses = courses.filter(c => c.user.toString() === student._id.toString());
-            const studentResults = results.filter(r => r.user.toString() === student._id.toString());
+            const sIdStr = student._id.toString();
+            const studentCourses = coursesByUser.get(sIdStr) || [];
+            const studentResults = resultsByUser.get(sIdStr) || [];
             
             if (studentCourses.length === 0) {
                 // Return basic student row if no courses
@@ -102,10 +120,10 @@ const getStudentsData = async (req, res) => {
                 let totalUnits = 0;
                 let totalPoints = 0;
                 studentCourses.forEach(c => {
-                    const gpMap = { 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0 };
-                    const gp = c.gradePoint !== undefined ? c.gradePoint : (gpMap[c.grade.toUpperCase()] || 0);
-                    totalUnits += c.unit;
-                    totalPoints += (c.unit * gp);
+                    const gp = c.gradePoint !== undefined ? c.gradePoint : (gpMap[(c.grade || '').toUpperCase()] || 0);
+                    const u = Number(c.unit) || 0;
+                    totalUnits += u;
+                    totalPoints += (u * gp);
                 });
                 const cgpa = totalUnits > 0 ? parseFloat((totalPoints / totalUnits).toFixed(2)) : 0;
 
@@ -158,7 +176,12 @@ const saveBulkResults = async (req, res) => {
             return res.status(403).json({ message: 'Not authorized as an admin' });
         }
         const { updates } = req.body; // Array of updated rows
+        if (!Array.isArray(updates) || updates.length === 0) {
+            return res.json({ message: 'No updates provided', count: 0 });
+        }
+
         const bulkCourseOps = [];
+        const affectedStudentIds = new Set();
         
         for (let row of updates) {
             let studentId = row.studentId;
@@ -169,7 +192,6 @@ const saveBulkResults = async (req, res) => {
                 if (student) {
                     studentId = student._id;
                 } else {
-                    // Create a new student user
                     const email = row.matricNumber.toLowerCase().replace(/[^a-z0-9]/g, '') + '@school.edu';
                     const salt = await bcrypt.genSalt(10);
                     const hashedPassword = await bcrypt.hash('password123', salt);
@@ -193,43 +215,66 @@ const saveBulkResults = async (req, res) => {
                         filter: { _id: row.courseId },
                         update: {
                             $set: {
-                                code: row.courseCode,
+                                code: (row.courseCode || '').toUpperCase().trim(),
                                 title: row.courseTitle,
-                                unit: row.unit,
-                                score: row.score || 0,
-                                grade: row.grade,
-                                gradePoint: row.gradePoint
+                                unit: Number(row.unit) || 0,
+                                score: row.score !== undefined && row.score !== null && row.score !== '' ? Number(row.score) : 0,
+                                grade: row.grade || 'F',
+                                gradePoint: Number(row.gradePoint) || 0
                             }
                         }
                     }
                 });
+                if (studentId) affectedStudentIds.add(studentId.toString());
             } else if (studentId && row.courseCode) {
-                // Insert new course if courseCode is provided
-                bulkCourseOps.push({
-                    insertOne: {
-                        document: {
-                            user: studentId,
-                            code: row.courseCode,
-                            title: row.courseTitle || 'Unknown Title',
-                            unit: row.unit || 0,
-                            score: row.score || 0,
-                            grade: row.grade || 'F',
-                            gradePoint: row.gradePoint || 0,
-                            session: row.session || '2023/2024',
-                            semester: row.semester || '1st Semester'
+                // CRITICAL SAFETY GUARD:
+                // Only insert or upsert a new course if a genuine score was entered or non-F grade exists!
+                // This stops the spreadsheet from broadcasting ghost empty columns to every student!
+                const hasValidScore = row.score !== undefined && row.score !== null && row.score !== '';
+                const hasValidGrade = row.grade && row.grade !== 'F';
+
+                if (hasValidScore || hasValidGrade) {
+                    const normCode = row.courseCode.toUpperCase().trim();
+                    const normSession = row.session || '2023/2024';
+                    const normSemester = row.semester || '1st Semester';
+
+                    // Atomic upsert ensures NO DUPLICATES can ever be created
+                    bulkCourseOps.push({
+                        updateOne: {
+                            filter: {
+                                user: studentId,
+                                code: normCode,
+                                session: normSession,
+                                semester: normSemester
+                            },
+                            update: {
+                                $set: {
+                                    user: studentId,
+                                    code: normCode,
+                                    title: row.courseTitle || `${normCode} Course`,
+                                    unit: Number(row.unit) || 0,
+                                    score: hasValidScore ? Number(row.score) : 0,
+                                    grade: row.grade || 'F',
+                                    gradePoint: Number(row.gradePoint) || 0,
+                                    session: normSession,
+                                    semester: normSemester
+                                }
+                            },
+                            upsert: true
                         }
-                    }
-                });
+                    });
+                    affectedStudentIds.add(studentId.toString());
+                }
             }
             
-            // Update student demographics
-            if (studentId) {
-                await User.findByIdAndUpdate(studentId, {
-                    fullName: row.fullName,
-                    matricNumber: row.matricNumber,
-                    department: row.department,
-                    academicSession: row.level
-                });
+            // Update student demographics if provided
+            if (studentId && (row.fullName || row.matricNumber || row.department || row.level)) {
+                const updateDoc = {};
+                if (row.fullName) updateDoc.fullName = row.fullName;
+                if (row.matricNumber) updateDoc.matricNumber = row.matricNumber;
+                if (row.department) updateDoc.department = row.department;
+                if (row.level) updateDoc.academicSession = row.level;
+                await User.findByIdAndUpdate(studentId, updateDoc);
             }
         }
 
@@ -238,41 +283,18 @@ const saveBulkResults = async (req, res) => {
         }
 
         // Trigger GPA / CGPA recalculations for students who had their records updated
-        // For each updated student, we can compute semester GPAs and update their Results collection
-        const updatedStudentIds = [...new Set(updates.map(row => row.studentId).filter(Boolean))];
-        for (let sId of updatedStudentIds) {
-            // Find all courses for this student
+        const { performGPACalculation } = require('./resultController');
+        for (let sId of affectedStudentIds) {
             const studentCourses = await Course.find({ user: sId });
-            
-            // Group by session and semester
-            const semGroup = {};
+            const semGroup = new Set();
             studentCourses.forEach(c => {
-                const key = `${c.session}_${c.semester}`;
-                if (!semGroup[key]) {
-                    semGroup[key] = { session: c.session, semester: c.semester, courses: [] };
+                if (c.session && c.semester) {
+                    semGroup.add(`${c.session}___${c.semester}`);
                 }
-                semGroup[key].courses.push(c);
             });
-            
-            // Calculate GPA for each semester and upsert Result model
-            for (let key of Object.keys(semGroup)) {
-                const { session, semester, courses } = semGroup[key];
-                let totalUnits = 0;
-                let totalPoints = 0;
-                
-                courses.forEach(c => {
-                    totalUnits += c.unit;
-                    totalPoints += (c.unit * c.gradePoint);
-                });
-                
-                const gpa = totalUnits > 0 ? parseFloat((totalPoints / totalUnits).toFixed(2)) : 0;
-                
-                // Find and update or create Result
-                await Result.findOneAndUpdate(
-                    { user: sId, session, semester },
-                    { gpa },
-                    { upsert: true, new: true }
-                );
+            for (let pair of semGroup) {
+                const [session, semester] = pair.split('___');
+                await performGPACalculation(sId, session, semester);
             }
         }
         
@@ -282,4 +304,181 @@ const saveBulkResults = async (req, res) => {
     }
 };
 
-module.exports = { loginAdmin, registerAdmin, getStudentsData, saveBulkResults };
+// Reusable core routine to purge phantom auto-saved courses, deduplicate, and recalculate GPAs
+const executeCourseCleanup = async () => {
+    console.log('🧹 [Course Cleanup] Starting comprehensive course cleanup & deduplication...');
+
+    // 1. Delete phantom dummy courses created by spreadsheet auto-save bug:
+    // (session 2023/2024, 1st Semester, grade F, gradePoint 0, score 0/null, title ending in "Course" or "Unknown Title")
+    const phantomQuery = {
+        session: '2023/2024',
+        semester: '1st Semester',
+        grade: 'F',
+        gradePoint: 0,
+        $and: [
+            {
+                $or: [
+                    { score: 0 },
+                    { score: { $exists: false } },
+                    { score: null }
+                ]
+            },
+            {
+                $or: [
+                    { title: { $regex: /\bCourse$/i } },
+                    { title: 'Unknown Title' }
+                ]
+            }
+        ]
+    };
+
+    const phantomRes = await Course.deleteMany(phantomQuery);
+    console.log(`🧹 [Course Cleanup] Deleted ${phantomRes.deletedCount} phantom auto-save courses.`);
+
+    // 2. Identify and remove any remaining duplicates:
+    // Group by (user, uppercase code, session, semester)
+    const duplicateGroups = await Course.aggregate([
+        {
+            $group: {
+                _id: {
+                    user: "$user",
+                    code: { $toUpper: "$code" },
+                    session: "$session",
+                    semester: "$semester"
+                },
+                count: { $sum: 1 },
+                docs: {
+                    $push: {
+                        _id: "$_id",
+                        score: "$score",
+                        grade: "$grade",
+                        gradePoint: "$gradePoint",
+                        createdAt: "$createdAt"
+                    }
+                }
+            }
+        },
+        {
+            $match: {
+                count: { $gt: 1 }
+            }
+        }
+    ]);
+
+    const duplicateIdsToDelete = [];
+    for (const group of duplicateGroups) {
+        // Sort so the best record is kept at index 0:
+        // 1. Highest gradePoint
+        // 2. Highest score
+        // 3. Oldest genuine document
+        group.docs.sort((a, b) => {
+            const gpA = a.gradePoint || 0;
+            const gpB = b.gradePoint || 0;
+            if (gpA !== gpB) return gpB - gpA;
+            const scA = a.score || 0;
+            const scB = b.score || 0;
+            if (scA !== scB) return scB - scA;
+            return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+        });
+
+        // Delete all duplicate copies (index 1 to end)
+        for (let i = 1; i < group.docs.length; i++) {
+            duplicateIdsToDelete.push(group.docs[i]._id);
+        }
+    }
+
+    let dedupDeletedCount = 0;
+    if (duplicateIdsToDelete.length > 0) {
+        const dedupRes = await Course.deleteMany({ _id: { $in: duplicateIdsToDelete } });
+        dedupDeletedCount = dedupRes.deletedCount;
+        console.log(`🧹 [Course Cleanup] Deleted ${dedupDeletedCount} duplicate courses.`);
+    }
+
+    // 3. Recalculate GPAs for all users with courses or existing results
+    const { performGPACalculation } = require('./resultController');
+    const distinctCourseUsers = await Course.distinct('user');
+    const distinctResultUsers = await Result.distinct('user');
+    const allUsers = [...new Set([...distinctCourseUsers.map(String), ...distinctResultUsers.map(String)])];
+
+    for (const uId of allUsers) {
+        try {
+            const userCourses = await Course.find({ user: uId });
+            const semPairs = new Set();
+            userCourses.forEach(c => {
+                if (c.session && c.semester) {
+                    semPairs.add(`${c.session}___${c.semester}`);
+                }
+            });
+
+            const existingResults = await Result.find({ user: uId });
+            existingResults.forEach(r => {
+                if (r.session && r.semester) {
+                    semPairs.add(`${r.session}___${r.semester}`);
+                }
+            });
+
+            for (const pair of semPairs) {
+                const [session, semester] = pair.split('___');
+                await performGPACalculation(uId, session, semester);
+            }
+        } catch (calcErr) {
+            console.warn(`Error recalculating GPA for user ${uId}:`, calcErr.message);
+        }
+    }
+
+    // 4. Safely create or ensure compound unique index
+    try {
+        await Course.collection.createIndex(
+            { user: 1, code: 1, session: 1, semester: 1 },
+            { unique: true }
+        );
+        console.log('✅ [Course Cleanup] Unique compound index successfully established on Course collection.');
+    } catch (indexErr) {
+        console.warn('⚠️ [Course Cleanup] Unique index creation warning:', indexErr.message);
+    }
+
+    const remainingCourses = await Course.countDocuments();
+    const totalDeleted = phantomRes.deletedCount + dedupDeletedCount;
+    console.log(`🎉 [Course Cleanup] Completed! Purged: ${totalDeleted} courses. Remaining legitimate courses: ${remainingCourses}`);
+
+    return {
+        phantomDeleted: phantomRes.deletedCount,
+        duplicatesDeleted: dedupDeletedCount,
+        totalDeleted,
+        remainingCourses,
+        recalculatedUsersCount: allUsers.length
+    };
+};
+
+// @desc    Admin endpoint to trigger cleanup manually
+// @route   POST /api/admin/clean-courses
+// @route   GET  /api/admin/clean-courses
+const cleanDuplicateCourses = async (req, res) => {
+    try {
+        const isAuthorized = req.user && (
+            req.user.role === 'superadmin' ||
+            req.user.email === 'gideonlastgids@gmail.com'
+        );
+        if (!isAuthorized) {
+            return res.status(403).json({ message: 'Not authorized as an admin' });
+        }
+
+        const result = await executeCourseCleanup();
+        res.json({
+            message: 'Course cleanup and GPA recalculation completed successfully',
+            ...result
+        });
+    } catch (error) {
+        console.error('Course cleanup error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    loginAdmin,
+    registerAdmin,
+    getStudentsData,
+    saveBulkResults,
+    cleanDuplicateCourses,
+    executeCourseCleanup
+};

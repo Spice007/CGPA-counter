@@ -403,9 +403,14 @@
                 <h1 class="page-title">Site Analytics</h1>
                 <p class="page-sub" id="last-refreshed">Loading data from MongoDB Atlas...</p>
             </div>
-            <button class="refresh-btn" onclick="loadAll()">
-                <i data-lucide="refresh-cw"></i> Refresh
-            </button>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button id="clean-btn" class="refresh-btn" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: #f87171;" onclick="cleanDuplicates()">
+                    <i data-lucide="shield-alert"></i> Clean Duplicates
+                </button>
+                <button class="refresh-btn" onclick="loadAll()">
+                    <i data-lucide="refresh-cw"></i> Refresh
+                </button>
+            </div>
         </div>
 
         <!-- STATS CARDS -->
@@ -629,6 +634,30 @@
             } catch (err) {
                 document.getElementById('last-refreshed').textContent = '⚠️ Error loading data: ' + err.message;
                 document.getElementById('table-container').innerHTML = `<div class="empty-state"><p>Could not load data. Check network or re-login.</p></div>`;
+            }
+        }
+
+        async function cleanDuplicates() {
+            if (!confirm('Run database deduplication audit? This will remove phantom courses and duplicates, restore real courses, and recalculate all student GPAs.')) return;
+            const btn = document.getElementById('clean-btn');
+            if (btn) btn.disabled = true;
+            document.getElementById('last-refreshed').textContent = '🧹 Cleaning duplicate courses in MongoDB Atlas...';
+            try {
+                const res = await fetch(`${API}/admin/clean-courses`, {
+                    method: 'POST',
+                    headers: getHeaders()
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`✅ Cleanup Successful!\nPurged: ${data.totalDeleted || 0} phantom/duplicate courses.\nRemaining legitimate courses: ${data.remainingCourses || 0}\nRecalculated users: ${data.recalculatedUsersCount || 0}`);
+                    loadAll();
+                } else {
+                    alert('Error: ' + (data.message || 'Cleanup failed'));
+                }
+            } catch (err) {
+                alert('Network error: ' + err.message);
+            } finally {
+                if (btn) btn.disabled = false;
             }
         }
 

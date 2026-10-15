@@ -8,7 +8,19 @@ require('dotenv').config({ path: path.join(__dirname, '.env') }); // Then server
 const connectDB = require('./config/db');
 
 // Connect to Database
-connectDB();
+connectDB().then(() => {
+    // Automatically purge any phantom/duplicate courses and ensure unique index on startup
+    const { executeCourseCleanup } = require('./controllers/adminController');
+    setTimeout(async () => {
+        try {
+            await executeCourseCleanup();
+        } catch (cleanErr) {
+            console.warn('⚠️ [Startup Cleanup] Error running course cleanup:', cleanErr.message);
+        }
+    }, 2500);
+}).catch(err => {
+    console.error('Failed to connect to DB during startup:', err);
+});
 
 const authRoutes = require('./routes/authRoutes');
 const courseRoutes = require('./routes/courseRoutes');

@@ -343,13 +343,17 @@ async function loadData() {
                 const gradePointMap = { 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0 };
                 const numericGrade = c.gradePoint !== undefined ? c.gradePoint : (gradePointMap[c.grade.toUpperCase()] || 0);
 
-                grouped[key].courses.push({
-                    id: c._id,
-                    title: c.title,
-                    code: c.code || c.title,
-                    units: c.unit,
-                    grade: numericGrade
-                });
+                const codeUpper = (c.code || c.title || '').trim().toUpperCase();
+                // Deduplicate any duplicate course codes within the same semester
+                if (!grouped[key].courses.some(existing => (existing.code || existing.title || '').trim().toUpperCase() === codeUpper)) {
+                    grouped[key].courses.push({
+                        id: c._id,
+                        title: c.title,
+                        code: c.code || c.title,
+                        units: c.unit,
+                        grade: numericGrade
+                    });
+                }
             });
 
             if (Object.keys(grouped).length > 0) {
@@ -362,6 +366,10 @@ async function loadData() {
                     const isFirstB = b.name.includes('First') || b.name.includes('1st') ? 0 : 1;
                     return isFirstA - isFirstB;
                 });
+                localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
+            } else if (Array.isArray(coursesData) && coursesData.length === 0) {
+                // If the user has 0 courses in DB, clear cached semesters
+                semesters = [];
                 localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
             }
         }
