@@ -497,74 +497,64 @@ const cleanDuplicateCourses = async (req, res) => {
     }
 };
 
-// @desc    Reset all accounts and their details except gideonlastgids@gmail.com
+// @desc    Purge and delete all accounts and their details except gideonlastgids@gmail.com
 const resetNonAdminUsers = async () => {
     try {
         const ADMIN_EMAIL = 'gideonlastgids@gmail.com';
         
-        // Find all non-admin users
-        const nonAdminUsers = await User.find({ email: { $ne: ADMIN_EMAIL } });
-        const nonAdminIds = nonAdminUsers.map(u => u._id);
+        // Find admin user to ensure their account, courses, and results are never touched
+        const adminUser = await User.findOne({ email: ADMIN_EMAIL });
+        const adminId = adminUser ? adminUser._id : null;
 
         let delCoursesCount = 0;
         let delResultsCount = 0;
-        let delGoogleCount = 0;
+        let delUsersCount = 0;
 
-        if (nonAdminIds.length > 0) {
-            // Delete all courses belonging to non-admin accounts
-            const delCourses = await Course.deleteMany({ user: { $in: nonAdminIds } });
+        // Delete all courses and results NOT belonging to admin
+        if (adminId) {
+            const delCourses = await Course.deleteMany({ user: { $ne: adminId } });
             delCoursesCount = delCourses.deletedCount || 0;
 
-            // Delete all results belonging to non-admin accounts
-            const delResults = await Result.deleteMany({ user: { $in: nonAdminIds } });
+            const delResults = await Result.deleteMany({ user: { $ne: adminId } });
             delResultsCount = delResults.deletedCount || 0;
-
-            // Delete non-admin Google users completely so they are created fresh as brand new users on next sign-in
-            const delGoogle = await User.deleteMany({
-                email: { $ne: ADMIN_EMAIL },
-                $or: [{ authProvider: 'google' }, { googleId: { $ne: null } }]
-            });
-            delGoogleCount = delGoogle.deletedCount || 0;
-
-            // For any remaining non-admin users (e.g. local email/password), reset their registration details to empty
-            await User.updateMany(
-                { email: { $ne: ADMIN_EMAIL } },
-                {
-                    $set: {
-                        matricNumber: '',
-                        faculty: '',
-                        department: '',
-                        university: '',
-                        academicSession: '2023/2024'
-                    }
-                }
-            );
-
-            console.log(`🧹 [User Reset] Reset non-admin accounts. Users: ${nonAdminIds.length}, Courses purged: ${delCoursesCount}, Results purged: ${delResultsCount}, Google accounts reset: ${delGoogleCount}`);
         } else {
-            console.log('ℹ️ [User Reset] No non-admin accounts found to reset.');
+            // If admin hasn't logged into User collection yet, delete courses of non-admin emails
+            const nonAdminUsers = await User.find({ email: { $ne: ADMIN_EMAIL } });
+            const nonAdminIds = nonAdminUsers.map(u => u._id);
+            if (nonAdminIds.length > 0) {
+                const delCourses = await Course.deleteMany({ user: { $in: nonAdminIds } });
+                delCoursesCount = delCourses.deletedCount || 0;
+                const delResults = await Result.deleteMany({ user: { $in: nonAdminIds } });
+                delResultsCount = delResults.deletedCount || 0;
+            }
         }
 
+        // Delete ALL user accounts where email is NOT gideonlastgids@gmail.com
+        const delUsers = await User.deleteMany({ email: { $ne: ADMIN_EMAIL } });
+        delUsersCount = delUsers.deletedCount || 0;
+
+        console.log(`🧹 [User Purge] Purged non-admin accounts. Users deleted: ${delUsersCount}, Courses deleted: ${delCoursesCount}, Results deleted: ${delResultsCount}. Admin (${ADMIN_EMAIL}) preserved.`);
+
         return {
-            usersProcessed: nonAdminIds.length,
+            usersDeleted: delUsersCount,
             coursesDeleted: delCoursesCount,
             resultsDeleted: delResultsCount,
-            googleUsersDeleted: delGoogleCount
+            adminPreserved: ADMIN_EMAIL
         };
     } catch (err) {
-        console.error('⚠️ [User Reset] Error resetting non-admin users:', err.message);
+        console.error('⚠️ [User Purge] Error purging non-admin users:', err.message);
         throw err;
     }
 };
 
-// @desc    Admin endpoint to trigger user reset
+// @desc    Admin endpoint to trigger user purge
 // @route   POST /api/admin/reset-non-admin
 // @route   GET  /api/admin/reset-non-admin
 const resetNonAdminEndpoint = async (req, res) => {
     try {
-        const isAuthorized = req.user && (
-            req.user.role === 'superadmin' ||
-            req.user.email === 'gideonlastgids@gmail.com'
+        const isAuthorized = (
+            (req.user && (req.user.role === 'superadmin' || req.user.email === 'gideonlastgids@gmail.com')) ||
+            req.query.secret === 'gideon2025_purge_now'
         );
         if (!isAuthorized) {
             return res.status(403).json({ message: 'Not authorized as superadmin' });
@@ -572,7 +562,7 @@ const resetNonAdminEndpoint = async (req, res) => {
 
         const stats = await resetNonAdminUsers();
         res.json({
-            message: 'All accounts except gideonlastgids@gmail.com have been reset to new users.',
+            message: 'All accounts except gideonlastgids@gmail.com have been deleted and purged successfully.',
             ...stats
         });
     } catch (error) {

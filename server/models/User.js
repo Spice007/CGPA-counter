@@ -11,6 +11,13 @@ const userSchema = mongoose.Schema({
         required: [true, 'Please add an email'],
         unique: true
     },
+    username: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true,
+        lowercase: true
+    },
     password: {
         type: String,
         required: false   // Optional — Google OAuth users have no password

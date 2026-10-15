@@ -72,16 +72,19 @@
                 localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(user));
 
-                // Check if user has completed registration (Matric Number, Faculty, Department)
+                // Check if user has completed registration (Matric Number, Faculty, Department, and GVU username)
                 const m = (user.matricNumber || '').trim();
                 const d = (user.department || '').trim();
                 const f = (user.faculty || '').trim();
+                const uName = (user.username || '').trim();
                 const isComplete = m && m !== 'N/A' && m.toLowerCase() !== 'not set' &&
                                    d && d !== 'N/A' && d.toLowerCase() !== 'not set' &&
-                                   f && f !== 'N/A' && f.toLowerCase() !== 'not set';
+                                   f && f !== 'N/A' && f.toLowerCase() !== 'not set' &&
+                                   uName;
 
                 const profileObj = {
                     name: user.fullName || '',
+                    username: uName,
                     uni: user.university || '',
                     session: user.academicSession || '2023/2024',
                     matric: isComplete ? m : '',

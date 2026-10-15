@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const { asyncHandler } = require('../middleware/errorMiddleware');
+const { generateGvuUsername, isUserRegistrationComplete } = require('../utils/usernameHelper');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -8,6 +9,11 @@ const getUserProfile = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user.id || req.user._id).select('-password');
 
     if (user) {
+        // If registration is complete and username is not yet generated, assign it
+        if (isUserRegistrationComplete(user) && !user.username) {
+            user.username = await generateGvuUsername(user.fullName, User, user._id);
+            await user.save();
+        }
         res.json(user);
     } else {
         res.status(404);
@@ -15,7 +21,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Update user profile
+// @desc    Update user profile (Registration Completion)
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
@@ -32,6 +38,11 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         
         if (req.body.profilePicture !== undefined) {
             user.profilePicture = req.body.profilePicture;
+        }
+
+        // When user completes registration (matricNumber, faculty, dept), assign .gvu.ed username if missing
+        if (isUserRegistrationComplete(user) && !user.username) {
+            user.username = await generateGvuUsername(user.fullName, User, user._id);
         }
 
         const updatedUser = await user.save();

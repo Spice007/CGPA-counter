@@ -47,10 +47,41 @@ const showError = (message) => {
     }
 };
 
-// Auth Check (Used to verify session on page loads if needed)
+// Auth Check (Used to verify session on page loads)
 function checkAuth() {
-    const user = localStorage.getItem('user');
-    if (!user && !window.location.pathname.includes('login.html') && !window.location.pathname.includes('signup.html')) {
+    const path = window.location.pathname.toLowerCase();
+    const publicPages = ['login.html', 'signup.html', 'auth-callback.html', 'reset-password.html', 'help.html', 'admin-login.html', 'admin-analytics.html'];
+    const isPublicPage = publicPages.some(page => path.includes(page));
+    if (isPublicPage) return;
+
+    const rawUser = localStorage.getItem('user');
+    if (!rawUser) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    try {
+        const user = JSON.parse(rawUser);
+        const urlParams = new URLSearchParams(window.location.search);
+        const isCompletingProfile = urlParams.get('complete_profile') === '1' || sessionStorage.getItem('complete_registration_required') === 'true';
+
+        // Check if user has an assigned .gvu.ed username
+        const hasUsername = Boolean(user && user.username && typeof user.username === 'string' && user.username.trim());
+
+        // Without that username, they cannot enter the site
+        if (!hasUsername && !isCompletingProfile) {
+            console.warn('⚠️ Access restricted: GVU username (.gvu.ed) is required to enter the site.');
+            sessionStorage.setItem('complete_registration_required', 'true');
+            if (path.includes('index.html') || path.endsWith('/')) {
+                if (urlParams.get('complete_profile') !== '1') {
+                    window.location.href = 'index.html?complete_profile=1';
+                }
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+    } catch (e) {
+        localStorage.removeItem('user');
         window.location.href = 'login.html';
     }
 }

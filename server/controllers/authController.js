@@ -6,6 +6,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const crypto = require('crypto');
 const { sendResetEmail, sendLoginNotification } = require('../utils/emailService');
 const { asyncHandler } = require('../middleware/errorMiddleware');
+const { generateGvuUsername, isUserRegistrationComplete } = require('../utils/usernameHelper');
 
 // ─── Google OAuth Strategy ────────────────────────────────────────────────────
 const hasGoogleCreds = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
@@ -84,9 +85,13 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
+    // Generate official student username from first name with .gvu.ed suffix
+    const username = await generateGvuUsername(fullName, User);
+
     // Create user
     const user = await User.create({
         fullName,
+        username,
         email,
         password,
         matricNumber,
@@ -98,6 +103,7 @@ const registerUser = asyncHandler(async (req, res) => {
         res.status(201).json({
             _id: user.id || user._id,
             fullName: user.fullName,
+            username: user.username,
             email: user.email,
             matricNumber: user.matricNumber,
             department: user.department,
@@ -116,8 +122,14 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    // Check for user email
-    const user = await User.findOne({ email });
+    // Check for user by email or by official .gvu.ed username
+    const cleanId = (email || '').trim().toLowerCase();
+    const user = await User.findOne({
+        $or: [
+            { email: cleanId },
+            { username: cleanId }
+        ]
+    });
 
     if (user) {
         if (!user.password) {
@@ -127,6 +139,11 @@ const loginUser = asyncHandler(async (req, res) => {
 
         if (await bcrypt.compare(password, user.password)) {
             user.lastLogin = new Date();
+
+            // If user completed registration previously but lacks username, generate one now
+            if (isUserRegistrationComplete(user) && !user.username) {
+                user.username = await generateGvuUsername(user.fullName, User, user._id);
+            }
             await user.save();
 
             // Send login notification email asynchronously
@@ -138,6 +155,7 @@ const loginUser = asyncHandler(async (req, res) => {
             res.json({
                 _id: user.id || user._id,
                 fullName: user.fullName,
+                username: user.username || '',
                 email: user.email,
                 matricNumber: user.matricNumber,
                 department: user.department,
@@ -204,9 +222,16 @@ const googleCallback = (req, res, next) => {
         sendLoginNotification(user.email, user.fullName, ip, userAgent)
             .catch(err => console.error('Error sending Google login notification email:', err));
 
+        // If user completed registration previously and lacks a username, assign one
+        if (isUserRegistrationComplete(user) && !user.username) {
+            user.username = await generateGvuUsername(user.fullName, User, user._id);
+            await user.save();
+        }
+
         const userObj = {
             _id:             user._id,
             fullName:        user.fullName,
+            username:        user.username || '',
             email:           user.email,
             matricNumber:    user.matricNumber || '',
             department:      user.department || '',
