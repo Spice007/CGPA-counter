@@ -9,12 +9,11 @@ const connectDB = require('./config/db');
 
 // Connect to Database
 connectDB().then(() => {
-    // Automatically purge phantom/duplicate courses, establish unique index, and reset non-admin users
-    const { executeCourseCleanup, resetNonAdminUsers } = require('./controllers/adminController');
+    // Automatically establish unique course index and deduplicate courses if needed
+    const { executeCourseCleanup } = require('./controllers/adminController');
     setTimeout(async () => {
         try {
             await executeCourseCleanup();
-            await resetNonAdminUsers();
         } catch (cleanErr) {
             console.warn('⚠️ [Startup Cleanup] Error running startup tasks:', cleanErr.message);
         }

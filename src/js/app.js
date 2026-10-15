@@ -54,37 +54,6 @@ async function apiFetch(endpoint, options = {}) {
     }
 })();
 
-// One-time session reset: Log out all accounts and details on this page except gideonlastgids@gmail.com
-(function purgeNonAdminSessionsOnce() {
-    const PURGE_KEY = 'cgpa_accounts_reset_gids_v1';
-    if (!localStorage.getItem(PURGE_KEY)) {
-        try {
-            const rawUser = localStorage.getItem('user');
-            if (rawUser) {
-                const u = JSON.parse(rawUser);
-                const userEmail = (u && u.email ? u.email : '').toLowerCase().trim();
-                // If account is NOT gideonlastgids@gmail.com, log them out and clear their details on this page
-                if (userEmail && userEmail !== 'gideonlastgids@gmail.com') {
-                    console.log('Logging out account and clearing details for new user setup:', userEmail);
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('cgpa_profile');
-                    localStorage.removeItem('cgpa_semesters');
-                    localStorage.removeItem('cgpa_tasks');
-                    localStorage.removeItem('cgpa_resources');
-                    sessionStorage.clear();
-                    localStorage.setItem(PURGE_KEY, 'true');
-                    window.location.href = 'login.html';
-                    return;
-                }
-            }
-            localStorage.setItem(PURGE_KEY, 'true');
-        } catch (e) {
-            console.error('Session reset error:', e);
-            localStorage.setItem(PURGE_KEY, 'true');
-        }
-    }
-})();
 
 const savedUser = JSON.parse(localStorage.getItem('user')) || {};
 let cachedProfileData = {};
