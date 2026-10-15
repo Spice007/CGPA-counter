@@ -91,7 +91,11 @@ function updateWelcomeCard() {
     if (drawerName) drawerName.textContent = profileName;
     
     const profileUni = studentProfile.uni || 'Your University';
-    if (drawerUni) drawerUni.textContent = profileUni;
+    const profileUsername = studentProfile.username || mobSavedUser.username || '';
+    if (drawerUni) {
+        drawerUni.textContent = profileUsername ? `@${profileUsername}` : profileUni;
+        if (profileUsername) drawerUni.style.color = '#38bdf8';
+    }
     
     if (deptEl) deptEl.textContent = studentProfile.department || 'Department';
     if (sessionEl) sessionEl.textContent = (studentProfile.session || 'Academic') + ' Session';

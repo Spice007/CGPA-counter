@@ -1045,6 +1045,7 @@
                                     <span class="input-icon"><i data-lucide="user"></i></span>
                                     <input type="text" id="fullName" placeholder="e.g. Chukwuemeka Obi" autocomplete="name">
                                 </div>
+                                <span style="font-size: 0.76rem; color: #94a3b8; display: block; margin-top: 0.35rem;"><i data-lucide="shield-check" style="width: 12px; height: 12px; display: inline; vertical-align: middle; color: #10b981;"></i> Your official student username will be created from your first name (e.g. <code>chukwuemeka.gvu.ed</code>).</span>
                             </div>
                             <div class="field-group full">
                                 <label class="field-label"><i data-lucide="mail"></i> Email Address</label>
@@ -1361,7 +1362,25 @@
                 if (res.ok) {
                     localStorage.setItem('user', JSON.stringify(data));
                     localStorage.setItem('apiBase', activeApi);
-                    window.location.href = 'index.html';
+                    sessionStorage.removeItem('complete_registration_required');
+
+                    const profileObj = {
+                        name: data.fullName || '',
+                        username: data.username || '',
+                        uni: 'Set your university',
+                        session: '2023/2024',
+                        matric: data.matricNumber || '',
+                        faculty: data.faculty || '',
+                        department: data.department || '',
+                        profilePicture: ''
+                    };
+                    localStorage.setItem('cgpa_profile', JSON.stringify(profileObj));
+
+                    btn.innerHTML = `<span class="btn-arrow-circle"><i data-lucide="check"></i></span> <span>Username: ${data.username || 'assigned'}! Entering...</span>`;
+                    lucide.createIcons();
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 800);
                 } else {
                     showErr(data.message || 'Registration failed. Please try again.');
                     btn.innerHTML = '<span class="btn-arrow-circle"><i data-lucide="user-check"></i></span> <span>Create My Account</span>';

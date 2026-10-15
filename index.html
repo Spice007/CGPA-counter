@@ -633,16 +633,16 @@
             <!-- Profile Section -->
             <div id="section-profile" class="app-section" style="display: none;">
                 <div class="glass card animate-fade-in" style="max-width: 800px; margin: 0 auto;">
-                    <!-- Complete Registration Banner for Google Users -->
+                    <!-- Complete Registration Banner for Users without Username -->
                     <div id="complete-reg-banner" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 78, 59, 0.3)); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 1.15rem 1.25rem; margin-bottom: 1.75rem;">
                         <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
                             <div style="background: rgba(16, 185, 129, 0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #10b981;">
                                 <i data-lucide="graduation-cap" style="width: 22px; height: 22px;"></i>
                             </div>
                             <div style="flex: 1;">
-                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">Complete Your Registration 🎓</h3>
+                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">Complete Registration to Receive Your GVU Username 🎓</h3>
                                 <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.45; margin: 0;">
-                                    Welcome! To set up your academic records, please fill in your <strong>Matric Number</strong>, <strong>Faculty</strong>, and <strong>Department</strong> below and click <strong>Save Changes</strong> to access your CGPA dashboard.
+                                    Welcome! To enter the site and unlock your dashboard, please confirm your <strong>Matric Number</strong>, <strong>Faculty</strong>, and <strong>Department</strong> below and click <strong>Save Changes</strong>. You will be automatically assigned your official <strong>.gvu.ed</strong> student username.
                                 </p>
                             </div>
                         </div>
@@ -668,6 +668,16 @@
                         <div class="input-group">
                             <label class="input-label">Full Name</label>
                             <input type="text" id="profile-edit-name" class="glass-card" style="padding: 0.75rem; width: 100%;" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="input-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                                <label class="input-label" style="margin: 0;">Official GVU Username</label>
+                                <span id="profile-username-badge" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: #34d399; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                    <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Active GVU Account
+                                </span>
+                            </div>
+                            <input type="text" id="profile-edit-username" class="glass-card" style="padding: 0.75rem; width: 100%; color: #38bdf8; font-weight: 600; background: rgba(15, 23, 42, 0.6); cursor: not-allowed;" placeholder="e.g. firstname.gvu.ed" readonly>
+                            <p style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.35rem;">Generated automatically from your first name with <code>.gvu.ed</code> after registration completion. Required to enter the site.</p>
                         </div>
                         <div class="input-group">
                             <label class="input-label">Matric Number</label>

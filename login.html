@@ -1222,12 +1222,12 @@
 
                 <!-- Login Form -->
                 <form id="login-form">
-                    <!-- Email field -->
+                    <!-- Email / Username field -->
                     <div class="form-group">
-                        <label class="form-label" for="email">Email Address</label>
+                        <label class="form-label" for="email">Email or GVU Username (.gvu.ed)</label>
                         <div class="input-wrapper">
                             <span class="input-icon"><i data-lucide="mail"></i></span>
-                            <input type="email" id="email" placeholder="you@gmail.com" autocomplete="email" required>
+                            <input type="text" id="email" placeholder="you@gmail.com or firstname.gvu.ed" autocomplete="username" required>
                             <!-- Live Valid Checkmark -->
                             <span class="input-right-icon checkmark-icon" id="email-checkmark">
                                 <i data-lucide="check-circle"></i>
@@ -1388,13 +1388,14 @@
             lucide.createIcons();
         }
 
-        // Live Email Struct Validity Checkmark
+        // Live Email or GVU Username Validity Checkmark
         const emailInput = document.getElementById('email');
         const checkmark = document.getElementById('email-checkmark');
         if (emailInput && checkmark) {
             emailInput.addEventListener('input', () => {
-                const val = emailInput.value.trim();
-                const isValid = val.includes('@') && val.includes('.') && val.length > 5;
+                const val = emailInput.value.trim().toLowerCase();
+                const isValid = (val.includes('@') && val.includes('.') && val.length > 5) || 
+                                (val.endsWith('.gvu.ed') && val.length > 7);
                 if (isValid) {
                     checkmark.classList.add('show');
                 } else {
@@ -1402,6 +1403,14 @@
                 }
             });
         }
+
+        // Show prompt if redirected because of missing username
+        (function checkUsernameError() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('error') === 'no_username') {
+                showLoginError('Registration incomplete: A valid .gvu.ed username is required to enter the site. Please sign in or complete your registration.');
+            }
+        })();
 
         let isLocalServerAvailable = false;
 

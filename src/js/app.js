@@ -94,6 +94,7 @@ try {
 
 let studentProfile = {
     name: cachedProfileData.name || savedUser.fullName || savedUser.name || '',
+    username: cachedProfileData.username || savedUser.username || '',
     uni: cachedProfileData.uni || savedUser.university || '',
     session: cachedProfileData.session || '2023/2024',
     matric: cachedProfileData.matric || savedUser.matricNumber || '',
@@ -342,6 +343,7 @@ async function loadData() {
             const profileData = await profileRes.json();
             studentProfile = {
                 name: profileData.fullName || profileData.name || studentProfile.name || '',
+                username: profileData.username || studentProfile.username || '',
                 uni: profileData.university || studentProfile.uni || '',
                 session: profileData.academicSession || studentProfile.session || '2023/2024',
                 matric: profileData.matricNumber || studentProfile.matric || '',
@@ -350,6 +352,11 @@ async function loadData() {
                 profilePicture: profileData.profilePicture || studentProfile.profilePicture || ''
             };
             localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
+            if (profileData.username) {
+                const curUser = JSON.parse(localStorage.getItem('user')) || {};
+                curUser.username = profileData.username;
+                localStorage.setItem('user', JSON.stringify(curUser));
+            }
             loadProfile(); // Update header greeting immediately with fetched server profile name
             if (isRegistrationIncomplete()) {
                 if (typeof window.switchSection === 'function') {
@@ -467,12 +474,13 @@ function isRegistrationIncomplete() {
     const matric = ((studentProfile && studentProfile.matric) || user.matricNumber || '').trim();
     const dept = ((studentProfile && studentProfile.department) || user.department || '').trim();
     const faculty = ((studentProfile && studentProfile.faculty) || user.faculty || '').trim();
+    const username = ((studentProfile && studentProfile.username) || user.username || '').trim();
 
     const isFieldMissing = (val) => !val || val === 'N/A' || val.toLowerCase() === 'not set' || val.toLowerCase() === 'undefined';
-    const fieldsIncomplete = isFieldMissing(matric) || isFieldMissing(dept) || isFieldMissing(faculty);
+    const fieldsIncomplete = isFieldMissing(matric) || isFieldMissing(dept) || isFieldMissing(faculty) || !username;
 
-    const isGoogle = user.authProvider === 'google' || !!user.googleId || flag;
-    return Boolean(isGoogle && fieldsIncomplete);
+    // Without a completed registration and assigned username, user cannot enter the site
+    return Boolean(flag || fieldsIncomplete);
 }
 window.isRegistrationIncomplete = isRegistrationIncomplete;
 
@@ -482,12 +490,20 @@ function setupNavigation() {
     const profileTrigger = document.getElementById('profile-trigger');
 
     function switchSection(targetId) {
-        // Enforce registration completion for Google users before allowing access to dashboard/other sections
+        // Enforce registration completion and .gvu.ed username requirement before allowing access to dashboard/other sections
         if (isRegistrationIncomplete() && targetId !== 'section-profile') {
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            const hasUsername = Boolean((studentProfile && studentProfile.username) || user.username);
+            const msg = !hasUsername
+                ? 'Access Restricted: You must complete your registration and receive your official .gvu.ed username before entering the site.'
+                : 'Please fill in your Matric Number, Faculty, and Department and click Save Changes before accessing the dashboard.';
+
             if (typeof window.showToast === 'function') {
-                window.showToast('Please fill in your Matric Number, Faculty, and Department and click Save Changes before accessing the dashboard.', 'Registration Required 🎓', 'warning');
+                window.showToast(msg, 'Registration & Username Required 🎓', 'warning');
             } else if (typeof window.showMobileToast === 'function') {
-                window.showMobileToast('Please complete your profile details and save changes first.', 'Registration Required 🎓', 'warning');
+                window.showMobileToast(msg, 'Registration & Username Required 🎓', 'warning');
+            } else {
+                alert(msg);
             }
             targetId = 'section-profile';
         }
@@ -1477,12 +1493,17 @@ function loadProfile() {
     if (dashWelcome) {
         const currentUser = JSON.parse(localStorage.getItem('user')) || {};
         const rawName = studentProfile.name || currentUser.fullName || currentUser.name || (currentUser.email ? currentUser.email.split('@')[0] : '');
+        const currentUsername = (studentProfile.username || currentUser.username || '').trim();
         let firstName = rawName ? rawName.trim().split(' ')[0] : '';
         if (firstName) {
             firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
             dashWelcome.innerHTML = `Welcome back, ${firstName} 👋`;
         } else {
             dashWelcome.innerHTML = `Welcome back 👋`;
+        }
+        if (currentUsername) {
+            dashWelcome.innerHTML += ` <span style="font-size: 0.8rem; vertical-align: middle; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;"><i data-lucide="shield-check" style="width:13px;height:13px;"></i> ${currentUsername}</span>`;
+            if (window.lucide) lucide.createIcons();
         }
     }
     if (dashUni) {
@@ -1502,11 +1523,35 @@ function loadProfileEditForm() {
     const matricEl = document.getElementById('profile-edit-matric');
     const facultyEl = document.getElementById('profile-edit-faculty');
     const deptEl = document.getElementById('profile-edit-department');
+    const usernameEl = document.getElementById('profile-edit-username');
+    const userBadgeEl = document.getElementById('profile-username-badge');
 
     if (nameEl) nameEl.value = cleanVal(studentProfile.name);
     if (matricEl) matricEl.value = cleanVal(studentProfile.matric);
     if (facultyEl) facultyEl.value = cleanVal(studentProfile.faculty);
     if (deptEl) deptEl.value = cleanVal(studentProfile.department);
+
+    const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+    const effectiveUsername = (studentProfile.username || currentUser.username || '').trim();
+    if (usernameEl) {
+        if (effectiveUsername) {
+            usernameEl.value = effectiveUsername;
+            if (userBadgeEl) {
+                userBadgeEl.innerHTML = '<i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Active GVU Account';
+                userBadgeEl.style.color = '#34d399';
+                userBadgeEl.style.background = 'rgba(16, 185, 129, 0.15)';
+            }
+        } else {
+            const rawFirst = (studentProfile.name || currentUser.fullName || '').trim().split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'yourname';
+            usernameEl.value = `${rawFirst}.gvu.ed (Assigned upon saving)`;
+            if (userBadgeEl) {
+                userBadgeEl.innerHTML = '<i data-lucide="clock" style="width: 12px; height: 12px;"></i> Pending Registration';
+                userBadgeEl.style.color = '#f59e0b';
+                userBadgeEl.style.background = 'rgba(245, 158, 11, 0.15)';
+            }
+        }
+        if (window.lucide) lucide.createIcons();
+    }
 
     // Toggle registration banner
     const banner = document.getElementById('complete-reg-banner');
@@ -1596,11 +1641,17 @@ async function updateProfile() {
         if (response.ok) {
             const updatedData = await response.json();
             
+            // Compute or read assigned username (.gvu.ed from first name)
+            const firstNamePart = (name ? name.trim().split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '') : 'student');
+            const fallbackUsername = `${firstNamePart || 'student'}.gvu.ed`;
+            const assignedUsername = updatedData.username || user.username || fallbackUsername;
+
             // Update local studentProfile
             studentProfile.name = updatedData.fullName || name;
             studentProfile.matric = updatedData.matricNumber || matric;
             studentProfile.faculty = updatedData.faculty || faculty;
             studentProfile.department = updatedData.department || department;
+            studentProfile.username = assignedUsername;
             if (updatedData.profilePicture) studentProfile.profilePicture = updatedData.profilePicture;
             
             localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
@@ -1611,7 +1662,8 @@ async function updateProfile() {
                 fullName: studentProfile.name,
                 matricNumber: studentProfile.matric,
                 faculty: studentProfile.faculty,
-                department: studentProfile.department
+                department: studentProfile.department,
+                username: assignedUsername
             };
             localStorage.setItem('user', JSON.stringify(newUser));
 
@@ -1629,9 +1681,9 @@ async function updateProfile() {
             loadProfile(); // Update header name and greeting
             
             if (typeof window.showToast === 'function') {
-                window.showToast('Profile registered successfully! Welcome to your dashboard 🎓', 'Registration Complete! ✨', 'success');
+                window.showToast(`Registration complete! Your official student username is: <strong>${assignedUsername}</strong>. Welcome to your dashboard! 🎓`, 'Registration Complete! ✨', 'success');
             } else {
-                alert('Profile registered successfully! ✨');
+                alert(`Registration complete! Your official student username is: ${assignedUsername} ✨`);
             }
 
             // Smoothly redirect to dashboard!

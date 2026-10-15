@@ -209,7 +209,7 @@ const googleCallback = (req, res, next) => {
         frontendURL = frontendURL.slice(0, -1);
     }
     
-    passport.authenticate('google', { session: false }, (err, user, info) => {
+    passport.authenticate('google', { session: false }, async (err, user, info) => {
         if (err || !user) {
             return res.redirect(`${frontendURL}/login.html?error=google_failed`);
         }
