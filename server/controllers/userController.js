@@ -22,13 +22,13 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user.id || req.user._id);
 
     if (user) {
-        user.fullName = req.body.fullName || user.fullName;
-        user.email = req.body.email || user.email;
-        user.matricNumber = req.body.matricNumber || user.matricNumber;
-        user.department = req.body.department || user.department;
-        user.faculty = req.body.faculty || user.faculty;
-        user.university = req.body.university !== undefined ? req.body.university : user.university;
-        user.academicSession = req.body.academicSession !== undefined ? req.body.academicSession : user.academicSession;
+        user.fullName = req.body.fullName ? req.body.fullName.trim() : user.fullName;
+        user.email = req.body.email ? req.body.email.trim() : user.email;
+        if (req.body.matricNumber !== undefined) user.matricNumber = req.body.matricNumber.trim();
+        if (req.body.department !== undefined) user.department = req.body.department.trim();
+        if (req.body.faculty !== undefined) user.faculty = req.body.faculty.trim();
+        if (req.body.university !== undefined) user.university = req.body.university.trim();
+        if (req.body.academicSession !== undefined) user.academicSession = req.body.academicSession;
         
         if (req.body.profilePicture !== undefined) {
             user.profilePicture = req.body.profilePicture;

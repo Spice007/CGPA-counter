@@ -633,6 +633,21 @@
             <!-- Profile Section -->
             <div id="section-profile" class="app-section" style="display: none;">
                 <div class="glass card animate-fade-in" style="max-width: 800px; margin: 0 auto;">
+                    <!-- Complete Registration Banner for Google Users -->
+                    <div id="complete-reg-banner" style="display: none; background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 78, 59, 0.3)); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 1.15rem 1.25rem; margin-bottom: 1.75rem;">
+                        <div style="display: flex; align-items: flex-start; gap: 0.85rem;">
+                            <div style="background: rgba(16, 185, 129, 0.2); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #10b981;">
+                                <i data-lucide="graduation-cap" style="width: 22px; height: 22px;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 0.35rem;">Complete Your Registration 🎓</h3>
+                                <p style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.45; margin: 0;">
+                                    Welcome! To set up your academic records, please fill in your <strong>Matric Number</strong>, <strong>Faculty</strong>, and <strong>Department</strong> below and click <strong>Save Changes</strong> to access your CGPA dashboard.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <h2 class="font-heading" style="margin-bottom: 1.5rem;">Student Profile Details</h2>
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
 
@@ -652,19 +667,19 @@
 
                         <div class="input-group">
                             <label class="input-label">Full Name</label>
-                            <input type="text" id="profile-edit-name" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                            <input type="text" id="profile-edit-name" class="glass-card" style="padding: 0.75rem; width: 100%;" placeholder="e.g. John Doe">
                         </div>
                         <div class="input-group">
                             <label class="input-label">Matric Number</label>
-                            <input type="text" id="profile-edit-matric" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                            <input type="text" id="profile-edit-matric" class="glass-card" style="padding: 0.75rem; width: 100%;" placeholder="e.g. 21/0401/001">
                         </div>
                         <div class="input-group">
                             <label class="input-label">Faculty</label>
-                            <input type="text" id="profile-edit-faculty" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                            <input type="text" id="profile-edit-faculty" class="glass-card" style="padding: 0.75rem; width: 100%;" placeholder="e.g. Faculty of Science">
                         </div>
                         <div class="input-group">
                             <label class="input-label">Department</label>
-                            <input type="text" id="profile-edit-department" class="glass-card" style="padding: 0.75rem; width: 100%;">
+                            <input type="text" id="profile-edit-department" class="glass-card" style="padding: 0.75rem; width: 100%;" placeholder="e.g. Computer Science">
                         </div>
                         <button id="profile-update-btn" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
                             Save Changes

@@ -320,6 +320,13 @@ async function loadData() {
             };
             localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
             loadProfile(); // Update header greeting immediately with fetched server profile name
+            if (isRegistrationIncomplete()) {
+                if (typeof window.switchSection === 'function') {
+                    window.switchSection('section-profile');
+                }
+            } else if (document.getElementById('section-profile')?.style.display === 'block') {
+                loadProfileEditForm();
+            }
         }
 
         // 2. Fetch Saved Courses from Database
@@ -421,12 +428,39 @@ function hideLoadingOverlay() {
 }
 
 
+function isRegistrationIncomplete() {
+    const user = JSON.parse(localStorage.getItem('user')) || {};
+    const urlParams = new URLSearchParams(window.location.search);
+    const flag = sessionStorage.getItem('complete_registration_required') === 'true' || urlParams.get('complete_profile') === '1';
+    
+    const matric = ((studentProfile && studentProfile.matric) || user.matricNumber || '').trim();
+    const dept = ((studentProfile && studentProfile.department) || user.department || '').trim();
+    const faculty = ((studentProfile && studentProfile.faculty) || user.faculty || '').trim();
+
+    const isFieldMissing = (val) => !val || val === 'N/A' || val.toLowerCase() === 'not set' || val.toLowerCase() === 'undefined';
+    const fieldsIncomplete = isFieldMissing(matric) || isFieldMissing(dept) || isFieldMissing(faculty);
+
+    const isGoogle = user.authProvider === 'google' || !!user.googleId || flag;
+    return Boolean(isGoogle && fieldsIncomplete);
+}
+window.isRegistrationIncomplete = isRegistrationIncomplete;
+
 function setupNavigation() {
     const navLinks = document.querySelectorAll('.nav-link');
     const sections = document.querySelectorAll('.app-section');
     const profileTrigger = document.getElementById('profile-trigger');
 
     function switchSection(targetId) {
+        // Enforce registration completion for Google users before allowing access to dashboard/other sections
+        if (isRegistrationIncomplete() && targetId !== 'section-profile') {
+            if (typeof window.showToast === 'function') {
+                window.showToast('Please fill in your Matric Number, Faculty, and Department and click Save Changes before accessing the dashboard.', 'Registration Required 🎓', 'warning');
+            } else if (typeof window.showMobileToast === 'function') {
+                window.showMobileToast('Please complete your profile details and save changes first.', 'Registration Required 🎓', 'warning');
+            }
+            targetId = 'section-profile';
+        }
+
         console.log('Switching to:', targetId);
         
         // 1. Update Sidebar UI
@@ -482,6 +516,9 @@ function setupNavigation() {
         }
     }
 
+    // Expose switchSection globally
+    window.switchSection = switchSection;
+
     // Attach listeners to sidebar links
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
@@ -500,8 +537,12 @@ function setupNavigation() {
     // Profile Preview trigger (University Modal Only, no section redirection)
     // Kept for opening uni-modal which is registered in setupEventListeners
 
-    // Default to dashboard on load
-    switchSection('section-dashboard');
+    // Initial section display: route to section-profile if registration is incomplete, otherwise dashboard
+    if (isRegistrationIncomplete()) {
+        switchSection('section-profile');
+    } else {
+        switchSection('section-dashboard');
+    }
 }
 
 function setupEventListeners() {
@@ -1421,10 +1462,31 @@ function loadProfile() {
 }
 
 function loadProfileEditForm() {
-    document.getElementById('profile-edit-name').value = studentProfile.name;
-    document.getElementById('profile-edit-matric').value = studentProfile.matric;
-    document.getElementById('profile-edit-faculty').value = studentProfile.faculty;
-    document.getElementById('profile-edit-department').value = studentProfile.department;
+    const cleanVal = (val) => {
+        if (!val || val === 'N/A' || val.toLowerCase() === 'not set' || val.toLowerCase() === 'undefined') return '';
+        return val;
+    };
+
+    const nameEl = document.getElementById('profile-edit-name');
+    const matricEl = document.getElementById('profile-edit-matric');
+    const facultyEl = document.getElementById('profile-edit-faculty');
+    const deptEl = document.getElementById('profile-edit-department');
+
+    if (nameEl) nameEl.value = cleanVal(studentProfile.name);
+    if (matricEl) matricEl.value = cleanVal(studentProfile.matric);
+    if (facultyEl) facultyEl.value = cleanVal(studentProfile.faculty);
+    if (deptEl) deptEl.value = cleanVal(studentProfile.department);
+
+    // Toggle registration banner
+    const banner = document.getElementById('complete-reg-banner');
+    if (banner) {
+        if (isRegistrationIncomplete()) {
+            banner.style.display = 'block';
+            if (window.lucide) lucide.createIcons();
+        } else {
+            banner.style.display = 'none';
+        }
+    }
 
     // Update large profile avatar in edit form
     const avatarLarge = document.getElementById('profile-avatar-large');
@@ -1433,19 +1495,57 @@ function loadProfileEditForm() {
             avatarLarge.innerHTML = `<img src="${studentProfile.profilePicture}" style="width:100%;height:100%;object-fit:cover;" alt="Profile">`;
         } else {
             avatarLarge.innerHTML = '<i data-lucide="user" style="width:48px;height:48px;"></i>';
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
     }
 }
 
 async function updateProfile() {
-    const name = document.getElementById('profile-edit-name').value || 'Set Name';
-    const matric = document.getElementById('profile-edit-matric').value || 'Not Set';
-    const faculty = document.getElementById('profile-edit-faculty').value || 'Not Set';
-    const department = document.getElementById('profile-edit-department').value || 'Not Set';
+    const nameInput = document.getElementById('profile-edit-name');
+    const matricInput = document.getElementById('profile-edit-matric');
+    const facultyInput = document.getElementById('profile-edit-faculty');
+    const deptInput = document.getElementById('profile-edit-department');
+
+    const name = (nameInput ? nameInput.value : '').trim();
+    const matric = (matricInput ? matricInput.value : '').trim();
+    const faculty = (facultyInput ? facultyInput.value : '').trim();
+    const department = (deptInput ? deptInput.value : '').trim();
+
+    if (!name) {
+        if (typeof window.showToast === 'function') window.showToast('Please enter your Full Name', 'Required Field', 'warning');
+        else alert('Please enter your Full Name');
+        nameInput?.focus();
+        return;
+    }
+    if (!matric || matric === 'N/A' || matric.toLowerCase() === 'not set') {
+        if (typeof window.showToast === 'function') window.showToast('Please enter your Matric Number to complete registration', 'Required Field', 'warning');
+        else alert('Please enter your Matric Number');
+        matricInput?.focus();
+        return;
+    }
+    if (!faculty || faculty === 'N/A' || faculty.toLowerCase() === 'not set') {
+        if (typeof window.showToast === 'function') window.showToast('Please enter your Faculty to complete registration', 'Required Field', 'warning');
+        else alert('Please enter your Faculty');
+        facultyInput?.focus();
+        return;
+    }
+    if (!department || department === 'N/A' || department.toLowerCase() === 'not set') {
+        if (typeof window.showToast === 'function') window.showToast('Please enter your Department to complete registration', 'Required Field', 'warning');
+        else alert('Please enter your Department');
+        deptInput?.focus();
+        return;
+    }
     
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem('user')) || {};
     const token = user ? user.token : '';
+
+    const btn = document.getElementById('profile-update-btn');
+    const originalText = btn ? btn.innerHTML : 'Save Changes';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-flex; align-items:center; gap:0.5rem;"><i data-lucide="loader-2" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Saving...</span>';
+        if (window.lucide) lucide.createIcons();
+    }
 
     try {
         const response = await apiFetch(`/users/profile`, {
@@ -1463,13 +1563,80 @@ async function updateProfile() {
         });
 
         if (response.ok) {
-            alert('Profile updated successfully! ✨');
-            await loadData();
+            const updatedData = await response.json();
+            
+            // Update local studentProfile
+            studentProfile.name = updatedData.fullName || name;
+            studentProfile.matric = updatedData.matricNumber || matric;
+            studentProfile.faculty = updatedData.faculty || faculty;
+            studentProfile.department = updatedData.department || department;
+            if (updatedData.profilePicture) studentProfile.profilePicture = updatedData.profilePicture;
+            
+            localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
+
+            // Update user in localStorage
+            const newUser = {
+                ...user,
+                fullName: studentProfile.name,
+                matricNumber: studentProfile.matric,
+                faculty: studentProfile.faculty,
+                department: studentProfile.department
+            };
+            localStorage.setItem('user', JSON.stringify(newUser));
+
+            // Clear registration requirement flag and URL parameters
+            sessionStorage.removeItem('complete_registration_required');
+            if (window.history && window.history.replaceState) {
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+
+            // Hide the completion banner
+            const banner = document.getElementById('complete-reg-banner');
+            if (banner) banner.style.display = 'none';
+
+            loadProfile(); // Update header name and greeting
+            
+            if (typeof window.showToast === 'function') {
+                window.showToast('Profile registered successfully! Welcome to your dashboard 🎓', 'Registration Complete! ✨', 'success');
+            } else {
+                alert('Profile registered successfully! ✨');
+            }
+
+            // Smoothly redirect to dashboard!
+            if (typeof window.switchSection === 'function') {
+                window.switchSection('section-dashboard');
+            }
+
+            // Sync mobile components if on mobile
+            if (typeof window.updateMobileUIDebounced === 'function') {
+                window.updateMobileUIDebounced();
+            }
+            if (typeof window.syncNavigationStates === 'function') {
+                window.syncNavigationStates();
+            }
         } else {
-            alert('Failed to update profile');
+            const errData = await response.json().catch(() => ({}));
+            const errMsg = errData.message || 'Failed to update profile. Please try again.';
+            if (typeof window.showToast === 'function') {
+                window.showToast(errMsg, 'Update Failed', 'error');
+            } else {
+                alert(errMsg);
+            }
         }
     } catch (err) {
         console.error('Error updating profile:', err);
+        if (typeof window.showToast === 'function') {
+            window.showToast('Network error while saving profile. Please check your connection.', 'Error', 'error');
+        } else {
+            alert('Error updating profile. Please try again.');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            if (window.lucide) lucide.createIcons();
+        }
     }
 }
 

@@ -347,11 +347,23 @@ function setupQuickActions() {
 }
 
 function handleAddSemesterAction() {
+    if (window.isRegistrationIncomplete && window.isRegistrationIncomplete()) {
+        if (typeof window.showToast === 'function') {
+            window.showToast('Please fill in your Matric Number, Faculty, and Department and save changes first.', 'Registration Required 🎓', 'warning');
+        }
+        return;
+    }
     const btn = document.getElementById('add-semester-btn');
     if (btn) btn.click();
 }
 
 function handleAddCourseQuickAction() {
+    if (window.isRegistrationIncomplete && window.isRegistrationIncomplete()) {
+        if (typeof window.showToast === 'function') {
+            window.showToast('Please fill in your Matric Number, Faculty, and Department and save changes first.', 'Registration Required 🎓', 'warning');
+        }
+        return;
+    }
     if (typeof semesters === 'undefined' || semesters.length === 0) {
         alert('Please add a semester first.');
     } else {
@@ -395,6 +407,17 @@ function setupDrawer() {
                 document.getElementById('logout-btn').click();
                 return;
             }
+
+            // Enforce profile completion for Google users before accessing other sections
+            if (window.isRegistrationIncomplete && window.isRegistrationIncomplete()) {
+                if (id !== 'mobnav-profile') {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Please fill in your Matric Number, Faculty, and Department and save changes before accessing other sections.', 'Registration Required 🎓', 'warning');
+                    }
+                    return;
+                }
+            }
+
             if (id === 'mobnav-profile') {
                 document.getElementById('nav-profile').click();
                 return;
@@ -441,13 +464,27 @@ function setupBottomNavigation() {
             
             e.preventDefault();
             const id = link.id;
+
+            // Enforce profile completion before allowing bottom navigation
+            if (window.isRegistrationIncomplete && window.isRegistrationIncomplete()) {
+                if (id !== 'botnav-settings') {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Please fill in your Matric Number, Faculty, and Department and save changes before accessing the dashboard.', 'Registration Required 🎓', 'warning');
+                    }
+                    return;
+                }
+            }
             
             if (id === 'botnav-dashboard') {
                 document.getElementById('nav-dashboard').click();
             } else if (id === 'botnav-courses') {
                 document.getElementById('nav-courses').click();
             } else if (id === 'botnav-settings') {
-                document.getElementById('nav-settings').click();
+                if (window.isRegistrationIncomplete && window.isRegistrationIncomplete()) {
+                    document.getElementById('nav-profile').click();
+                } else {
+                    document.getElementById('nav-settings').click();
+                }
             } else if (id === 'botnav-analytics') {
                 if (isAdmin()) {
                     const adminLink = document.getElementById('nav-admin');
@@ -530,13 +567,22 @@ function syncNavigationStates() {
         if (targetName === 'admin' && link.id === 'botnav-analytics') {
             isActive = true;
         }
+        if (targetName === 'profile' && link.id === 'botnav-settings') {
+            isActive = true;
+        }
         link.classList.toggle('active', isActive);
     });
 
     document.querySelectorAll('.drawer-link').forEach(link => {
-        link.classList.toggle('active', link.id === `mobnav-${targetName}`);
+        let isActive = link.id === `mobnav-${targetName}`;
+        if (targetName === 'profile' && link.id === 'mobnav-profile') {
+            isActive = true;
+        }
+        link.classList.toggle('active', isActive);
     });
 }
+window.syncNavigationStates = syncNavigationStates;
+window.updateMobileUIDebounced = updateMobileUIDebounced;
 
 /* 13. Horizontal Swipes / Page Dots binding for carousels */
 function setupCarouselSwipeListeners() {

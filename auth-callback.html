@@ -68,10 +68,36 @@
             try {
                 const user = JSON.parse(decodeURIComponent(userStr));
                 user.token = token;
+                user.authProvider = user.authProvider || 'google';
                 localStorage.setItem('token', token);
                 localStorage.setItem('user', JSON.stringify(user));
-                // Redirect to the main dashboard
-                window.location.href = 'index.html';
+
+                // Check if user has completed registration (Matric Number, Faculty, Department)
+                const m = (user.matricNumber || '').trim();
+                const d = (user.department || '').trim();
+                const f = (user.faculty || '').trim();
+                const isComplete = m && m !== 'N/A' && m.toLowerCase() !== 'not set' &&
+                                   d && d !== 'N/A' && d.toLowerCase() !== 'not set' &&
+                                   f && f !== 'N/A' && f.toLowerCase() !== 'not set';
+
+                const profileObj = {
+                    name: user.fullName || '',
+                    uni: user.university || '',
+                    session: user.academicSession || '2023/2024',
+                    matric: isComplete ? m : '',
+                    faculty: isComplete ? f : '',
+                    department: isComplete ? d : '',
+                    profilePicture: user.profilePicture || ''
+                };
+                localStorage.setItem('cgpa_profile', JSON.stringify(profileObj));
+
+                if (!isComplete) {
+                    sessionStorage.setItem('complete_registration_required', 'true');
+                    window.location.href = 'index.html?complete_profile=1';
+                } else {
+                    sessionStorage.removeItem('complete_registration_required');
+                    window.location.href = 'index.html';
+                }
             } catch (e) {
                 const box = document.getElementById('err');
                 box.style.display = 'block';

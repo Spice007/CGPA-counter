@@ -205,13 +205,16 @@ const googleCallback = (req, res, next) => {
             .catch(err => console.error('Error sending Google login notification email:', err));
 
         const userObj = {
-            _id:          user._id,
-            fullName:     user.fullName,
-            email:        user.email,
-            matricNumber: user.matricNumber,
-            department:   user.department,
-            faculty:      user.faculty,
-            profilePicture: user.profilePicture
+            _id:             user._id,
+            fullName:        user.fullName,
+            email:           user.email,
+            matricNumber:    user.matricNumber || '',
+            department:      user.department || '',
+            faculty:         user.faculty || '',
+            university:      user.university || '',
+            academicSession: user.academicSession || '',
+            authProvider:    user.authProvider || 'google',
+            profilePicture:  user.profilePicture || ''
         };
         const encoded = encodeURIComponent(JSON.stringify(userObj));
         res.redirect(`${frontendURL}/auth-callback.html?token=${token}&user=${encoded}`);
