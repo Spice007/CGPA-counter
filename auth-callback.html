@@ -90,6 +90,7 @@
                     matric: isComplete ? m : '',
                     faculty: isComplete ? f : '',
                     department: isComplete ? d : '',
+                    hasPassword: Boolean(user.hasPassword),
                     profilePicture: user.profilePicture || ''
                 };
                 localStorage.setItem('cgpa_profile', JSON.stringify(profileObj));

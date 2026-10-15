@@ -722,6 +722,43 @@
                             <label class="input-label">Department</label>
                             <input type="text" id="profile-edit-department" class="glass-card" style="padding: 0.75rem; width: 100%;" placeholder="e.g. Computer Science">
                         </div>
+
+                        <!-- Account Password (Create Password for Google Users / Update Password) -->
+                        <div id="account-password-box" class="glass-card" style="padding: 1.15rem 1.25rem; border-radius: 12px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); margin-top: 0.25rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="key-round" style="width: 18px; height: 18px; color: #10b981;"></i>
+                                    <h4 id="pw-box-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #f8fafc;">Create Account Password</h4>
+                                </div>
+                                <span id="pw-status-badge" style="font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 20px; background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                    <i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> No Password Set
+                                </span>
+                            </div>
+                            <p id="pw-box-desc" style="font-size: 0.82rem; color: #94a3b8; line-height: 1.45; margin-bottom: 0.9rem;">
+                                Continued with Google without a password? Set a password here so you can also sign in directly using your <strong>Email</strong> or official <strong>GVU username (.gvu.ed)</strong> without needing Google.
+                            </p>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;" id="pw-input-grid">
+                                <div class="input-group" style="margin: 0;">
+                                    <label class="input-label" style="font-size: 0.8rem;">Create Password</label>
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <input type="password" id="profile-new-password" class="glass-card" style="padding: 0.7rem; padding-right: 2.5rem; width: 100%;" placeholder="Min. 6 characters" autocomplete="new-password">
+                                        <button type="button" id="toggle-profile-pw" style="position: absolute; right: 0.75rem; background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0; display: flex; align-items: center;" title="Show/Hide Password">
+                                            <i data-lucide="eye" id="profile-pw-eye" style="width: 16px; height: 16px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="input-group" style="margin: 0;">
+                                    <label class="input-label" style="font-size: 0.8rem;">Confirm Password</label>
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <input type="password" id="profile-confirm-password" class="glass-card" style="padding: 0.7rem; padding-right: 2.5rem; width: 100%;" placeholder="Re-enter password" autocomplete="new-password">
+                                        <button type="button" id="toggle-profile-confirm-pw" style="position: absolute; right: 0.75rem; background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0; display: flex; align-items: center;" title="Show/Hide Password">
+                                            <i data-lucide="eye" id="profile-confirm-pw-eye" style="width: 16px; height: 16px;"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <button id="profile-update-btn" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
                             Save Changes
                         </button>

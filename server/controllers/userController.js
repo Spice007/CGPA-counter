@@ -6,7 +6,7 @@ const { generateGvuUsername, isUserRegistrationComplete } = require('../utils/us
 // @route   GET /api/users/profile
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user.id || req.user._id).select('-password');
+    const user = await User.findById(req.user.id || req.user._id);
 
     if (user) {
         // If registration is complete and username is not yet generated, assign it
@@ -14,14 +14,17 @@ const getUserProfile = asyncHandler(async (req, res) => {
             user.username = await generateGvuUsername(user.fullName, User, user._id);
             await user.save();
         }
-        res.json(user);
+        const userObj = user.toObject();
+        userObj.hasPassword = Boolean(user.password);
+        delete userObj.password;
+        res.json(userObj);
     } else {
         res.status(404);
         throw new Error('User not found');
     }
 });
 
-// @desc    Update user profile (Registration Completion)
+// @desc    Update user profile (Registration Completion & Password Creation)
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
@@ -40,6 +43,16 @@ const updateUserProfile = asyncHandler(async (req, res) => {
             user.profilePicture = req.body.profilePicture;
         }
 
+        // Allow Google users (or any user) without a password to create/set a password
+        if (req.body.password && typeof req.body.password === 'string' && req.body.password.trim()) {
+            const cleanPw = req.body.password.trim();
+            if (cleanPw.length < 6) {
+                res.status(400);
+                throw new Error('Password must be at least 6 characters');
+            }
+            user.password = cleanPw; // userSchema pre-save hook will hash it with bcrypt
+        }
+
         // When user completes registration (matricNumber, faculty, dept), assign .gvu.ed username if missing
         if (isUserRegistrationComplete(user) && !user.username) {
             user.username = await generateGvuUsername(user.fullName, User, user._id);
@@ -47,6 +60,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
         const updatedUser = await user.save();
         const userObj = updatedUser.toObject();
+        userObj.hasPassword = Boolean(updatedUser.password);
         delete userObj.password;
         res.json(userObj);
     } else {

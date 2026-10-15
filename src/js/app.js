@@ -352,9 +352,10 @@ async function loadData() {
                 profilePicture: profileData.profilePicture || studentProfile.profilePicture || ''
             };
             localStorage.setItem('cgpa_profile', JSON.stringify(studentProfile));
-            if (profileData.username) {
+            if (profileData.username || profileData.hasPassword !== undefined) {
                 const curUser = JSON.parse(localStorage.getItem('user')) || {};
-                curUser.username = profileData.username;
+                if (profileData.username) curUser.username = profileData.username;
+                if (profileData.hasPassword !== undefined) curUser.hasPassword = Boolean(profileData.hasPassword);
                 localStorage.setItem('user', JSON.stringify(curUser));
             }
             loadProfile(); // Update header greeting immediately with fetched server profile name
@@ -754,6 +755,35 @@ function setupEventListeners() {
     const settingsUniBtn = document.getElementById('settings-uni-btn');
     if (settingsUniBtn) {
         settingsUniBtn.addEventListener('click', openUniModal);
+    }
+
+    // Toggle Profile Password Visibility
+    const toggleProfilePwBtn = document.getElementById('toggle-profile-pw');
+    if (toggleProfilePwBtn) {
+        toggleProfilePwBtn.addEventListener('click', () => {
+            const input = document.getElementById('profile-new-password');
+            const icon = document.getElementById('profile-pw-eye');
+            if (input && icon) {
+                const isPw = input.type === 'password';
+                input.type = isPw ? 'text' : 'password';
+                icon.setAttribute('data-lucide', isPw ? 'eye-off' : 'eye');
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+
+    const toggleProfileConfirmPwBtn = document.getElementById('toggle-profile-confirm-pw');
+    if (toggleProfileConfirmPwBtn) {
+        toggleProfileConfirmPwBtn.addEventListener('click', () => {
+            const input = document.getElementById('profile-confirm-password');
+            const icon = document.getElementById('profile-confirm-pw-eye');
+            if (input && icon) {
+                const isPw = input.type === 'password';
+                input.type = isPw ? 'text' : 'password';
+                icon.setAttribute('data-lucide', isPw ? 'eye-off' : 'eye');
+                if (window.lucide) lucide.createIcons();
+            }
+        });
     }
 }
 
@@ -1565,6 +1595,33 @@ function loadProfileEditForm() {
         if (window.lucide) lucide.createIcons();
     }
 
+    // Configure password box state
+    const pwBadge = document.getElementById('pw-status-badge');
+    const pwTitle = document.getElementById('pw-box-title');
+    const pwDesc = document.getElementById('pw-box-desc');
+    const newPwInput = document.getElementById('profile-new-password');
+    const confirmPwInput = document.getElementById('profile-confirm-password');
+    if (newPwInput) newPwInput.value = '';
+    if (confirmPwInput) confirmPwInput.value = '';
+
+    const hasPw = Boolean(currentUser.hasPassword || (currentUser.authProvider === 'local' && !currentUser.googleId));
+    if (pwBadge) {
+        if (hasPw) {
+            pwBadge.innerHTML = '<i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Password Set';
+            pwBadge.style.color = '#34d399';
+            pwBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+            if (pwTitle) pwTitle.textContent = 'Change Account Password (Optional)';
+            if (pwDesc) pwDesc.innerHTML = 'You have a password configured. You can sign in using your <strong>Email</strong> or official <strong>GVU username (.gvu.ed)</strong> with your password, or with Google. Enter a new password below only if you want to change it.';
+        } else {
+            pwBadge.innerHTML = '<i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> No Password Set';
+            pwBadge.style.color = '#f59e0b';
+            pwBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+            if (pwTitle) pwTitle.textContent = 'Create Account Password';
+            if (pwDesc) pwDesc.innerHTML = 'Continued with Google without a password? Set a password here so you can also sign in directly using your <strong>Email</strong> or official <strong>GVU username (.gvu.ed)</strong> without needing Google.';
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
     // Toggle registration banner
     const banner = document.getElementById('complete-reg-banner');
     if (banner) {
@@ -1623,6 +1680,27 @@ async function updateProfile() {
         deptInput?.focus();
         return;
     }
+
+    // Check optional password creation/change
+    const newPwInput = document.getElementById('profile-new-password');
+    const confirmPwInput = document.getElementById('profile-confirm-password');
+    const newPassword = (newPwInput ? newPwInput.value : '').trim();
+    const confirmPassword = (confirmPwInput ? confirmPwInput.value : '').trim();
+
+    if (newPassword) {
+        if (newPassword.length < 6) {
+            if (typeof window.showToast === 'function') window.showToast('Password must be at least 6 characters long', 'Weak Password', 'warning');
+            else alert('Password must be at least 6 characters long');
+            newPwInput?.focus();
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            if (typeof window.showToast === 'function') window.showToast('Passwords do not match. Please re-enter to confirm.', 'Password Mismatch', 'warning');
+            else alert('Passwords do not match. Please re-enter to confirm.');
+            confirmPwInput?.focus();
+            return;
+        }
+    }
     
     const user = JSON.parse(localStorage.getItem('user')) || {};
     const token = user ? user.token : '';
@@ -1636,18 +1714,23 @@ async function updateProfile() {
     }
 
     try {
+        const payload = {
+            fullName: name,
+            matricNumber: matric,
+            faculty: faculty,
+            department: department
+        };
+        if (newPassword) {
+            payload.password = newPassword;
+        }
+
         const response = await apiFetch(`/users/profile`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                fullName: name,
-                matricNumber: matric,
-                faculty: faculty,
-                department: department
-            })
+            body: JSON.stringify(payload)
         });
 
         if (response.ok) {
@@ -1675,9 +1758,22 @@ async function updateProfile() {
                 matricNumber: studentProfile.matric,
                 faculty: studentProfile.faculty,
                 department: studentProfile.department,
-                username: assignedUsername
+                username: assignedUsername,
+                hasPassword: Boolean(newPassword || updatedData.hasPassword || user.hasPassword)
             };
             localStorage.setItem('user', JSON.stringify(newUser));
+
+            if (newPassword) {
+                if (newPwInput) newPwInput.value = '';
+                if (confirmPwInput) confirmPwInput.value = '';
+                const pwBadge = document.getElementById('pw-status-badge');
+                if (pwBadge) {
+                    pwBadge.innerHTML = '<i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Password Set';
+                    pwBadge.style.color = '#34d399';
+                    pwBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+                    if (window.lucide) lucide.createIcons();
+                }
+            }
 
             // Clear registration requirement flag and URL parameters
             sessionStorage.removeItem('complete_registration_required');

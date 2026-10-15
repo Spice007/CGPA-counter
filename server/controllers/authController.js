@@ -160,6 +160,7 @@ const loginUser = asyncHandler(async (req, res) => {
                 matricNumber: user.matricNumber,
                 department: user.department,
                 faculty: user.faculty,
+                hasPassword: Boolean(user.password),
                 token: generateToken(user.id || user._id)
             });
             return;
@@ -239,7 +240,8 @@ const googleCallback = (req, res, next) => {
             university:      user.university || '',
             academicSession: user.academicSession || '',
             authProvider:    user.authProvider || 'google',
-            profilePicture:  user.profilePicture || ''
+            profilePicture:  user.profilePicture || '',
+            hasPassword:     Boolean(user.password)
         };
         const encoded = encodeURIComponent(JSON.stringify(userObj));
         res.redirect(`${frontendURL}/auth-callback.html?token=${token}&user=${encoded}`);
