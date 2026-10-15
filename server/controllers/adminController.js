@@ -474,11 +474,96 @@ const cleanDuplicateCourses = async (req, res) => {
     }
 };
 
+// @desc    Reset all accounts and their details except gideonlastgids@gmail.com
+const resetNonAdminUsers = async () => {
+    try {
+        const ADMIN_EMAIL = 'gideonlastgids@gmail.com';
+        
+        // Find all non-admin users
+        const nonAdminUsers = await User.find({ email: { $ne: ADMIN_EMAIL } });
+        const nonAdminIds = nonAdminUsers.map(u => u._id);
+
+        let delCoursesCount = 0;
+        let delResultsCount = 0;
+        let delGoogleCount = 0;
+
+        if (nonAdminIds.length > 0) {
+            // Delete all courses belonging to non-admin accounts
+            const delCourses = await Course.deleteMany({ user: { $in: nonAdminIds } });
+            delCoursesCount = delCourses.deletedCount || 0;
+
+            // Delete all results belonging to non-admin accounts
+            const delResults = await Result.deleteMany({ user: { $in: nonAdminIds } });
+            delResultsCount = delResults.deletedCount || 0;
+
+            // Delete non-admin Google users completely so they are created fresh as brand new users on next sign-in
+            const delGoogle = await User.deleteMany({
+                email: { $ne: ADMIN_EMAIL },
+                $or: [{ authProvider: 'google' }, { googleId: { $ne: null } }]
+            });
+            delGoogleCount = delGoogle.deletedCount || 0;
+
+            // For any remaining non-admin users (e.g. local email/password), reset their registration details to empty
+            await User.updateMany(
+                { email: { $ne: ADMIN_EMAIL } },
+                {
+                    $set: {
+                        matricNumber: '',
+                        faculty: '',
+                        department: '',
+                        university: '',
+                        academicSession: '2023/2024'
+                    }
+                }
+            );
+
+            console.log(`🧹 [User Reset] Reset non-admin accounts. Users: ${nonAdminIds.length}, Courses purged: ${delCoursesCount}, Results purged: ${delResultsCount}, Google accounts reset: ${delGoogleCount}`);
+        } else {
+            console.log('ℹ️ [User Reset] No non-admin accounts found to reset.');
+        }
+
+        return {
+            usersProcessed: nonAdminIds.length,
+            coursesDeleted: delCoursesCount,
+            resultsDeleted: delResultsCount,
+            googleUsersDeleted: delGoogleCount
+        };
+    } catch (err) {
+        console.error('⚠️ [User Reset] Error resetting non-admin users:', err.message);
+        throw err;
+    }
+};
+
+// @desc    Admin endpoint to trigger user reset
+// @route   POST /api/admin/reset-non-admin
+// @route   GET  /api/admin/reset-non-admin
+const resetNonAdminEndpoint = async (req, res) => {
+    try {
+        const isAuthorized = req.user && (
+            req.user.role === 'superadmin' ||
+            req.user.email === 'gideonlastgids@gmail.com'
+        );
+        if (!isAuthorized) {
+            return res.status(403).json({ message: 'Not authorized as superadmin' });
+        }
+
+        const stats = await resetNonAdminUsers();
+        res.json({
+            message: 'All accounts except gideonlastgids@gmail.com have been reset to new users.',
+            ...stats
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     loginAdmin,
     registerAdmin,
     getStudentsData,
     saveBulkResults,
     cleanDuplicateCourses,
-    executeCourseCleanup
+    executeCourseCleanup,
+    resetNonAdminUsers,
+    resetNonAdminEndpoint
 };
