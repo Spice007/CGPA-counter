@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const crypto = require('crypto');
-const { sendResetEmail, sendLoginNotification } = require('../utils/emailService');
+const { sendResetEmail, sendLoginNotification, sendWelcomeEmail } = require('../utils/emailService');
 const { asyncHandler } = require('../middleware/errorMiddleware');
 const { generateGvuUsername, isUserRegistrationComplete } = require('../utils/usernameHelper');
 
@@ -24,6 +24,7 @@ if (hasGoogleCreds) {
 
             // Find existing user or create one
             let user = await User.findOne({ $or: [{ googleId: profile.id }, { email }] });
+            let isFirstLogin = false;
 
             if (user) {
                 // Link Google ID if they previously registered with email/password
@@ -32,6 +33,9 @@ if (hasGoogleCreds) {
                     user.authProvider = 'google';
                     user.profilePicture = profile.photos?.[0]?.value || user.profilePicture;
                     await user.save();
+                }
+                if (!user.lastLogin || !user.welcomeEmailSent) {
+                    isFirstLogin = true;
                 }
             } else {
                 // Brand new user via Google
@@ -43,13 +47,15 @@ if (hasGoogleCreds) {
                     profilePicture: profile.photos?.[0]?.value || '',
                     matricNumber:   '',
                     department:     '',
-                    faculty:        ''
+                    faculty:        '',
+                    welcomeEmailSent: false
                 });
+                isFirstLogin = true;
             }
 
             user.lastLogin = new Date();
             await user.save();
-            return done(null, user);
+            return done(null, user, { isFirstLogin });
         } catch (err) {
             return done(err, null);
         }
@@ -96,10 +102,17 @@ const registerUser = asyncHandler(async (req, res) => {
         password,
         matricNumber,
         department,
-        faculty
+        faculty,
+        lastLogin: new Date(),
+        welcomeEmailSent: true
     });
 
     if (user) {
+        // Send welcome email on registration
+        const frontendURL = req.headers.origin || process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
+        sendWelcomeEmail(user.email, user.fullName, { username: user.username, frontendUrl: frontendURL })
+            .catch(err => console.error('Error sending welcome email on registration:', err));
+
         res.status(201).json({
             _id: user.id || user._id,
             fullName: user.fullName,
@@ -138,19 +151,30 @@ const loginUser = asyncHandler(async (req, res) => {
         }
 
         if (await bcrypt.compare(password, user.password)) {
+            const isFirstLogin = !user.lastLogin || !user.welcomeEmailSent;
             user.lastLogin = new Date();
 
             // If user completed registration previously but lacks username, generate one now
             if (isUserRegistrationComplete(user) && !user.username) {
                 user.username = await generateGvuUsername(user.fullName, User, user._id);
             }
+            if (isFirstLogin) {
+                user.welcomeEmailSent = true;
+            }
             await user.save();
 
-            // Send login notification email asynchronously
+            // Send notification email asynchronously
             const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
             const userAgent = req.headers['user-agent'] || 'Unknown Device';
-            sendLoginNotification(user.email, user.fullName, ip, userAgent)
-                .catch(err => console.error('Error sending login notification email:', err));
+            const frontendURL = req.headers.origin || process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
+
+            if (isFirstLogin) {
+                sendWelcomeEmail(user.email, user.fullName, { username: user.username, frontendUrl: frontendURL })
+                    .catch(err => console.error('Error sending welcome email on first login:', err));
+            } else {
+                sendLoginNotification(user.email, user.fullName, ip, userAgent)
+                    .catch(err => console.error('Error sending login notification email:', err));
+            }
 
             res.json({
                 _id: user.id || user._id,
@@ -217,11 +241,19 @@ const googleCallback = (req, res, next) => {
         
         const token = generateToken(user._id);
 
-        // Send login notification email asynchronously
         const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
         const userAgent = req.headers['user-agent'] || 'Unknown Device';
-        sendLoginNotification(user.email, user.fullName, ip, userAgent)
-            .catch(err => console.error('Error sending Google login notification email:', err));
+        const isFirstLogin = Boolean(info?.isFirstLogin || !user.welcomeEmailSent);
+
+        if (isFirstLogin) {
+            sendWelcomeEmail(user.email, user.fullName, { username: user.username, frontendUrl: frontendURL })
+                .catch(err => console.error('Error sending Google welcome email:', err));
+            user.welcomeEmailSent = true;
+            await user.save().catch(e => console.error('Error updating welcomeEmailSent:', e));
+        } else {
+            sendLoginNotification(user.email, user.fullName, ip, userAgent)
+                .catch(err => console.error('Error sending Google login notification email:', err));
+        }
 
         // If user completed registration previously and lacks a username, assign one
         if (isUserRegistrationComplete(user) && !user.username) {

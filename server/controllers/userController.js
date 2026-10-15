@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { asyncHandler } = require('../middleware/errorMiddleware');
 const { generateGvuUsername, isUserRegistrationComplete } = require('../utils/usernameHelper');
+const { sendWelcomeEmail } = require('../utils/emailService');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -56,6 +57,14 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         // When user completes registration (matricNumber, faculty, dept), assign .gvu.ed username if missing
         if (isUserRegistrationComplete(user) && !user.username) {
             user.username = await generateGvuUsername(user.fullName, User, user._id);
+        }
+
+        // If user hasn't received welcome email yet, send it now
+        if (!user.welcomeEmailSent && isUserRegistrationComplete(user)) {
+            user.welcomeEmailSent = true;
+            const frontendURL = req.headers.origin || process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
+            sendWelcomeEmail(user.email, user.fullName, { username: user.username, frontendUrl: frontendURL })
+                .catch(err => console.error('Error sending welcome email on profile completion:', err));
         }
 
         const updatedUser = await user.save();

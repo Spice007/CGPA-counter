@@ -40,6 +40,10 @@ const userSchema = mongoose.Schema({
     lastLogin: {
         type: Date
     },
+    welcomeEmailSent: {
+        type: Boolean,
+        default: false
+    },
     resetPasswordToken: {
         type: String,
         default: null

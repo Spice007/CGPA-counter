@@ -548,6 +548,15 @@ function setupSettingsGroup() {
         document.getElementById('settings-export-btn').click();
     });
 
+    const mobSetResetPw = document.getElementById('mob-set-reset-password');
+    if (mobSetResetPw) {
+        mobSetResetPw.addEventListener('click', () => {
+            if (typeof window.openResetPwModal === 'function') {
+                window.openResetPwModal();
+            }
+        });
+    }
+
     document.getElementById('mob-set-advanced').addEventListener('click', () => {
         if (confirm('⚠️ Warning: Are you sure you want to clear your local cache? This will reset local customizations, but your records are saved in the database.')) {
             localStorage.removeItem('cgpa_tasks');

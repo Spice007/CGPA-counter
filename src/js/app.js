@@ -593,6 +593,27 @@ function setupNavigation() {
     }
 }
 
+function openResetPwModal() {
+    const modal = document.getElementById('reset-pw-modal');
+    const alertBox = document.getElementById('reset-pw-modal-alert');
+    if (alertBox) alertBox.style.display = 'none';
+    const newPw = document.getElementById('modal-reset-new-pw');
+    const confirmPw = document.getElementById('modal-reset-confirm-pw');
+    if (newPw) newPw.value = '';
+    if (confirmPw) confirmPw.value = '';
+    if (modal) modal.style.display = 'block';
+    if (modalOverlay) modalOverlay.style.display = 'block';
+    if (window.lucide) lucide.createIcons();
+}
+window.openResetPwModal = openResetPwModal;
+
+function closeResetPwModal() {
+    const modal = document.getElementById('reset-pw-modal');
+    if (modal) modal.style.display = 'none';
+    if (modalOverlay) modalOverlay.style.display = 'none';
+}
+window.closeResetPwModal = closeResetPwModal;
+
 function setupEventListeners() {
     document.getElementById('add-semester-btn').addEventListener('click', () => {
         let newSession = (studentProfile && studentProfile.session) || '2023/2024';
@@ -782,6 +803,159 @@ function setupEventListeners() {
                 input.type = isPw ? 'text' : 'password';
                 icon.setAttribute('data-lucide', isPw ? 'eye-off' : 'eye');
                 if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+
+    // Advanced Settings - Reset Password Modal Handlers
+    const resetPwBtn = document.getElementById('settings-reset-pw-btn');
+    if (resetPwBtn) {
+        resetPwBtn.addEventListener('click', openResetPwModal);
+    }
+
+    const resetPwCloseBtn = document.getElementById('reset-pw-modal-close');
+    if (resetPwCloseBtn) {
+        resetPwCloseBtn.addEventListener('click', closeResetPwModal);
+    }
+
+    const resetPwCancelBtn = document.getElementById('reset-pw-modal-cancel');
+    if (resetPwCancelBtn) {
+        resetPwCancelBtn.addEventListener('click', closeResetPwModal);
+    }
+
+    // Toggle Modal Password Visibility
+    const toggleModalResetPw = document.getElementById('toggle-modal-reset-pw');
+    if (toggleModalResetPw) {
+        toggleModalResetPw.addEventListener('click', () => {
+            const input = document.getElementById('modal-reset-new-pw');
+            const icon = document.getElementById('modal-reset-pw-eye');
+            if (input && icon) {
+                const isPw = input.type === 'password';
+                input.type = isPw ? 'text' : 'password';
+                icon.setAttribute('data-lucide', isPw ? 'eye-off' : 'eye');
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+
+    const toggleModalResetConfirmPw = document.getElementById('toggle-modal-reset-confirm-pw');
+    if (toggleModalResetConfirmPw) {
+        toggleModalResetConfirmPw.addEventListener('click', () => {
+            const input = document.getElementById('modal-reset-confirm-pw');
+            const icon = document.getElementById('modal-reset-confirm-pw-eye');
+            if (input && icon) {
+                const isPw = input.type === 'password';
+                input.type = isPw ? 'text' : 'password';
+                icon.setAttribute('data-lucide', isPw ? 'eye-off' : 'eye');
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+
+    // Modal Save Password Handler
+    const resetPwSaveBtn = document.getElementById('reset-pw-modal-save');
+    if (resetPwSaveBtn) {
+        resetPwSaveBtn.addEventListener('click', async () => {
+            const newPw = (document.getElementById('modal-reset-new-pw')?.value || '').trim();
+            const confirmPw = (document.getElementById('modal-reset-confirm-pw')?.value || '').trim();
+            const alertBox = document.getElementById('reset-pw-modal-alert');
+
+            const showAlert = (msg, isError = true) => {
+                if (alertBox) {
+                    alertBox.textContent = msg;
+                    alertBox.style.display = 'block';
+                    alertBox.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+                    alertBox.style.border = isError ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)';
+                    alertBox.style.color = isError ? '#fca5a5' : '#6ee7b7';
+                }
+            };
+
+            if (!newPw) {
+                showAlert('Please enter a new password.');
+                return;
+            }
+            if (newPw.length < 6) {
+                showAlert('Password must be at least 6 characters long.');
+                return;
+            }
+            if (newPw !== confirmPw) {
+                showAlert('Passwords do not match. Please re-enter.');
+                return;
+            }
+
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            const token = user ? user.token : '';
+
+            resetPwSaveBtn.disabled = true;
+            const origText = resetPwSaveBtn.innerHTML;
+            resetPwSaveBtn.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Saving...';
+            if (window.lucide) lucide.createIcons();
+
+            try {
+                const res = await apiFetch(`/users/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password: newPw })
+                });
+
+                if (res.ok) {
+                    user.hasPassword = true;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    const pwBox = document.getElementById('account-password-box');
+                    if (pwBox) pwBox.style.display = 'none';
+
+                    closeResetPwModal();
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Your password has been reset successfully! 🔑 You can now use your new password to sign in.', 'Password Reset ✨', 'success');
+                    } else {
+                        alert('Password reset successfully! 🔑');
+                    }
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    showAlert(err.message || 'Failed to update password. Please try again.');
+                }
+            } catch (e) {
+                showAlert('Network error: Cannot reach server to reset password.');
+            } finally {
+                resetPwSaveBtn.disabled = false;
+                resetPwSaveBtn.innerHTML = origText;
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+    }
+
+    // Modal Send Recovery Email Link Handler
+    const resetPwSendEmailBtn = document.getElementById('reset-pw-send-email-btn');
+    if (resetPwSendEmailBtn) {
+        resetPwSendEmailBtn.addEventListener('click', async () => {
+            const user = JSON.parse(localStorage.getItem('user')) || {};
+            const email = (user.email || '').trim();
+            if (!email) {
+                alert('No email found for this account.');
+                return;
+            }
+            resetPwSendEmailBtn.disabled = true;
+            resetPwSendEmailBtn.textContent = 'Sending recovery link...';
+            try {
+                const res = await apiFetch(`/auth/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message || 'Password reset link sent to your email!');
+                } else {
+                    alert(data.message || 'Could not send reset email.');
+                }
+            } catch (e) {
+                alert('Cannot connect to server.');
+            } finally {
+                resetPwSendEmailBtn.disabled = false;
+                resetPwSendEmailBtn.textContent = 'Send Password Reset Link to My Email';
             }
         });
     }
@@ -1595,31 +1769,33 @@ function loadProfileEditForm() {
         if (window.lucide) lucide.createIcons();
     }
 
-    // Configure password box state
-    const pwBadge = document.getElementById('pw-status-badge');
-    const pwTitle = document.getElementById('pw-box-title');
-    const pwDesc = document.getElementById('pw-box-desc');
+    // Configure password box state: ONLY visible if user has NO password set
+    const pwBox = document.getElementById('account-password-box');
     const newPwInput = document.getElementById('profile-new-password');
     const confirmPwInput = document.getElementById('profile-confirm-password');
     if (newPwInput) newPwInput.value = '';
     if (confirmPwInput) confirmPwInput.value = '';
 
     const hasPw = Boolean(currentUser.hasPassword || (currentUser.authProvider === 'local' && !currentUser.googleId));
-    if (pwBadge) {
+    if (pwBox) {
         if (hasPw) {
-            pwBadge.innerHTML = '<i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Password Set';
-            pwBadge.style.color = '#34d399';
-            pwBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-            if (pwTitle) pwTitle.textContent = 'Change Account Password (Optional)';
-            if (pwDesc) pwDesc.innerHTML = 'You have a password configured. You can sign in using your <strong>Email</strong> or official <strong>GVU username (.gvu.ed)</strong> with your password, or with Google. Enter a new password below only if you want to change it.';
+            // Once password is set, close that box on the profile registration page completely!
+            pwBox.style.display = 'none';
         } else {
-            pwBadge.innerHTML = '<i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> No Password Set';
-            pwBadge.style.color = '#f59e0b';
-            pwBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+            // Only visible for Google users without a password
+            pwBox.style.display = 'block';
+            const pwBadge = document.getElementById('pw-status-badge');
+            const pwTitle = document.getElementById('pw-box-title');
+            const pwDesc = document.getElementById('pw-box-desc');
+            if (pwBadge) {
+                pwBadge.innerHTML = '<i data-lucide="shield-alert" style="width: 12px; height: 12px;"></i> No Password Set';
+                pwBadge.style.color = '#f59e0b';
+                pwBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+            }
             if (pwTitle) pwTitle.textContent = 'Create Account Password';
             if (pwDesc) pwDesc.innerHTML = 'Continued with Google without a password? Set a password here so you can also sign in directly using your <strong>Email</strong> or official <strong>GVU username (.gvu.ed)</strong> without needing Google.';
+            if (window.lucide) lucide.createIcons();
         }
-        if (window.lucide) lucide.createIcons();
     }
 
     // Toggle registration banner
@@ -1764,15 +1940,12 @@ async function updateProfile() {
             localStorage.setItem('user', JSON.stringify(newUser));
 
             if (newPassword) {
+                newUser.hasPassword = true;
                 if (newPwInput) newPwInput.value = '';
                 if (confirmPwInput) confirmPwInput.value = '';
-                const pwBadge = document.getElementById('pw-status-badge');
-                if (pwBadge) {
-                    pwBadge.innerHTML = '<i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> Password Set';
-                    pwBadge.style.color = '#34d399';
-                    pwBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-                    if (window.lucide) lucide.createIcons();
-                }
+                // Once password is set, close that box on the profile registration page completely!
+                const pwBox = document.getElementById('account-password-box');
+                if (pwBox) pwBox.style.display = 'none';
             }
 
             // Clear registration requirement flag and URL parameters
