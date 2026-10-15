@@ -77,7 +77,7 @@ function checkAuth() {
                     window.location.href = 'index.html?complete_profile=1';
                 }
             } else {
-                window.location.href = 'login.html';
+                window.location.href = 'index.html?complete_profile=1';
             }
         }
     } catch (e) {
