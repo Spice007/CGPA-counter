@@ -167,8 +167,9 @@
                     <i data-lucide="school" style="width: 18px; height: 18px;"></i>
                 </div>
                 <div style="flex: 1; overflow: hidden;">
-                    <h4 id="student-session" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">Academic Session</h4>
-                    <p id="student-uni" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0;">Your University</p>
+                    <h4 id="student-session" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 0.85rem;">Academic Session</h4>
+                    <p id="student-username-sidebar" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 0.78rem; color: #38bdf8; font-weight: 600;">@username.gvu.ed</p>
+                    <p id="student-uni" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; font-size: 0.72rem; color: #94a3b8;">Your University</p>
                 </div>
                 <i data-lucide="chevron-down" style="width: 16px; height: 16px; color: #64748b; margin-left: auto;"></i>
             </div>
@@ -177,12 +178,37 @@
                     try {
                         var u = JSON.parse(localStorage.getItem('user')) || {};
                         var p = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
+
+                        // Auto-assign for active session if missing
+                        if (!u.username && (u.fullName || p.name)) {
+                            var rawF = (u.fullName || p.name).trim().split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+                            if (rawF) {
+                                u.username = rawF + '.gvu.ed';
+                                p.username = u.username;
+                                try {
+                                    localStorage.setItem('user', JSON.stringify(u));
+                                    localStorage.setItem('cgpa_profile', JSON.stringify(p));
+                                } catch(e){}
+                            }
+                        }
+
                         var sess = p.session || u.academicSession || '2023/2024';
                         var uni = p.uni || u.university || 'Set your university';
+                        var uname = (p.username || u.username || '').trim();
+
                         var sessEl = document.getElementById('student-session');
                         if (sessEl) sessEl.textContent = sess + ' Session';
                         var uniEl = document.getElementById('student-uni');
                         if (uniEl) uniEl.textContent = uni;
+                        var unameEl = document.getElementById('student-username-sidebar');
+                        if (unameEl) {
+                            if (uname) {
+                                unameEl.textContent = '@' + uname;
+                                unameEl.style.display = 'block';
+                            } else {
+                                unameEl.style.display = 'none';
+                            }
+                        }
                     } catch(e) {}
                 })();
             </script>
@@ -209,11 +235,16 @@
                             var u = JSON.parse(localStorage.getItem('user')) || {};
                             var p = JSON.parse(localStorage.getItem('cgpa_profile')) || {};
                             var name = p.name || u.fullName || u.name || (u.email ? u.email.split('@')[0] : '');
+                            var uname = (p.username || u.username || '').trim();
+
                             if (name) {
                                 var f = name.trim().split(' ')[0];
                                 f = f.charAt(0).toUpperCase() + f.slice(1);
                                 var el = document.getElementById('dashboard-welcome');
-                                if (el) el.innerHTML = 'Welcome back, ' + f + ' 👋';
+                                if (el) {
+                                    var badge = uname ? ' <span style="font-size: 0.8rem; vertical-align: middle; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;"><i data-lucide="shield-check" style="width:13px;height:13px;"></i> ' + uname + '</span>' : '';
+                                    el.innerHTML = 'Welcome back, ' + f + ' 👋' + badge;
+                                }
                             }
                             var uni = p.uni || u.university || '';
                             var sess = p.session || '2023/2024';

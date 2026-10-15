@@ -1487,6 +1487,18 @@ function loadProfile() {
         }
     }
 
+    // Update sidebar username
+    const unameSidebarEl = document.getElementById('student-username-sidebar');
+    if (unameSidebarEl) {
+        const u = studentProfile.username || '';
+        if (u) {
+            unameSidebarEl.textContent = `@${u}`;
+            unameSidebarEl.style.display = 'block';
+        } else {
+            unameSidebarEl.style.display = 'none';
+        }
+    }
+
     // Update Dashboard Header Prominently
     const dashWelcome = document.getElementById('dashboard-welcome');
     const dashUni = document.getElementById('dashboard-uni-info');
