@@ -96,10 +96,51 @@
         </a>
     </nav>
 
-    <!-- Mobile FAB (Floating Action Button) -->
-    <button class="mobile-fab" id="mobile-fab">
-        <i data-lucide="plus"></i>
-    </button>
+    <!-- Mobile Quick Actions Speed-Dial / Action Sheet -->
+    <div class="botnav-actions-overlay" id="botnav-actions-overlay"></div>
+    <div class="botnav-actions-sheet glass" id="botnav-actions-sheet" role="dialog" aria-modal="true" aria-label="Quick Actions">
+        <div class="botnav-actions-handle"></div>
+        <div class="botnav-actions-sheet-header">
+            <span class="botnav-actions-sheet-title">Quick Actions</span>
+            <button type="button" class="botnav-actions-sheet-close" id="botnav-actions-close" aria-label="Close actions">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <div class="botnav-actions-sheet-list">
+            <button type="button" class="botnav-action-item" id="botnav-action-add-course">
+                <div class="botnav-action-icon icon-add-course">
+                    <i data-lucide="book-plus"></i>
+                </div>
+                <div class="botnav-action-text">
+                    <div class="botnav-action-title">Add Course</div>
+                    <div class="botnav-action-desc">Add a new course to your current semester</div>
+                </div>
+                <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
+            </button>
+
+            <button type="button" class="botnav-action-item" id="botnav-action-add-semester">
+                <div class="botnav-action-icon icon-add-semester">
+                    <i data-lucide="calendar-plus"></i>
+                </div>
+                <div class="botnav-action-text">
+                    <div class="botnav-action-title">Add Semester</div>
+                    <div class="botnav-action-desc">Start a new academic semester / session</div>
+                </div>
+                <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
+            </button>
+
+            <button type="button" class="botnav-action-item" id="botnav-action-save-pdf">
+                <div class="botnav-action-icon icon-save-pdf">
+                    <i data-lucide="file-down"></i>
+                </div>
+                <div class="botnav-action-text">
+                    <div class="botnav-action-title">Save PDF</div>
+                    <div class="botnav-action-desc">Download complete result slip & CGPA summary</div>
+                </div>
+                <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
+            </button>
+        </div>
+    </div>
 
     <div class="app-container">
         <!-- Sidebar -->
@@ -1253,7 +1294,7 @@
             <label class="input-label">Academic Session</label>
             <input type="text" id="edit-semester-session" placeholder="e.g. 2024/2025">
         </div>
-        
+
         <div class="input-group">
             <label class="input-label">Academic Level</label>
             <select id="edit-semester-level" style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(30,41,59,0.8); border: 1px solid var(--border); color: var(--text-primary); outline: none;">

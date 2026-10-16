@@ -13,6 +13,7 @@ function initMobile() {
     
     setupDrawer();
     setupBottomNavigation();
+    setupBotnavActions();
     setupQuickActions();
     setupSettingsGroup();
     setupCarouselSwipeListeners();
@@ -220,7 +221,7 @@ function updateAccordionSemesters() {
                 <div class="mobile-accordion-header" onclick="toggleAccordion('${sem.id}')">
                     <div class="mobile-accordion-title-wrap">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <span onclick="event.stopPropagation(); if (typeof openEditSemesterModal === 'function') openEditSemesterModal('${sem.id}');" title="Click to edit level & semester" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25); cursor: pointer;">${semLevel}L</span>
+                            <span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25);">${semLevel}L</span>
                             <h3 style="margin: 0;">${formattedTitle}</h3>
                         </div>
                         <div class="mobile-accordion-meta">
@@ -231,7 +232,7 @@ function updateAccordionSemesters() {
                     </div>
                     <div class="mobile-accordion-header-right" style="display: flex; align-items: center; gap: 0.5rem;">
                         <span class="mobile-accordion-gpa">GPA: ${semGPA}</span>
-                        <button onclick="event.stopPropagation(); if (typeof openEditSemesterModal === 'function') openEditSemesterModal('${sem.id}');" title="Edit Level & Semester Details" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); padding: 0.3rem 0.45rem; display: flex; align-items: center; cursor: pointer;">
+                        <button onclick="event.stopPropagation(); if (typeof openEditSemesterModal === 'function') openEditSemesterModal('${sem.id}');" title="Edit Semester Details" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); padding: 0.3rem 0.45rem; display: flex; align-items: center; cursor: pointer;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                         </button>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-accordion-chevron"><path d="m6 9 6 6 6-6"/></svg>
@@ -330,7 +331,8 @@ function setupQuickActions() {
     
     document.getElementById('mobile-action-add-semester').addEventListener('click', handleAddSemesterAction);
     document.getElementById('mobile-add-semester-text-btn').addEventListener('click', handleAddSemesterAction);
-    document.getElementById('mobile-fab').addEventListener('click', handleAddSemesterAction);
+    const mobFab = document.getElementById('mobile-fab');
+    if (mobFab) mobFab.addEventListener('click', handleAddSemesterAction);
     
     document.getElementById('mobile-action-export-pdf').addEventListener('click', () => {
         const btn = document.getElementById('export-pdf');
@@ -460,10 +462,17 @@ function setupBottomNavigation() {
 
     document.querySelectorAll('.botnav-link').forEach(link => {
         link.addEventListener('click', (e) => {
-            if (link.classList.contains('add-btn')) {
+            if (link.classList.contains('add-btn') || link.id === 'botnav-add') {
                 e.preventDefault();
-                handleAddCourseQuickAction();
+                if (typeof window.toggleBotnavActionsSheet === 'function') {
+                    window.toggleBotnavActionsSheet();
+                }
                 return;
+            }
+
+            // Close actions sheet when user navigates
+            if (typeof window.closeBotnavActionsSheet === 'function') {
+                window.closeBotnavActionsSheet();
             }
             
             e.preventDefault();
@@ -505,6 +514,71 @@ function setupBottomNavigation() {
             }
         });
     });
+}
+ 
+/* 10b. Center Plus Action Sheet (Speed-Dial for Add Course, Add Semester, Save PDF) */
+function setupBotnavActions() {
+    const sheet = document.getElementById('botnav-actions-sheet');
+    const overlay = document.getElementById('botnav-actions-overlay');
+    const addBtn = document.getElementById('botnav-add');
+    const closeBtn = document.getElementById('botnav-actions-close');
+
+    const courseBtn = document.getElementById('botnav-action-add-course');
+    const semesterBtn = document.getElementById('botnav-action-add-semester');
+    const pdfBtn = document.getElementById('botnav-action-save-pdf');
+
+    window.openBotnavActionsSheet = () => {
+        if (sheet) sheet.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+        if (addBtn) addBtn.classList.add('is-open');
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.closeBotnavActionsSheet = () => {
+        if (sheet) sheet.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        if (addBtn) addBtn.classList.remove('is-open');
+    };
+
+    window.toggleBotnavActionsSheet = () => {
+        if (sheet && sheet.classList.contains('active')) {
+            window.closeBotnavActionsSheet();
+        } else {
+            window.openBotnavActionsSheet();
+        }
+    };
+
+    if (overlay) overlay.addEventListener('click', window.closeBotnavActionsSheet);
+    if (closeBtn) closeBtn.addEventListener('click', window.closeBotnavActionsSheet);
+
+    if (courseBtn) {
+        courseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.closeBotnavActionsSheet();
+            handleAddCourseQuickAction();
+        });
+    }
+
+    if (semesterBtn) {
+        semesterBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.closeBotnavActionsSheet();
+            handleAddSemesterAction();
+        });
+    }
+
+    if (pdfBtn) {
+        pdfBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.closeBotnavActionsSheet();
+            const btn = document.getElementById('export-pdf') || document.getElementById('mobile-action-export-pdf');
+            if (btn) {
+                btn.click();
+            } else if (typeof window.exportToPDF === 'function') {
+                window.exportToPDF();
+            }
+        });
+    }
 }
 
 /* 11. Grouped Settings Interaction */
@@ -576,6 +650,7 @@ function syncNavigationStates() {
     const targetName = activeSection.id.replace('section-', '');
 
     document.querySelectorAll('.botnav-link').forEach(link => {
+        if (link.id === 'botnav-add' || link.classList.contains('add-btn')) return;
         let isActive = link.id === `botnav-${targetName}`;
         if (targetName === 'admin' && link.id === 'botnav-analytics') {
             isActive = true;
