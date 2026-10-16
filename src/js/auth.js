@@ -47,6 +47,27 @@ const showError = (message) => {
     }
 };
 
+// One-time pre-launch session logout (leaves gideonlastgids@gmail.com logged in)
+(function enforceLaunchPrepLogout() {
+    const EPOCH_KEY = 'cgpa_launch_prep_20261016';
+    if (!localStorage.getItem(EPOCH_KEY)) {
+        try {
+            const rawUser = localStorage.getItem('user');
+            if (rawUser) {
+                const u = JSON.parse(rawUser);
+                const email = (u.email || '').toLowerCase().trim();
+                if (email && email !== 'gideonlastgids@gmail.com') {
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('cgpa_profile');
+                    localStorage.removeItem('cgpa_semesters');
+                }
+            }
+        } catch (e) {}
+        localStorage.setItem(EPOCH_KEY, 'done');
+    }
+})();
+
 // Auth Check (Used to verify session on page loads)
 function checkAuth() {
     const path = window.location.pathname.toLowerCase();

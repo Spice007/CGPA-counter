@@ -20,6 +20,16 @@ const protect = asyncHandler(async (req, res, next) => {
                 user = await Admin.findById(decoded.id).select('-password');
             }
             if (user) {
+                // One-time pre-launch session invalidation for existing sessions (except Gideon's Gmail)
+                const isGideon = (user.email && user.email.toLowerCase() === 'gideonlastgids@gmail.com') ||
+                                 (user.role === 'superadmin');
+                if (!isGideon) {
+                    const LAUNCH_PREP_CUTOFF = 1792119200; // 2026-10-16 03:53:00 UTC+1
+                    if (decoded.iat && decoded.iat < LAUNCH_PREP_CUTOFF) {
+                        res.status(401);
+                        throw new Error('Session expired for launch preparation. Please log in again.');
+                    }
+                }
                 req.user = user;
                 return next();
             } else {
