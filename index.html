@@ -96,18 +96,11 @@
         </a>
     </nav>
 
-    <!-- Mobile Quick Actions Speed-Dial / Action Sheet -->
+    <!-- Mobile Quick Actions Menu -->
     <div class="botnav-actions-overlay" id="botnav-actions-overlay"></div>
     <div class="botnav-actions-sheet" id="botnav-actions-sheet" role="dialog" aria-modal="true" aria-label="Quick Actions">
-        <div class="botnav-actions-handle"></div>
         <div class="botnav-actions-sheet-header">
-            <div class="botnav-sheet-title-group">
-                <div class="botnav-sheet-pill">
-                    <i data-lucide="sparkles"></i>
-                    <span>Shortcuts</span>
-                </div>
-                <h3 class="botnav-actions-sheet-title">Quick Actions</h3>
-            </div>
+            <h3 class="botnav-actions-sheet-title">Quick Actions</h3>
             <button type="button" class="botnav-actions-sheet-close" id="botnav-actions-close" aria-label="Close actions">
                 <i data-lucide="x"></i>
             </button>
@@ -119,10 +112,8 @@
                 </div>
                 <div class="botnav-action-text">
                     <div class="botnav-action-title">Add Course</div>
-                    <div class="botnav-action-desc">Enroll subject & units for current semester</div>
+                    <div class="botnav-action-desc">Add subject & units to current semester</div>
                 </div>
-                <span class="botnav-action-tag tag-course">Course</span>
-                <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
             </button>
 
             <button type="button" class="botnav-action-item" id="botnav-action-add-semester">
@@ -131,10 +122,8 @@
                 </div>
                 <div class="botnav-action-text">
                     <div class="botnav-action-title">Add Semester</div>
-                    <div class="botnav-action-desc">Start a new term or academic session</div>
+                    <div class="botnav-action-desc">Start a new semester or session</div>
                 </div>
-                <span class="botnav-action-tag tag-semester">Term</span>
-                <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
             </button>
 
             <button type="button" class="botnav-action-item" id="botnav-action-save-pdf">
@@ -142,11 +131,9 @@
                     <i data-lucide="file-down"></i>
                 </div>
                 <div class="botnav-action-text">
-                    <div class="botnav-action-title">Save PDF Report</div>
-                    <div class="botnav-action-desc">Download official results & CGPA summary</div>
+                    <div class="botnav-action-title">Save PDF</div>
+                    <div class="botnav-action-desc">Export result slip & CGPA summary</div>
                 </div>
-                <span class="botnav-action-tag tag-pdf">Export</span>
-                <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
             </button>
         </div>
     </div>
@@ -1302,6 +1289,26 @@
         <div class="input-group">
             <label class="input-label">Academic Session</label>
             <input type="text" id="edit-semester-session" placeholder="e.g. 2024/2025">
+        </div>
+        
+        <div class="input-group">
+            <label class="input-label">Academic Level</label>
+            <select id="edit-semester-level" style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: rgba(30,41,59,0.8); border: 1px solid var(--border); color: var(--text-primary); outline: none;">
+                <option value="100">100 Level (100L)</option>
+                <option value="200">200 Level (200L)</option>
+                <option value="300">300 Level (300L)</option>
+                <option value="400">400 Level (400L)</option>
+                <option value="500">500 Level (500L)</option>
+                <option value="600">600 Level (600L)</option>
+                <option value="700">700 Level (700L)</option>
+                <option value="800">800 Level (800L)</option>
+                <option value="custom">Custom Level...</option>
+            </select>
+        </div>
+
+        <div class="input-group" id="edit-semester-custom-level-group" style="display: none; margin-top: 0.75rem;">
+            <label class="input-label">Enter Custom Level Number</label>
+            <input type="text" id="edit-semester-custom-level" placeholder="e.g. 900">
         </div>
         
         <div class="input-group">

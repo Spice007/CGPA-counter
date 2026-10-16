@@ -132,6 +132,16 @@ function getNextAcademicSession(sessionStr, yearsToAdd = 1) {
 function getSemesterLevel(sem, index, allSemesters) {
     if (!sem) return 100;
 
+    // 1. Explicit level set on semester
+    if (sem.level) return parseInt(sem.level) || sem.level;
+
+    // 2. Persisted custom level from cgpa_semester_levels map
+    try {
+        const savedLevels = JSON.parse(localStorage.getItem('cgpa_semester_levels') || '{}');
+        if (sem.id && savedLevels[sem.id]) return parseInt(savedLevels[sem.id]);
+        if (sem.name && savedLevels[sem.name]) return parseInt(savedLevels[sem.name]);
+    } catch (e) {}
+
     const extractYear = (str) => {
         if (!str) return null;
         const m = str.match(/\b(19\d\d|20\d\d)\b/);
@@ -373,6 +383,14 @@ async function loadData() {
 
             if (Object.keys(grouped).length > 0) {
                 semesters = normalizeSemesters(Object.values(grouped));
+                // Restore any user-customized levels
+                try {
+                    const savedLevels = JSON.parse(localStorage.getItem('cgpa_semester_levels') || '{}');
+                    semesters.forEach(s => {
+                        if (savedLevels[s.id]) s.level = savedLevels[s.id];
+                        else if (savedLevels[s.name]) s.level = savedLevels[s.name];
+                    });
+                } catch (e) {}
                 semesters.sort((a, b) => {
                     const yearA = parseInt(a.name.split('/')[0]) || 0;
                     const yearB = parseInt(b.name.split('/')[0]) || 0;
@@ -648,6 +666,13 @@ function setupEventListeners() {
     if (editSemCancel) editSemCancel.addEventListener('click', closeEditSemesterModal);
     const editSemSave = document.getElementById('edit-semester-save');
     if (editSemSave) editSemSave.addEventListener('click', saveEditedSemester);
+    const editSemLevelSelect = document.getElementById('edit-semester-level');
+    const editSemCustomGroup = document.getElementById('edit-semester-custom-level-group');
+    if (editSemLevelSelect && editSemCustomGroup) {
+        editSemLevelSelect.addEventListener('change', () => {
+            editSemCustomGroup.style.display = editSemLevelSelect.value === 'custom' ? 'block' : 'none';
+        });
+    }
 
     // Profile Update Button (Personal Details)
     document.getElementById('profile-update-btn').addEventListener('click', updateProfile);
