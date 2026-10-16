@@ -173,9 +173,9 @@ function updateLevelBreakdown() {
     if (mobileLevelContainer) {
         if (levelRows.length > 0) {
             mobileLevelContainer.innerHTML = Array.from(levelRows).map(row => {
-                const name = row.querySelector('.level-info-title span').textContent;
-                const percentage = row.querySelector('.level-progress-bar').style.width;
-                const gpa = row.querySelector('.level-stats-wrap span').textContent;
+                const name = row.querySelector('.level-info-title span')?.textContent || '';
+                const percentage = row.querySelector('.level-progress-bar')?.style?.width || '0%';
+                const gpa = row.querySelector('.level-stats-wrap span')?.textContent || '0.00';
                 return `
                     <div class="mobile-level-row">
                         <div class="mobile-level-name">${name}</div>
@@ -211,6 +211,7 @@ function updateAccordionSemesters() {
         const semGPA = calculateGPA(sem.courses);
         const totalUnits = sem.courses.reduce((sum, c) => sum + parseInt(c.units || 0), 0);
         const semLevel = (typeof getSemesterLevel === 'function') ? getSemesterLevel(sem, idx, semesters) : 100;
+        const displayLevel = String(semLevel).toUpperCase().endsWith('L') ? semLevel : `${semLevel}L`;
         const formattedTitle = (typeof formatSemesterName === 'function') ? formatSemesterName(sem.name) : (sem.name && !sem.name.toLowerCase().includes('semester') ? `${sem.name} Semester` : sem.name);
         
         const isExpanded = activeAccordions.includes(sem.id) || (activeAccordions.length === 0 && idx === semesters.length - 1);
@@ -221,7 +222,7 @@ function updateAccordionSemesters() {
                 <div class="mobile-accordion-header" onclick="toggleAccordion('${sem.id}')">
                     <div class="mobile-accordion-title-wrap">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25);">${semLevel}L</span>
+                            <span onclick="event.stopPropagation(); if (typeof openEditSemesterModal === 'function') openEditSemesterModal('${sem.id}');" title="Click to edit level & semester" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25); cursor: pointer;">${displayLevel}</span>
                             <h3 style="margin: 0;">${formattedTitle}</h3>
                         </div>
                         <div class="mobile-accordion-meta">
@@ -327,17 +328,25 @@ function updateAnalyticsSection() {
 
 /* 8. Quick Actions Triggers */
 function setupQuickActions() {
-    document.getElementById('mobile-action-add-course').addEventListener('click', handleAddCourseQuickAction);
+    const addCourseBtn = document.getElementById('mobile-action-add-course');
+    if (addCourseBtn) addCourseBtn.addEventListener('click', handleAddCourseQuickAction);
     
-    document.getElementById('mobile-action-add-semester').addEventListener('click', handleAddSemesterAction);
-    document.getElementById('mobile-add-semester-text-btn').addEventListener('click', handleAddSemesterAction);
+    const addSemBtn = document.getElementById('mobile-action-add-semester');
+    if (addSemBtn) addSemBtn.addEventListener('click', handleAddSemesterAction);
+
+    const addSemTextBtn = document.getElementById('mobile-add-semester-text-btn');
+    if (addSemTextBtn) addSemTextBtn.addEventListener('click', handleAddSemesterAction);
+
     const mobFab = document.getElementById('mobile-fab');
     if (mobFab) mobFab.addEventListener('click', handleAddSemesterAction);
     
-    document.getElementById('mobile-action-export-pdf').addEventListener('click', () => {
-        const btn = document.getElementById('export-pdf');
-        if (btn) btn.click();
-    });
+    const exportPdfBtn = document.getElementById('mobile-action-export-pdf');
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', () => {
+            const btn = document.getElementById('export-pdf');
+            if (btn) btn.click();
+        });
+    }
     
     const mobSaveImage = document.getElementById('mobile-action-save-image');
     if (mobSaveImage) {
@@ -394,9 +403,9 @@ function setupDrawer() {
         overlay.classList.remove('active');
     };
     
-    openBtn.addEventListener('click', openDrawer);
-    closeBtn.addEventListener('click', closeDrawer);
-    overlay.addEventListener('click', closeDrawer);
+    if (openBtn) openBtn.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
     
     document.querySelectorAll('.drawer-link').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -410,7 +419,8 @@ function setupDrawer() {
             
             const id = link.id;
             if (id === 'mobnav-logout') {
-                document.getElementById('logout-btn').click();
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) logoutBtn.click();
                 return;
             }
 
@@ -425,7 +435,8 @@ function setupDrawer() {
             }
 
             if (id === 'mobnav-profile') {
-                document.getElementById('nav-profile').click();
+                const navProfile = document.getElementById('nav-profile');
+                if (navProfile) navProfile.click();
                 return;
             }
             
@@ -447,9 +458,13 @@ function setupDrawer() {
         });
     });
 
-    document.getElementById('mobile-profile-trigger').addEventListener('click', () => {
-        document.getElementById('nav-profile').click();
-    });
+    const mobProfTrigger = document.getElementById('mobile-profile-trigger');
+    if (mobProfTrigger) {
+        mobProfTrigger.addEventListener('click', () => {
+            const navProfile = document.getElementById('nav-profile');
+            if (navProfile) navProfile.click();
+        });
+    }
 }
 
 /* 10. Bottom Navigation Routings */
