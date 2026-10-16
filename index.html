@@ -100,41 +100,15 @@
     <div class="botnav-actions-overlay" id="botnav-actions-overlay"></div>
     <div class="botnav-actions-sheet" id="botnav-actions-sheet" role="dialog" aria-modal="true" aria-label="Quick Actions">
         <div class="botnav-actions-sheet-header">
-            <h3 class="botnav-actions-sheet-title">Quick Actions</h3>
+            <span class="botnav-actions-sheet-title">Quick Actions</span>
             <button type="button" class="botnav-actions-sheet-close" id="botnav-actions-close" aria-label="Close actions">
                 <i data-lucide="x"></i>
             </button>
         </div>
-        <div class="botnav-actions-sheet-list">
-            <button type="button" class="botnav-action-item" id="botnav-action-add-course">
-                <div class="botnav-action-icon icon-add-course">
-                    <i data-lucide="book-plus"></i>
-                </div>
-                <div class="botnav-action-text">
-                    <div class="botnav-action-title">Add Course</div>
-                    <div class="botnav-action-desc">Add subject & units to current semester</div>
-                </div>
-            </button>
-
-            <button type="button" class="botnav-action-item" id="botnav-action-add-semester">
-                <div class="botnav-action-icon icon-add-semester">
-                    <i data-lucide="calendar-plus"></i>
-                </div>
-                <div class="botnav-action-text">
-                    <div class="botnav-action-title">Add Semester</div>
-                    <div class="botnav-action-desc">Start a new semester or session</div>
-                </div>
-            </button>
-
-            <button type="button" class="botnav-action-item" id="botnav-action-save-pdf">
-                <div class="botnav-action-icon icon-save-pdf">
-                    <i data-lucide="file-down"></i>
-                </div>
-                <div class="botnav-action-text">
-                    <div class="botnav-action-title">Save PDF</div>
-                    <div class="botnav-action-desc">Export result slip & CGPA summary</div>
-                </div>
-            </button>
+        <div class="botnav-actions-container">
+            <button type="button" class="botnav-action-row" id="botnav-action-add-course">Add Course</button>
+            <button type="button" class="botnav-action-row" id="botnav-action-add-semester">Add Semester</button>
+            <button type="button" class="botnav-action-row" id="botnav-action-save-pdf">Save PDF</button>
         </div>
     </div>
 

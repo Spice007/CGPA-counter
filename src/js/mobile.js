@@ -221,7 +221,7 @@ function updateAccordionSemesters() {
                 <div class="mobile-accordion-header" onclick="toggleAccordion('${sem.id}')">
                     <div class="mobile-accordion-title-wrap">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                            <span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25);">${semLevel}L</span>
+                            <span onclick="event.stopPropagation(); if (typeof openEditSemesterModal === 'function') openEditSemesterModal('${sem.id}');" title="Click to edit level & semester" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.25); cursor: pointer;">${semLevel}L</span>
                             <h3 style="margin: 0;">${formattedTitle}</h3>
                         </div>
                         <div class="mobile-accordion-meta">
@@ -232,7 +232,7 @@ function updateAccordionSemesters() {
                     </div>
                     <div class="mobile-accordion-header-right" style="display: flex; align-items: center; gap: 0.5rem;">
                         <span class="mobile-accordion-gpa">GPA: ${semGPA}</span>
-                        <button onclick="event.stopPropagation(); if (typeof openEditSemesterModal === 'function') openEditSemesterModal('${sem.id}');" title="Edit Semester Details" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); padding: 0.3rem 0.45rem; display: flex; align-items: center; cursor: pointer;">
+                        <button onclick="event.stopPropagation(); if (typeof openEditSemesterModal === 'function') openEditSemesterModal('${sem.id}');" title="Edit Level & Semester Details" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-secondary); padding: 0.3rem 0.45rem; display: flex; align-items: center; cursor: pointer;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                         </button>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mobile-accordion-chevron"><path d="m6 9 6 6 6-6"/></svg>

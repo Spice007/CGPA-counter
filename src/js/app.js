@@ -1054,7 +1054,7 @@ function renderSemesters() {
         card.innerHTML = `
             <div class="semester-card-header">
                 <div style="display: flex; align-items: center; gap: 0.65rem;">
-                    <span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.3); letter-spacing: 0.03em;">${semLevel}L</span>
+                    <span onclick="openEditSemesterModal('${sem.id}')" title="Click to edit level & semester" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 99px; border: 1px solid rgba(99, 102, 241, 0.3); letter-spacing: 0.03em; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(99, 102, 241, 0.3)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.15)'">${semLevel}L</span>
                     <h3 class="font-heading" style="margin: 0;">${formatSemesterName(sem.name)}</h3>
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -1062,7 +1062,7 @@ function renderSemesters() {
                     <button onclick="openCourseModal('${sem.id}')" title="Add Course" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
                         <i data-lucide="plus-circle" style="width: 18px;"></i>
                     </button>
-                    <button onclick="openEditSemesterModal('${sem.id}')" title="Edit Semester Details" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
+                    <button onclick="openEditSemesterModal('${sem.id}')" title="Edit Level & Semester Details" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
                         <i data-lucide="edit-3" style="width: 18px;"></i>
                     </button>
                     <button onclick="deleteSemester('${sem.id}')" title="Delete Semester" class="btn glass-card" style="padding: 0.5rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--warning);">
@@ -2015,6 +2015,26 @@ function openEditSemesterModal(semId) {
     document.getElementById('edit-semester-session').value = properSession;
     document.getElementById('edit-semester-type').value = semType;
 
+    // Populate Academic Level
+    const semIndex = semesters.findIndex(s => s.id === semId);
+    const currentLevel = (typeof getSemesterLevel === 'function') ? getSemesterLevel(sem, semIndex, semesters) : (sem.level || 100);
+    const levelSelect = document.getElementById('edit-semester-level');
+    const customGroup = document.getElementById('edit-semester-custom-level-group');
+    const customInput = document.getElementById('edit-semester-custom-level');
+
+    if (levelSelect) {
+        const standardVals = ['100', '200', '300', '400', '500', '600', '700', '800'];
+        const cleanLvl = String(currentLevel).replace(/[^\d]/g, '');
+        if (standardVals.includes(cleanLvl)) {
+            levelSelect.value = cleanLvl;
+            if (customGroup) customGroup.style.display = 'none';
+        } else {
+            levelSelect.value = 'custom';
+            if (customGroup) customGroup.style.display = 'block';
+            if (customInput) customInput.value = cleanLvl || currentLevel;
+        }
+    }
+
     modal.style.display = 'block';
     modalOverlay.style.display = 'block';
 }
@@ -2039,10 +2059,35 @@ function saveEditedSemester() {
     const sem = semesters.find(s => s.id === semId);
     if (sem) {
         sem.name = `${formattedSession} - ${semType}`;
+
+        // Get chosen level
+        const levelSelect = document.getElementById('edit-semester-level');
+        const customInput = document.getElementById('edit-semester-custom-level');
+        let chosenLevel = 100;
+        if (levelSelect) {
+            if (levelSelect.value === 'custom') {
+                const customVal = customInput ? customInput.value.trim().replace(/[^\d]/g, '') : '';
+                chosenLevel = parseInt(customVal) || 100;
+            } else {
+                chosenLevel = parseInt(levelSelect.value) || 100;
+            }
+        }
+        sem.level = chosenLevel;
+
+        // Persist level map in localStorage so it stays even on fresh DB sync
+        try {
+            const savedLevels = JSON.parse(localStorage.getItem('cgpa_semester_levels') || '{}');
+            savedLevels[sem.id] = chosenLevel;
+            savedLevels[sem.name] = chosenLevel;
+            localStorage.setItem('cgpa_semester_levels', JSON.stringify(savedLevels));
+        } catch (e) {}
+
         localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
         renderAll();
         if (typeof window.showMobileToast === 'function') {
-            window.showMobileToast(`${sem.name} updated.`, 'Semester Updated! ✏️');
+            window.showMobileToast(`${chosenLevel}L ${sem.name} updated.`, 'Semester & Level Updated! ✏️');
+        } else if (typeof window.showToast === 'function') {
+            window.showToast(`${chosenLevel}L ${sem.name} updated.`, 'Semester & Level Updated! ✏️', 'success');
         }
     }
     closeEditSemesterModal();
