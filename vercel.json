@@ -6,6 +6,14 @@
     {
       "source": "/api/:path*",
       "destination": "https://cgpa-calculator-backend-a9kj.onrender.com/api/:path*"
+    },
+    {
+      "source": "/dashboard.html",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
     }
   ]
 }

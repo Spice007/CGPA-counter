@@ -148,7 +148,7 @@ const sendWelcomeEmail = async (email, userName, options = {}) => {
     const cleanName = (userName || 'Scholar').trim();
     const usernameHandle = options.username ? options.username.trim() : '';
     const frontendUrl = options.frontendUrl || process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
-    const dashboardUrl = `${frontendUrl.replace(/\/$/, '')}/dashboard.html`;
+    const dashboardUrl = `${frontendUrl.replace(/\/$/, '')}/index.html`;
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
 
     if (!hasEmailService()) {
