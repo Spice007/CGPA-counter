@@ -7,7 +7,9 @@
 .mobile-bottom-nav,
 .mobile-fab,
 .mobile-dashboard,
-.mobile-settings {
+.mobile-settings,
+.botnav-actions-overlay,
+.botnav-actions-sheet {
     display: none !important;
 }
 
@@ -26,7 +28,7 @@
         display: block !important;
     }
     .mobile-fab {
-        display: flex !important;
+        display: none !important;
     }
     
     /* Hide Desktop & Tablet Specific Elements */
@@ -173,14 +175,20 @@
         justify-content: center;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.45);
         border: 2px solid var(--bg-main);
-        transition: transform 0.2s;
+        transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.25s ease, box-shadow 0.25s ease;
     }
     .botnav-link.add-btn:active .botnav-add-icon {
-        transform: scale(0.9) rotate(45deg);
+        transform: scale(0.9);
+    }
+    .botnav-link.add-btn.is-open .botnav-add-icon {
+        transform: rotate(45deg);
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        box-shadow: 0 4px 18px rgba(239, 68, 68, 0.55);
     }
     .botnav-add-icon svg {
         width: 24px;
         height: 24px;
+        transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     /* 4. Slide-Out Navigation Drawer */
@@ -853,36 +861,197 @@
         background: rgba(239, 68, 68, 0.05);
     }
 
-    /* 11. FAB Button (Floating Action Button) */
-    .mobile-fab {
+    /* 11. Quick Actions Speed-Dial Sheet (Opened by Center + Button) */
+    .botnav-actions-overlay {
+        display: block !important;
         position: fixed;
-        bottom: 100px;
-        right: 20px;
-        width: 56px;
-        height: 56px;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        z-index: 105;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .botnav-actions-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .botnav-actions-sheet {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        bottom: 96px;
+        left: 16px;
+        right: 16px;
+        max-width: 440px;
+        margin: 0 auto;
+        background: rgba(14, 20, 36, 0.96);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 30px rgba(16, 185, 129, 0.12);
+        border-radius: 24px;
+        padding: 0.85rem 1.25rem 1.25rem;
+        z-index: 106;
+        opacity: 0;
+        transform: translateY(20px) scale(0.96);
+        pointer-events: none;
+        transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.15), opacity 0.22s ease;
+    }
+    .botnav-actions-sheet.active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    [data-theme="light"] .botnav-actions-sheet {
+        background: rgba(255, 255, 255, 0.96);
+        border-color: rgba(0, 0, 0, 0.1);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(16, 185, 129, 0.1);
+    }
+
+    .botnav-actions-handle {
+        width: 38px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        margin: 0 auto 0.75rem auto;
+    }
+    [data-theme="light"] .botnav-actions-handle {
+        background: rgba(0, 0, 0, 0.15);
+    }
+
+    .botnav-actions-sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.85rem;
+    }
+    .botnav-actions-sheet-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.01em;
+    }
+    .botnav-actions-sheet-close {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-        color: white;
-        border: none;
-        box-shadow: 0 4px 18px rgba(16, 185, 129, 0.5);
-        z-index: 98;
+        width: 32px;
+        height: 32px;
+        display: flex;
         align-items: center;
         justify-content: center;
+        color: var(--text-secondary);
         cursor: pointer;
-        animation: fabPulse 2s infinite;
+        transition: all 0.2s;
+    }
+    .botnav-actions-sheet-close:active {
+        transform: scale(0.9);
+        background: rgba(255, 255, 255, 0.15);
+    }
+    .botnav-actions-sheet-close svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .botnav-actions-sheet-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+    }
+
+    .botnav-action-item {
+        display: flex;
+        align-items: center;
+        gap: 0.9rem;
+        padding: 0.85rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 16px;
+        text-align: left;
+        cursor: pointer;
+        width: 100%;
+        color: inherit;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    [data-theme="light"] .botnav-action-item {
+        background: rgba(0, 0, 0, 0.02);
+        border-color: rgba(0, 0, 0, 0.06);
+    }
+    .botnav-action-item:active {
+        transform: scale(0.98);
+        background: rgba(16, 185, 129, 0.08);
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .botnav-action-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
         transition: transform 0.2s;
     }
-    .mobile-fab:active {
-        transform: scale(0.9) rotate(90deg);
+    .botnav-action-item:active .botnav-action-icon {
+        transform: scale(1.05);
     }
-    .mobile-fab svg {
-        width: 24px;
-        height: 24px;
+    .botnav-action-icon svg {
+        width: 22px;
+        height: 22px;
     }
-    @keyframes fabPulse {
-        0% { box-shadow: 0 4px 18px rgba(16, 185, 129, 0.5); }
-        50% { box-shadow: 0 4px 25px rgba(16, 185, 129, 0.8); }
-        100% { box-shadow: 0 4px 18px rgba(16, 185, 129, 0.5); }
+
+    .icon-add-course {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .icon-add-semester {
+        background: rgba(139, 92, 246, 0.15);
+        color: #a78bfa;
+        border: 1px solid rgba(139, 92, 246, 0.25);
+    }
+    .icon-save-pdf {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .botnav-action-text {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+    .botnav-action-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-family: 'Outfit', sans-serif;
+    }
+    .botnav-action-desc {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        line-height: 1.25;
+    }
+    .botnav-action-arrow {
+        color: var(--text-secondary);
+        width: 18px;
+        height: 18px;
+        opacity: 0.6;
+        transition: transform 0.2s;
+    }
+    .botnav-action-item:active .botnav-action-arrow {
+        transform: translateX(3px);
+        opacity: 1;
+        color: var(--primary);
     }
 
     /* 12. Chart Card styling */
