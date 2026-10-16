@@ -13,7 +13,6 @@ function initMobile() {
     
     setupDrawer();
     setupBottomNavigation();
-    setupBotnavActions();
     setupQuickActions();
     setupSettingsGroup();
     setupCarouselSwipeListeners();
@@ -331,8 +330,7 @@ function setupQuickActions() {
     
     document.getElementById('mobile-action-add-semester').addEventListener('click', handleAddSemesterAction);
     document.getElementById('mobile-add-semester-text-btn').addEventListener('click', handleAddSemesterAction);
-    const mobFab = document.getElementById('mobile-fab');
-    if (mobFab) mobFab.addEventListener('click', handleAddSemesterAction);
+    document.getElementById('mobile-fab').addEventListener('click', handleAddSemesterAction);
     
     document.getElementById('mobile-action-export-pdf').addEventListener('click', () => {
         const btn = document.getElementById('export-pdf');
@@ -462,17 +460,10 @@ function setupBottomNavigation() {
 
     document.querySelectorAll('.botnav-link').forEach(link => {
         link.addEventListener('click', (e) => {
-            if (link.classList.contains('add-btn') || link.id === 'botnav-add') {
+            if (link.classList.contains('add-btn')) {
                 e.preventDefault();
-                if (typeof window.toggleBotnavActionsSheet === 'function') {
-                    window.toggleBotnavActionsSheet();
-                }
+                handleAddCourseQuickAction();
                 return;
-            }
-
-            // Close actions sheet when user navigates
-            if (typeof window.closeBotnavActionsSheet === 'function') {
-                window.closeBotnavActionsSheet();
             }
             
             e.preventDefault();
@@ -513,77 +504,6 @@ function setupBottomNavigation() {
                 }
             }
         });
-    });
-}
- 
-/* 10b. Center Plus Action Sheet (Speed-Dial for Add Course, Add Semester, Save PDF) */
-function setupBotnavActions() {
-    const sheet = document.getElementById('botnav-actions-sheet');
-    const overlay = document.getElementById('botnav-actions-overlay');
-    const addBtn = document.getElementById('botnav-add');
-    const closeBtn = document.getElementById('botnav-actions-close');
-
-    const courseBtn = document.getElementById('botnav-action-add-course');
-    const semesterBtn = document.getElementById('botnav-action-add-semester');
-    const pdfBtn = document.getElementById('botnav-action-save-pdf');
-
-    window.openBotnavActionsSheet = () => {
-        if (sheet) sheet.classList.add('active');
-        if (overlay) overlay.classList.add('active');
-        if (addBtn) addBtn.classList.add('is-open');
-        if (window.lucide) lucide.createIcons();
-    };
-
-    window.closeBotnavActionsSheet = () => {
-        if (sheet) sheet.classList.remove('active');
-        if (overlay) overlay.classList.remove('active');
-        if (addBtn) addBtn.classList.remove('is-open');
-    };
-
-    window.toggleBotnavActionsSheet = () => {
-        if (sheet && sheet.classList.contains('active')) {
-            window.closeBotnavActionsSheet();
-        } else {
-            window.openBotnavActionsSheet();
-        }
-    };
-
-    if (overlay) overlay.addEventListener('click', window.closeBotnavActionsSheet);
-    if (closeBtn) closeBtn.addEventListener('click', window.closeBotnavActionsSheet);
-
-    if (courseBtn) {
-        courseBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.closeBotnavActionsSheet();
-            handleAddCourseQuickAction();
-        });
-    }
-
-    if (semesterBtn) {
-        semesterBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.closeBotnavActionsSheet();
-            handleAddSemesterAction();
-        });
-    }
-
-    if (pdfBtn) {
-        pdfBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.closeBotnavActionsSheet();
-            const btn = document.getElementById('export-pdf') || document.getElementById('mobile-action-export-pdf');
-            if (btn) {
-                btn.click();
-            } else if (typeof window.exportToPDF === 'function') {
-                window.exportToPDF();
-            }
-        });
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            window.closeBotnavActionsSheet();
-        }
     });
 }
 
@@ -656,7 +576,6 @@ function syncNavigationStates() {
     const targetName = activeSection.id.replace('section-', '');
 
     document.querySelectorAll('.botnav-link').forEach(link => {
-        if (link.id === 'botnav-add' || link.classList.contains('add-btn')) return;
         let isActive = link.id === `botnav-${targetName}`;
         if (targetName === 'admin' && link.id === 'botnav-analytics') {
             isActive = true;

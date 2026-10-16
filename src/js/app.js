@@ -1611,6 +1611,12 @@ async function deleteSemester(id) {
 
     // 1. Instant Optimistic UI Update (0ms delay)
     semesters = semesters.filter(s => s.id !== id);
+    try {
+        const savedLevels = JSON.parse(localStorage.getItem('cgpa_semester_levels') || '{}');
+        delete savedLevels[id];
+        if (sem && sem.name) delete savedLevels[sem.name];
+        localStorage.setItem('cgpa_semester_levels', JSON.stringify(savedLevels));
+    } catch (e) {}
     localStorage.setItem('cgpa_semesters', JSON.stringify(semesters));
     renderAll();
     calculateStats();
@@ -2036,13 +2042,13 @@ function openEditSemesterModal(semId) {
     }
 
     modal.style.display = 'block';
-    modalOverlay.style.display = 'block';
+    if (modalOverlay) modalOverlay.style.display = 'block';
 }
 
 function closeEditSemesterModal() {
     const modal = document.getElementById('edit-semester-modal');
     if (modal) modal.style.display = 'none';
-    modalOverlay.style.display = 'none';
+    if (modalOverlay) modalOverlay.style.display = 'none';
 }
 
 function saveEditedSemester() {
