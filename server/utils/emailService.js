@@ -4,6 +4,43 @@ const hasSmtpConfig = () => {
     return Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
 };
 
+const hasEmailService = () => {
+    return Boolean(process.env.RESEND_API_KEY || hasSmtpConfig());
+};
+
+// Resend HTTPS API dispatcher (bypasses Render port 465/587 firewall blocks)
+const sendViaResend = async ({ to, subject, html, bcc }) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return null;
+
+    const from = process.env.RESEND_FROM || 'Spice CGPA Pro <onboarding@resend.dev>';
+    const payload = {
+        from,
+        to: Array.isArray(to) ? to : [to],
+        subject,
+        html
+    };
+
+    if (bcc) {
+        payload.bcc = Array.isArray(bcc) ? bcc : [bcc];
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey.trim()}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || (typeof data === 'object' ? JSON.stringify(data) : 'Resend API error'));
+    }
+    return data;
+};
+
 const getTransporter = () => {
     const user = (process.env.SMTP_USER || '').trim();
     const rawPass = process.env.SMTP_PASS || '';
@@ -40,7 +77,7 @@ const getFromEmail = () => {
 };
 
 const sendResetEmail = async (email, resetUrl) => {
-    if (!hasSmtpConfig()) {
+    if (!hasEmailService()) {
         console.log('\n==================================================');
         console.log(`🔑 PASSWORD RESET REQUEST (SIMULATED)`);
         console.log(`To: ${email}`);
@@ -53,49 +90,68 @@ const sendResetEmail = async (email, resetUrl) => {
         };
     }
 
-    const transporter = getTransporter();
-
-    const mailOptions = {
-        from: getFromEmail(),
-        to: email,
-        subject: 'Spice CGPA Pro - Password Reset Request',
-        html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 2rem;">🎓</div>
-                    <h2 style="color: #059669; margin: 6px 0 0; font-weight: 800;">Spice CGPA Pro</h2>
-                </div>
-                <h3 style="color: #1e293b; margin-top: 0;">Password Reset Request</h3>
-                <p style="color: #475569; line-height: 1.6;">Hello,</p>
-                <p style="color: #475569; line-height: 1.6;">You are receiving this email because a password reset was requested for your Spice CGPA Pro account.</p>
-                <p style="color: #475569; line-height: 1.6;">Please click the button below to reset your password. This link is valid for 1 hour:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetUrl}" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Reset Password</a>
-                </div>
-                <p style="word-break: break-all; color: #64748b; font-size: 0.85rem; line-height: 1.5;">
-                    If the button does not work, copy and paste this link: <br>
-                    <a href="${resetUrl}" style="color: #059669;">${resetUrl}</a>
-                </p>
-                <p style="color: #94a3b8; font-size: 0.85rem;">If you did not request this, please ignore this email and your password will remain unchanged.</p>
-                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-                <p style="color: #94a3b8; font-size: 0.75rem; text-align: center;">Spice CGPA Pro — Your Premium Academic Companion</p>
+    const htmlContent = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 2rem;">🎓</div>
+                <h2 style="color: #059669; margin: 6px 0 0; font-weight: 800;">Spice CGPA Pro</h2>
             </div>
-        `,
-    };
+            <h3 style="color: #1e293b; margin-top: 0;">Password Reset Request</h3>
+            <p style="color: #475569; line-height: 1.6;">Hello,</p>
+            <p style="color: #475569; line-height: 1.6;">You are receiving this email because a password reset was requested for your Spice CGPA Pro account.</p>
+            <p style="color: #475569; line-height: 1.6;">Please click the button below to reset your password. This link is valid for 1 hour:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Reset Password</a>
+            </div>
+            <p style="word-break: break-all; color: #64748b; font-size: 0.85rem; line-height: 1.5;">
+                If the button does not work, copy and paste this link: <br>
+                <a href="${resetUrl}" style="color: #059669;">${resetUrl}</a>
+            </p>
+            <p style="color: #94a3b8; font-size: 0.85rem;">If you did not request this, please ignore this email and your password will remain unchanged.</p>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+            <p style="color: #94a3b8; font-size: 0.75rem; text-align: center;">Spice CGPA Pro — Your Premium Academic Companion</p>
+        </div>
+    `;
 
-    await transporter.sendMail(mailOptions);
-    return { success: true, simulated: false };
+    // 1. Try Resend HTTPS API first
+    if (process.env.RESEND_API_KEY) {
+        try {
+            const resendResult = await sendViaResend({
+                to: email,
+                subject: 'Spice CGPA Pro - Password Reset Request',
+                html: htmlContent
+            });
+            console.log(`🔑 Reset email sent via Resend HTTPS to ${email} (ID: ${resendResult.id})`);
+            return { success: true, simulated: false, provider: 'resend', messageId: resendResult.id };
+        } catch (resendErr) {
+            console.warn(`⚠️ Resend HTTPS reset error: ${resendErr.message}. Attempting SMTP fallback...`);
+        }
+    }
+
+    // 2. SMTP fallback
+    if (hasSmtpConfig()) {
+        const transporter = getTransporter();
+        const mailOptions = {
+            from: getFromEmail(),
+            to: email,
+            subject: 'Spice CGPA Pro - Password Reset Request',
+            html: htmlContent
+        };
+        await transporter.sendMail(mailOptions);
+        return { success: true, simulated: false, provider: 'smtp' };
+    }
+
+    return { success: true, simulated: true, url: resetUrl };
 };
 
 const sendWelcomeEmail = async (email, userName, options = {}) => {
-    const hasSmtp = hasSmtpConfig();
     const cleanName = (userName || 'Scholar').trim();
     const usernameHandle = options.username ? options.username.trim() : '';
     const frontendUrl = options.frontendUrl || process.env.FRONTEND_URL || 'https://cgpa-counter.vercel.app';
     const dashboardUrl = `${frontendUrl.replace(/\/$/, '')}/dashboard.html`;
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
 
-    if (!hasSmtp) {
+    if (!hasEmailService()) {
         console.log('\n==================================================');
         console.log(`🎉 WELCOME EMAIL (SIMULATED)`);
         console.log(`To: ${email}`);
@@ -104,8 +160,6 @@ const sendWelcomeEmail = async (email, userName, options = {}) => {
         console.log('==================================================\n');
         return { success: true, simulated: true };
     }
-
-    const transporter = getTransporter();
 
     const usernameHtml = usernameHandle ? `
         <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; border-radius: 8px; padding: 14px 18px; margin: 20px 0;">
@@ -214,28 +268,49 @@ const sendWelcomeEmail = async (email, userName, options = {}) => {
         </html>
     `;
 
-    const mailOptions = {
-        from: getFromEmail(),
-        to: email,
-        subject: 'Welcome to Spice CGPA Pro! 🎓 Track, Analyze & Excel',
-        html: htmlContent
-    };
-
-    if (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) {
-        mailOptions.bcc = adminEmail;
+    // 1. Try Resend HTTPS API first
+    if (process.env.RESEND_API_KEY) {
+        try {
+            const resendResult = await sendViaResend({
+                to: email,
+                subject: 'Welcome to Spice CGPA Pro! 🎓 Track, Analyze & Excel',
+                html: htmlContent,
+                bcc: (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) ? adminEmail : undefined
+            });
+            console.log(`📨 Welcome email sent via Resend HTTPS to ${email} (ID: ${resendResult.id})`);
+            return { success: true, simulated: false, provider: 'resend', messageId: resendResult.id };
+        } catch (resendErr) {
+            console.warn(`⚠️ Resend HTTPS delivery error: ${resendErr.message}. Attempting SMTP fallback...`);
+        }
     }
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`📨 Welcome email sent successfully to ${email} (MessageID: ${info.messageId})`);
-    return { success: true, simulated: false, messageId: info.messageId };
+    // 2. SMTP fallback
+    if (hasSmtpConfig()) {
+        const transporter = getTransporter();
+        const mailOptions = {
+            from: getFromEmail(),
+            to: email,
+            subject: 'Welcome to Spice CGPA Pro! 🎓 Track, Analyze & Excel',
+            html: htmlContent
+        };
+
+        if (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) {
+            mailOptions.bcc = adminEmail;
+        }
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`📨 Welcome email sent via SMTP to ${email} (MessageID: ${info.messageId})`);
+        return { success: true, simulated: false, provider: 'smtp', messageId: info.messageId };
+    }
+
+    return { success: true, simulated: true };
 };
 
 const sendLoginNotification = async (email, userName, ipAddress = 'Unknown IP', userAgent = 'Unknown Device') => {
-    const hasSmtp = hasSmtpConfig();
     const timeString = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
     const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
 
-    if (!hasSmtp) {
+    if (!hasEmailService()) {
         console.log('\n==================================================');
         console.log(`🔔 LOGIN NOTIFICATION (SIMULATED)`);
         console.log(`To (User): ${email}`);
@@ -251,51 +326,73 @@ const sendLoginNotification = async (email, userName, ipAddress = 'Unknown IP', 
         };
     }
 
-    const transporter = getTransporter();
-
-    const mailOptions = {
-        from: getFromEmail(),
-        to: email,
-        subject: 'Spice CGPA Pro - New Login Detected',
-        html: `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 2rem;">🛡️</div>
-                    <h2 style="color: #059669; margin: 6px 0 0; font-weight: 800;">Spice CGPA Pro</h2>
-                    <h3 style="color: #1e293b; margin-top: 6px;">New Login Alert</h3>
-                </div>
-                <p style="color: #475569; line-height: 1.6;">Hello ${userName},</p>
-                <p style="color: #475569; line-height: 1.6;">We detected a new sign-in to your Spice CGPA Pro account.</p>
-                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 20px 0;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 6px 0; color: #64748b; font-weight: bold; width: 110px;">Date/Time:</td>
-                            <td style="padding: 6px 0; color: #1e293b;">${timeString}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 6px 0; color: #64748b; font-weight: bold;">IP Address:</td>
-                            <td style="padding: 6px 0; color: #1e293b;">${ipAddress}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 6px 0; color: #64748b; font-weight: bold;">Device:</td>
-                            <td style="padding: 6px 0; color: #1e293b;">${userAgent}</td>
-                        </tr>
-                    </table>
-                </div>
-                <p style="color: #64748b; font-size: 0.9rem;">If this was you, you can safely ignore this email.</p>
-                <p style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">If you did not log in, please reset your password immediately to secure your account.</p>
-                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-                <p style="color: #94a3b8; font-size: 0.75rem; text-align: center;">Spice CGPA Pro — Your Premium Academic Companion</p>
+    const htmlContent = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 2rem;">🛡️</div>
+                <h2 style="color: #059669; margin: 6px 0 0; font-weight: 800;">Spice CGPA Pro</h2>
+                <h3 style="color: #1e293b; margin-top: 6px;">New Login Alert</h3>
             </div>
-        `,
-    };
+            <p style="color: #475569; line-height: 1.6;">Hello ${userName},</p>
+            <p style="color: #475569; line-height: 1.6;">We detected a new sign-in to your Spice CGPA Pro account.</p>
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 6px 0; color: #64748b; font-weight: bold; width: 110px;">Date/Time:</td>
+                        <td style="padding: 6px 0; color: #1e293b;">${timeString}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #64748b; font-weight: bold;">IP Address:</td>
+                        <td style="padding: 6px 0; color: #1e293b;">${ipAddress}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #64748b; font-weight: bold;">Device:</td>
+                        <td style="padding: 6px 0; color: #1e293b;">${userAgent}</td>
+                    </tr>
+                </table>
+            </div>
+            <p style="color: #64748b; font-size: 0.9rem;">If this was you, you can safely ignore this email.</p>
+            <p style="color: #ef4444; font-weight: bold; font-size: 0.9rem;">If you did not log in, please reset your password immediately to secure your account.</p>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+            <p style="color: #94a3b8; font-size: 0.75rem; text-align: center;">Spice CGPA Pro — Your Premium Academic Companion</p>
+        </div>
+    `;
 
-    if (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) {
-        mailOptions.bcc = adminEmail;
+    // 1. Try Resend HTTPS API first
+    if (process.env.RESEND_API_KEY) {
+        try {
+            const resendResult = await sendViaResend({
+                to: email,
+                subject: 'Spice CGPA Pro - New Login Detected',
+                html: htmlContent,
+                bcc: (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) ? adminEmail : undefined
+            });
+            console.log(`🔔 Login notification sent via Resend HTTPS to ${email} (ID: ${resendResult.id})`);
+            return { success: true, simulated: false, provider: 'resend', messageId: resendResult.id };
+        } catch (resendErr) {
+            console.warn(`⚠️ Resend HTTPS login alert error: ${resendErr.message}. Attempting SMTP fallback...`);
+        }
     }
 
-    await transporter.sendMail(mailOptions);
-    return { success: true, simulated: false };
+    // 2. SMTP fallback
+    if (hasSmtpConfig()) {
+        const transporter = getTransporter();
+        const mailOptions = {
+            from: getFromEmail(),
+            to: email,
+            subject: 'Spice CGPA Pro - New Login Detected',
+            html: htmlContent
+        };
+
+        if (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) {
+            mailOptions.bcc = adminEmail;
+        }
+
+        await transporter.sendMail(mailOptions);
+        return { success: true, simulated: false, provider: 'smtp' };
+    }
+
+    return { success: true, simulated: true };
 };
 
 module.exports = {
