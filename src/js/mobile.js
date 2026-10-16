@@ -99,7 +99,8 @@ function updateWelcomeCard() {
     }
     
     if (deptEl) deptEl.textContent = studentProfile.department || 'Department';
-    if (sessionEl) sessionEl.textContent = (studentProfile.session || 'Academic') + ' Session';
+    const currentMobSession = (studentProfile.session && studentProfile.session !== '2023/2024' && studentProfile.session !== '2024/2025') ? studentProfile.session : '2026/2027';
+    if (sessionEl) sessionEl.textContent = currentMobSession + ' Session';
     
     const initials = profileName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'S';
     

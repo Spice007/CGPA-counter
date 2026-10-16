@@ -233,7 +233,8 @@
                             }
                         }
 
-                        var sess = p.session || u.academicSession || '2023/2024';
+                        var sess = p.session || u.academicSession || '2026/2027';
+                        if (sess === '2023/2024' || sess === '2024/2025') sess = '2026/2027';
                         var uni = p.uni || u.university || 'Set your university';
                         var uname = (p.username || u.username || '').trim();
 
@@ -288,7 +289,8 @@
                                 }
                             }
                             var uni = p.uni || u.university || '';
-                            var sess = p.session || '2023/2024';
+                            var sess = p.session || '2026/2027';
+                            if (sess === '2023/2024' || sess === '2024/2025') sess = '2026/2027';
                             var uniEl = document.getElementById('dashboard-uni-info');
                             if (uniEl) {
                                 var uniStr = uni ? uni : 'Set your university';
@@ -531,7 +533,9 @@
                             var deptEl = document.getElementById('mobile-student-dept');
                             if (deptEl) deptEl.textContent = p.department || u.department || 'Department';
                             var sessEl = document.getElementById('mobile-student-session');
-                            if (sessEl) sessEl.textContent = (p.session || '2023/2024') + ' Session';
+                            var mobileSess = p.session || '2026/2027';
+                            if (mobileSess === '2023/2024' || mobileSess === '2024/2025') mobileSess = '2026/2027';
+                            if (sessEl) sessEl.textContent = mobileSess + ' Session';
                         } catch(e) {}
                     })();
                 </script>
@@ -1220,7 +1224,7 @@
         </div>
         <div class="input-group">
             <label class="input-label">Academic Session</label>
-            <input type="text" id="modal-session" placeholder="e.g. 2023/2024">
+            <input type="text" id="modal-session" placeholder="e.g. 2026/2027">
         </div>
         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
             <button id="uni-modal-cancel" class="btn glass-card" style="flex: 1; color: var(--danger);">Cancel</button>
@@ -1292,7 +1296,7 @@
         
         <div class="input-group">
             <label class="input-label">Academic Session</label>
-            <input type="text" id="edit-semester-session" placeholder="e.g. 2024/2025">
+            <input type="text" id="edit-semester-session" placeholder="e.g. 2026/2027">
         </div>
 
         <div class="input-group">
