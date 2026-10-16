@@ -621,7 +621,7 @@ window.closeResetPwModal = closeResetPwModal;
 
 function setupEventListeners() {
     document.getElementById('add-semester-btn').addEventListener('click', () => {
-        let newSession = (studentProfile && studentProfile.session) || '2023/2024';
+        let newSession = (studentProfile && studentProfile.session) || '2026/2027';
         let newSemType = 'First Semester';
 
         let newLevel = 100;
@@ -629,7 +629,7 @@ function setupEventListeners() {
         if (semesters.length > 0) {
             const lastSem = semesters[semesters.length - 1];
             const parts = (lastSem.name || '').split(' - ');
-            const lastSession = parts.length > 1 ? parts[0].trim() : ((studentProfile && studentProfile.session) || '2023/2024');
+            const lastSession = parts.length > 1 ? parts[0].trim() : ((studentProfile && studentProfile.session) || '2026/2027');
             const isLastSecond = /Second|2nd/i.test(lastSem.name);
             const lastLevel = (typeof getSemesterLevel === 'function') ? getSemesterLevel(lastSem, semesters.length - 1, semesters) : (lastSem.level || 100);
             const numLastLevel = parseInt(lastLevel) || 100;
