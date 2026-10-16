@@ -98,10 +98,16 @@
 
     <!-- Mobile Quick Actions Speed-Dial / Action Sheet -->
     <div class="botnav-actions-overlay" id="botnav-actions-overlay"></div>
-    <div class="botnav-actions-sheet glass" id="botnav-actions-sheet" role="dialog" aria-modal="true" aria-label="Quick Actions">
+    <div class="botnav-actions-sheet" id="botnav-actions-sheet" role="dialog" aria-modal="true" aria-label="Quick Actions">
         <div class="botnav-actions-handle"></div>
         <div class="botnav-actions-sheet-header">
-            <span class="botnav-actions-sheet-title">Quick Actions</span>
+            <div class="botnav-sheet-title-group">
+                <div class="botnav-sheet-pill">
+                    <i data-lucide="sparkles"></i>
+                    <span>Shortcuts</span>
+                </div>
+                <h3 class="botnav-actions-sheet-title">Quick Actions</h3>
+            </div>
             <button type="button" class="botnav-actions-sheet-close" id="botnav-actions-close" aria-label="Close actions">
                 <i data-lucide="x"></i>
             </button>
@@ -113,8 +119,9 @@
                 </div>
                 <div class="botnav-action-text">
                     <div class="botnav-action-title">Add Course</div>
-                    <div class="botnav-action-desc">Add a new course to your current semester</div>
+                    <div class="botnav-action-desc">Enroll subject & units for current semester</div>
                 </div>
+                <span class="botnav-action-tag tag-course">Course</span>
                 <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
             </button>
 
@@ -124,8 +131,9 @@
                 </div>
                 <div class="botnav-action-text">
                     <div class="botnav-action-title">Add Semester</div>
-                    <div class="botnav-action-desc">Start a new academic semester / session</div>
+                    <div class="botnav-action-desc">Start a new term or academic session</div>
                 </div>
+                <span class="botnav-action-tag tag-semester">Term</span>
                 <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
             </button>
 
@@ -134,9 +142,10 @@
                     <i data-lucide="file-down"></i>
                 </div>
                 <div class="botnav-action-text">
-                    <div class="botnav-action-title">Save PDF</div>
-                    <div class="botnav-action-desc">Download complete result slip & CGPA summary</div>
+                    <div class="botnav-action-title">Save PDF Report</div>
+                    <div class="botnav-action-desc">Download official results & CGPA summary</div>
                 </div>
+                <span class="botnav-action-tag tag-pdf">Export</span>
                 <i data-lucide="chevron-right" class="botnav-action-arrow"></i>
             </button>
         </div>

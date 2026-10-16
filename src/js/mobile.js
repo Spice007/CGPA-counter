@@ -579,6 +579,12 @@ function setupBotnavActions() {
             }
         });
     }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            window.closeBotnavActionsSheet();
+        }
+    });
 }
 
 /* 11. Grouped Settings Interaction */

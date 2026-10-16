@@ -866,13 +866,13 @@
         display: block !important;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.65);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
+        background: rgba(6, 10, 20, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         z-index: 105;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .botnav-actions-overlay.active {
         opacity: 1;
@@ -884,22 +884,23 @@
         flex-direction: column;
         position: fixed;
         bottom: 96px;
-        left: 16px;
-        right: 16px;
+        left: 14px;
+        right: 14px;
         max-width: 440px;
         margin: 0 auto;
-        background: rgba(14, 20, 36, 0.96);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 30px rgba(16, 185, 129, 0.12);
-        border-radius: 24px;
-        padding: 0.85rem 1.25rem 1.25rem;
+        background: linear-gradient(180deg, rgba(20, 26, 44, 0.97) 0%, rgba(11, 15, 27, 0.98) 100%);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.24);
+        box-shadow: 0 24px 60px -8px rgba(0, 0, 0, 0.75), 0 0 1px 1px rgba(255, 255, 255, 0.05), 0 0 35px rgba(16, 185, 129, 0.12);
+        border-radius: 26px;
+        padding: 0.9rem 1.15rem 1.15rem;
         z-index: 106;
         opacity: 0;
-        transform: translateY(20px) scale(0.96);
+        transform: translateY(24px) scale(0.95);
         pointer-events: none;
-        transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.15), opacity 0.22s ease;
+        transition: transform 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.15), opacity 0.24s ease;
     }
     .botnav-actions-sheet.active {
         opacity: 1;
@@ -908,35 +909,70 @@
     }
 
     [data-theme="light"] .botnav-actions-sheet {
-        background: rgba(255, 255, 255, 0.96);
-        border-color: rgba(0, 0, 0, 0.1);
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(16, 185, 129, 0.1);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 248, 252, 0.99) 100%);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.85);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.06);
     }
 
     .botnav-actions-handle {
-        width: 38px;
+        width: 36px;
         height: 4px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.22);
+        border-radius: 999px;
         margin: 0 auto 0.75rem auto;
     }
     [data-theme="light"] .botnav-actions-handle {
-        background: rgba(0, 0, 0, 0.15);
+        background: rgba(0, 0, 0, 0.14);
     }
 
     .botnav-actions-sheet-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.85rem;
+        margin-bottom: 0.9rem;
+        padding-bottom: 0.65rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
+    [data-theme="light"] .botnav-actions-sheet-header {
+        border-bottom-color: rgba(0, 0, 0, 0.06);
+    }
+
+    .botnav-sheet-title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .botnav-sheet-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--primary);
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        width: fit-content;
+    }
+    .botnav-sheet-pill svg {
+        width: 11px;
+        height: 11px;
+    }
+
     .botnav-actions-sheet-title {
         font-family: 'Outfit', sans-serif;
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: 800;
         color: var(--text-primary);
-        letter-spacing: -0.01em;
+        letter-spacing: -0.015em;
+        margin: 0;
     }
+
     .botnav-actions-sheet-close {
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -948,11 +984,16 @@
         justify-content: center;
         color: var(--text-secondary);
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    [data-theme="light"] .botnav-actions-sheet-close {
+        background: rgba(0, 0, 0, 0.04);
+        border-color: rgba(0, 0, 0, 0.08);
     }
     .botnav-actions-sheet-close:active {
         transform: scale(0.9);
         background: rgba(255, 255, 255, 0.15);
+        color: var(--text-primary);
     }
     .botnav-actions-sheet-close svg {
         width: 16px;
@@ -968,60 +1009,90 @@
     .botnav-action-item {
         display: flex;
         align-items: center;
-        gap: 0.9rem;
+        gap: 0.85rem;
         padding: 0.85rem 1rem;
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.035);
         border: 1px solid rgba(255, 255, 255, 0.07);
-        border-radius: 16px;
+        border-radius: 18px;
         text-align: left;
         cursor: pointer;
         width: 100%;
         color: inherit;
         text-decoration: none;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
     [data-theme="light"] .botnav-action-item {
         background: rgba(0, 0, 0, 0.02);
         border-color: rgba(0, 0, 0, 0.06);
     }
+    .botnav-action-item::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), transparent);
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .botnav-action-item:hover,
     .botnav-action-item:active {
-        transform: scale(0.98);
+        transform: translateY(-1px) scale(0.99);
+        border-color: rgba(255, 255, 255, 0.18);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+    .botnav-action-item:active::before {
+        opacity: 1;
+    }
+    #botnav-action-add-course:active {
+        border-color: rgba(16, 185, 129, 0.4);
         background: rgba(16, 185, 129, 0.08);
-        border-color: rgba(16, 185, 129, 0.3);
+    }
+    #botnav-action-add-semester:active {
+        border-color: rgba(139, 92, 246, 0.4);
+        background: rgba(139, 92, 246, 0.08);
+    }
+    #botnav-action-save-pdf:active {
+        border-color: rgba(245, 158, 11, 0.4);
+        background: rgba(245, 158, 11, 0.08);
     }
 
     .botnav-action-icon {
         width: 44px;
         height: 44px;
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        transition: transform 0.2s;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .botnav-action-item:active .botnav-action-icon {
-        transform: scale(1.05);
+        transform: scale(1.08);
     }
     .botnav-action-icon svg {
-        width: 22px;
-        height: 22px;
+        width: 21px;
+        height: 21px;
+        stroke-width: 2.2;
     }
 
     .icon-add-course {
-        background: rgba(16, 185, 129, 0.15);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(5, 150, 105, 0.12) 100%);
         color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.25);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
     }
     .icon-add-semester {
-        background: rgba(139, 92, 246, 0.15);
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.22) 0%, rgba(109, 40, 217, 0.12) 100%);
         color: #a78bfa;
-        border: 1px solid rgba(139, 92, 246, 0.25);
+        border: 1px solid rgba(139, 92, 246, 0.35);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
     }
     .icon-save-pdf {
-        background: rgba(245, 158, 11, 0.15);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.22) 0%, rgba(217, 119, 6, 0.12) 100%);
         color: #fbbf24;
-        border: 1px solid rgba(245, 158, 11, 0.25);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
     }
 
     .botnav-action-text {
@@ -1029,25 +1100,58 @@
         display: flex;
         flex-direction: column;
         gap: 0.15rem;
+        min-width: 0;
     }
     .botnav-action-title {
         font-size: 0.95rem;
         font-weight: 700;
         color: var(--text-primary);
         font-family: 'Outfit', sans-serif;
+        letter-spacing: -0.01em;
     }
     .botnav-action-desc {
-        font-size: 0.75rem;
+        font-size: 0.73rem;
         color: var(--text-secondary);
         line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
+
+    .botnav-action-tag {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+    .tag-course {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .tag-semester {
+        color: #a78bfa;
+        background: rgba(139, 92, 246, 0.12);
+        border: 1px solid rgba(139, 92, 246, 0.25);
+    }
+    .tag-pdf {
+        color: #fbbf24;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
     .botnav-action-arrow {
         color: var(--text-secondary);
-        width: 18px;
-        height: 18px;
-        opacity: 0.6;
-        transition: transform 0.2s;
+        width: 16px;
+        height: 16px;
+        opacity: 0.5;
+        flex-shrink: 0;
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s;
     }
+    .botnav-action-item:hover .botnav-action-arrow,
     .botnav-action-item:active .botnav-action-arrow {
         transform: translateX(3px);
         opacity: 1;
