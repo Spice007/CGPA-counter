@@ -5,7 +5,41 @@ const hasSmtpConfig = () => {
 };
 
 const hasEmailService = () => {
-    return Boolean(process.env.RESEND_API_KEY || hasSmtpConfig());
+    return Boolean(process.env.BREVO_API_KEY || process.env.RESEND_API_KEY || hasSmtpConfig());
+};
+
+// Brevo HTTPS API dispatcher (free 300 emails/day to ANY recipient without custom domain, port 443)
+const sendViaBrevo = async ({ to, subject, html, bcc }) => {
+    const apiKey = process.env.BREVO_API_KEY;
+    if (!apiKey) return null;
+
+    const senderEmail = process.env.BREVO_SENDER || process.env.SMTP_USER || 'gideonlastgids@gmail.com';
+    const payload = {
+        sender: { name: 'Spice CGPA Pro', email: senderEmail.trim() },
+        to: (Array.isArray(to) ? to : [to]).map(addr => ({ email: addr })),
+        subject,
+        htmlContent: html
+    };
+
+    if (bcc) {
+        payload.bcc = (Array.isArray(bcc) ? bcc : [bcc]).map(addr => ({ email: addr }));
+    }
+
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+            'api-key': apiKey.trim(),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+        throw new Error(data.message || (typeof data === 'object' ? JSON.stringify(data) : 'Brevo API error'));
+    }
+    return data;
 };
 
 // Resend HTTPS API dispatcher (bypasses Render port 465/587 firewall blocks)
@@ -113,7 +147,22 @@ const sendResetEmail = async (email, resetUrl) => {
         </div>
     `;
 
-    // 1. Try Resend HTTPS API first
+    // 1. Try Brevo HTTPS API first (delivers to ANY recipient without domain verification)
+    if (process.env.BREVO_API_KEY) {
+        try {
+            const brevoResult = await sendViaBrevo({
+                to: email,
+                subject: 'Spice CGPA Pro - Password Reset Request',
+                html: htmlContent
+            });
+            console.log(`🔑 Reset email sent via Brevo HTTPS to ${email} (ID: ${brevoResult.messageId || 'ok'})`);
+            return { success: true, simulated: false, provider: 'brevo', messageId: brevoResult.messageId };
+        } catch (brevoErr) {
+            console.warn(`⚠️ Brevo HTTPS reset error: ${brevoErr.message}. Attempting Resend/SMTP...`);
+        }
+    }
+
+    // 2. Try Resend HTTPS API (delivers to gideonlastgids@gmail.com or verified custom domain)
     if (process.env.RESEND_API_KEY) {
         try {
             const resendResult = await sendViaResend({
@@ -268,7 +317,23 @@ const sendWelcomeEmail = async (email, userName, options = {}) => {
         </html>
     `;
 
-    // 1. Try Resend HTTPS API first
+    // 1. Try Brevo HTTPS API first (delivers to ANY recipient without domain verification)
+    if (process.env.BREVO_API_KEY) {
+        try {
+            const brevoResult = await sendViaBrevo({
+                to: email,
+                subject: 'Welcome to Spice CGPA Pro! 🎓 Track, Analyze & Excel',
+                html: htmlContent,
+                bcc: (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) ? adminEmail : undefined
+            });
+            console.log(`📨 Welcome email sent via Brevo HTTPS to ${email} (ID: ${brevoResult.messageId || 'ok'})`);
+            return { success: true, simulated: false, provider: 'brevo', messageId: brevoResult.messageId };
+        } catch (brevoErr) {
+            console.warn(`⚠️ Brevo HTTPS delivery error: ${brevoErr.message}. Attempting Resend/SMTP...`);
+        }
+    }
+
+    // 2. Try Resend HTTPS API (delivers to gideonlastgids@gmail.com or verified custom domain)
     if (process.env.RESEND_API_KEY) {
         try {
             const resendResult = await sendViaResend({
@@ -358,7 +423,23 @@ const sendLoginNotification = async (email, userName, ipAddress = 'Unknown IP', 
         </div>
     `;
 
-    // 1. Try Resend HTTPS API first
+    // 1. Try Brevo HTTPS API first (delivers to ANY recipient without domain verification)
+    if (process.env.BREVO_API_KEY) {
+        try {
+            const brevoResult = await sendViaBrevo({
+                to: email,
+                subject: 'Spice CGPA Pro - New Login Detected',
+                html: htmlContent,
+                bcc: (adminEmail && adminEmail.toLowerCase() !== email.toLowerCase()) ? adminEmail : undefined
+            });
+            console.log(`🔔 Login notification sent via Brevo HTTPS to ${email} (ID: ${brevoResult.messageId || 'ok'})`);
+            return { success: true, simulated: false, provider: 'brevo', messageId: brevoResult.messageId };
+        } catch (brevoErr) {
+            console.warn(`⚠️ Brevo HTTPS login alert error: ${brevoErr.message}. Attempting Resend/SMTP...`);
+        }
+    }
+
+    // 2. Try Resend HTTPS API (delivers to gideonlastgids@gmail.com or verified custom domain)
     if (process.env.RESEND_API_KEY) {
         try {
             const resendResult = await sendViaResend({
