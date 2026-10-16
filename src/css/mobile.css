@@ -871,17 +871,17 @@
         display: none !important;
         flex-direction: column;
         position: fixed;
-        bottom: 96px;
-        left: 16px;
-        right: 16px;
-        max-width: 440px;
+        bottom: 92px;
+        left: 20px;
+        right: 20px;
+        max-width: 300px;
         margin: 0 auto;
         background: #111827;
         border: 1px solid #1f2937;
-        border-radius: 16px;
-        padding: 1rem;
+        border-radius: 14px;
+        padding: 0.6rem 0.75rem 0.75rem;
         z-index: 106;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
     }
     .botnav-actions-sheet.active {
         display: flex !important;
@@ -890,15 +890,15 @@
     [data-theme="light"] .botnav-actions-sheet {
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
 
     .botnav-actions-sheet-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.5rem;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.35rem;
         border-bottom: 1px solid #1f2937;
     }
     [data-theme="light"] .botnav-actions-sheet-header {
@@ -907,125 +907,72 @@
 
     .botnav-actions-sheet-title {
         font-family: 'Outfit', sans-serif;
-        font-size: 1.05rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: var(--text-primary);
         margin: 0;
     }
 
     .botnav-actions-sheet-close {
-        background: #1f2937;
-        border: 1px solid #374151;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
+        background: transparent;
+        border: none;
+        width: 26px;
+        height: 26px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--text-secondary);
         cursor: pointer;
+        padding: 0;
     }
-    [data-theme="light"] .botnav-actions-sheet-close {
-        background: #f3f4f6;
-        border-color: #e5e7eb;
+    .botnav-actions-sheet-close:active {
+        color: var(--text-primary);
     }
     .botnav-actions-sheet-close svg {
         width: 16px;
         height: 16px;
     }
 
-    .botnav-actions-sheet-list {
+    .botnav-actions-container {
         display: flex;
         flex-direction: column;
-        gap: 0.6rem;
-    }
-
-    .botnav-action-item {
-        display: flex;
-        align-items: center;
-        gap: 0.85rem;
-        padding: 0.75rem 0.9rem;
         background: #1f2937;
         border: 1px solid #374151;
-        border-radius: 12px;
-        text-align: left;
-        cursor: pointer;
-        width: 100%;
-        color: inherit;
-        text-decoration: none;
+        border-radius: 10px;
+        overflow: hidden;
     }
-    [data-theme="light"] .botnav-action-item {
+    [data-theme="light"] .botnav-actions-container {
         background: #f9fafb;
         border-color: #e5e7eb;
     }
-    .botnav-action-item:active {
-        background: #374151;
-    }
-    [data-theme="light"] .botnav-action-item:active {
-        background: #f3f4f6;
-    }
 
-    .botnav-action-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .botnav-action-icon svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .icon-add-course {
-        background: #064e3b;
-        color: #34d399;
-    }
-    [data-theme="light"] .icon-add-course {
-        background: #d1fae5;
-        color: #059669;
-    }
-
-    .icon-add-semester {
-        background: #4c1d95;
-        color: #c4b5fd;
-    }
-    [data-theme="light"] .icon-add-semester {
-        background: #ede9fe;
-        color: #7c3aed;
-    }
-
-    .icon-save-pdf {
-        background: #78350f;
-        color: #fcd34d;
-    }
-    [data-theme="light"] .icon-save-pdf {
-        background: #fef3c7;
-        color: #d97706;
-    }
-
-    .botnav-action-text {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.1rem;
-        min-width: 0;
-    }
-    .botnav-action-title {
-        font-size: 0.95rem;
-        font-weight: 700;
+    .botnav-action-row {
+        display: block;
+        width: 100%;
+        padding: 0.6rem 0.85rem;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #374151;
         color: var(--text-primary);
         font-family: 'Outfit', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
     }
-    .botnav-action-desc {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        line-height: 1.25;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .botnav-action-row:last-child {
+        border-bottom: none;
+    }
+    .botnav-action-row:active {
+        background: #374151;
+        color: var(--primary);
+    }
+    [data-theme="light"] .botnav-action-row {
+        border-bottom-color: #e5e7eb;
+    }
+    [data-theme="light"] .botnav-action-row:active {
+        background: #e5e7eb;
+        color: var(--primary);
     }
 
     /* 12. Chart Card styling */
